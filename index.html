@@ -1,65 +1,70 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Local Shop Order</title>
+    <title>Local Shop Order</title>
 </head>
 
 <body>
 
-<h2>Order Food</h2>
+    <h2>Local Shop Order</h2>
 
-Name:
-<input id="name"><br><br>
+    Name:
+    <input id="name"><br><br>
 
-Phone:
-<input id="phone"><br><br>
+    Phone:
+    <input id="phone"><br><br>
 
-Product:
-<select id="product">
-<option>Puff</option>
-<option>Samosa</option>
-<option>Tea</option>
-</select><br><br>
+    Product:
+    <select id="product">
+        <option>Puff</option>
+        <option>Samosa</option>
+        <option>Tea</option>
+    </select><br><br>
 
-Quantity:
-<input id="qty" type="number"><br><br>
+    Quantity:
+    <input id="qty" type="number"><br><br>
 
-<button onclick="order()">Place Order</button>
+    <button onclick="placeOrder()">Place Order</button>
 
-<script type="module">
+    <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "YOUR_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT"
-};
+        const firebaseConfig = {
+            apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
+            authDomain: "local-shop-orders-d48d0.firebaseapp.com",
+            projectId: "local-shop-orders-d48d0",
+            storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
+            messagingSenderId: "750524308284",
+            appId: "1:750524308284:web:d2a047c93580635e4e5c39"
+        };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-window.order = async function(){
+        window.placeOrder = async function () {
 
-const name = document.getElementById("name").value;
-const phone = document.getElementById("phone").value;
-const product = document.getElementById("product").value;
-const qty = document.getElementById("qty").value;
+            const name = document.getElementById("name").value;
+            const phone = document.getElementById("phone").value;
+            const product = document.getElementById("product").value;
+            const qty = document.getElementById("qty").value;
 
-await addDoc(collection(db,"orders"),{
-name:name,
-phone:phone,
-product:product,
-qty:qty,
-time:new Date()
-});
+            await addDoc(collection(db, "orders"), {
+                name: name,
+                phone: phone,
+                product: product,
+                qty: qty,
+                time: new Date()
+            });
 
-alert("Order Sent!");
+            alert("Order placed!");
 
-}
+        }
 
-</script>
+    </script>
 
 </body>
+
 </html>
