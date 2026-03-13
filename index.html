@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Local Shop Order</title>
+</head>
+
+<body>
+
+<h2>Order Food</h2>
+
+Name:
+<input id="name"><br><br>
+
+Phone:
+<input id="phone"><br><br>
+
+Product:
+<select id="product">
+<option>Puff</option>
+<option>Samosa</option>
+<option>Tea</option>
+</select><br><br>
+
+Quantity:
+<input id="qty" type="number"><br><br>
+
+<button onclick="order()">Place Order</button>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_KEY",
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.order = async function(){
+
+const name = document.getElementById("name").value;
+const phone = document.getElementById("phone").value;
+const product = document.getElementById("product").value;
+const qty = document.getElementById("qty").value;
+
+await addDoc(collection(db,"orders"),{
+name:name,
+phone:phone,
+product:product,
+qty:qty,
+time:new Date()
+});
+
+alert("Order Sent!");
+
+}
+
+</script>
+
+</body>
+</html>
