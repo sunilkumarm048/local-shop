@@ -3,34 +3,81 @@
 
 <head>
     <title>Local Shop Order</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 25px;
+            width: 350px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #218838;
+        }
+    </style>
+
 </head>
 
 <body>
 
-    <h2>Local Shop Order</h2>
+    <div class="container">
 
-    Name:
-    <input id="name"><br><br>
+        <h2>Local Shop Order</h2>
 
-    Phone:
-    <input id="phone"><br><br>
+        <label>Name</label>
+        <input id="name" placeholder="Enter name">
 
-    Product:
-    <select id="product">
-        <option>Puff</option>
-        <option>Samosa</option>
-        <option>Tea</option>
-    </select><br><br>
+        <label>Phone</label>
+        <input id="phone" placeholder="Enter phone">
 
-    Quantity:
-    <input id="qty" type="number"><br><br>
+        <label>Product</label>
+        <select id="product">
+            <option>Puff</option>
+            <option>Samosa</option>
+            <option>Tea</option>
+        </select>
 
-    <button onclick="placeOrder()">Place Order</button>
+        <label>Quantity</label>
+        <input id="qty" type="number" placeholder="Enter quantity">
+
+        <button onclick="placeOrder()">Place Order</button>
+
+    </div>
 
     <script type="module">
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
@@ -51,6 +98,11 @@
             const product = document.getElementById("product").value;
             const qty = document.getElementById("qty").value;
 
+            if (name == "" || phone == "" || qty == "") {
+                alert("Please fill all fields");
+                return;
+            }
+
             await addDoc(collection(db, "orders"), {
                 name: name,
                 phone: phone,
@@ -59,7 +111,11 @@
                 time: new Date()
             });
 
-            alert("Order placed!");
+            alert("Order placed successfully!");
+
+            document.getElementById("name").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("qty").value = "";
 
         }
 
