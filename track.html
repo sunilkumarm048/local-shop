@@ -1,71 +1,113 @@
+```html
 <!DOCTYPE html>
 <html>
 
 <head>
-    <title>Track Order</title>
+<title>Track Order</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+padding:20px;
+}
+
+.result{
+background:white;
+padding:15px;
+margin-top:10px;
+border-radius:8px;
+box-shadow:0 3px 8px rgba(0,0,0,0.1);
+}
+
+button{
+padding:6px 10px;
+margin-left:10px;
+}
+
+</style>
+
 </head>
 
 <body>
 
-    <h2>Track Your Order</h2>
+<h2>Track Your Order</h2>
 
-    Phone Number:
-    <input id="phone">
+Phone Number:
+<input id="phone">
 
-    <button onclick="searchOrder()">Check Status</button>
+<button onclick="searchOrder()">Check Status</button>
 
-    <hr>
-
-    <div id="result"></div>
-
-    <script type="module">
-
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
-            authDomain: "local-shop-orders-d48d0.firebaseapp.com",
-            projectId: "local-shop-orders-d48d0",
-            storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
-            messagingSenderId: "750524308284",
-            appId: "1:750524308284:web:d2a047c93580635e4e5c39"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        window.searchOrder = async function () {
-
-            const phone = document.getElementById("phone").value;
-            const querySnapshot = await getDocs(collection(db, "orders"));
-
-            let resultHTML = "";
-
-            querySnapshot.forEach((doc) => {
-
-                const order = doc.data();
-
-                if (order.phone === phone) {
-
-                    resultHTML += `
 <hr>
-Customer: ${order.name}<br>
-Product: ${order.product}<br>
-Quantity: ${order.qty}<br>
-Status: ${order.status || "Pending"}
-`;
 
-                }
+<div id="result"></div>
 
-            });
+<script type="module">
 
-            document.getElementById("result").innerHTML = resultHTML || "No orders found.";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-     }
+const firebaseConfig = {
+apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
+authDomain: "local-shop-orders-d48d0.firebaseapp.com",
+projectId: "local-shop-orders-d48d0",
+storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
+messagingSenderId: "750524308284",
+appId: "1:750524308284:web:d2a047c93580635e4e5c39"
+};
 
-    </script>
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
+
+window.searchOrder = async function(){
+
+const phone = document.getElementById("phone").value
+
+const snapshot = await getDocs(collection(db,"orders"))
+
+let html=""
+
+snapshot.forEach((doc)=>{
+
+const order = doc.data()
+
+if(order.phone === phone){
+
+let itemsHTML=""
+
+if(order.items){
+order.items.forEach(i=>{
+itemsHTML += i.item + " x" + i.qty + "<br>"
+})
+}
+
+html += `
+
+<div class="result">
+
+<b>Customer:</b> ${order.name}<br>
+
+<b>Items:</b><br>
+${itemsHTML}
+
+<b>Total:</b> ₹${order.total}<br>
+<b>Status:</b> ${order.status || "Pending"}
+
+</div>
+
+`
+
+}
+
+})
+
+document.getElementById("result").innerHTML = html || "No orders found."
+
+}
+
+</script>
 
 </body>
-
 </html>
+```
