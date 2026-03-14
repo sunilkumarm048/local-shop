@@ -1,24 +1,27 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
+
 <title>Local Shop</title>
 
 <style>
 
 body{
-font-family: Arial;
-background:#f2f2f2;
+font-family:Arial;
+background:#f4f4f4;
 margin:0;
 padding:20px;
+text-align:center;
 }
 
 h1{
-text-align:center;
+margin-bottom:30px;
 }
 
 .container{
 display:flex;
-gap:20px;
+gap:25px;
 flex-wrap:wrap;
 justify-content:center;
 }
@@ -27,20 +30,20 @@ justify-content:center;
 background:white;
 padding:20px;
 border-radius:10px;
-width:200px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
-text-align:center;
+width:220px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
 }
 
 .card img{
 width:100%;
-height:120px;
+height:130px;
 object-fit:cover;
 border-radius:8px;
 }
 
 .price{
 color:green;
+font-size:18px;
 font-weight:bold;
 }
 
@@ -49,8 +52,9 @@ background:#ff5a5f;
 color:white;
 border:none;
 padding:10px 15px;
-border-radius:5px;
+border-radius:6px;
 cursor:pointer;
+margin-top:10px;
 }
 
 button:hover{
@@ -58,13 +62,18 @@ background:#e04848;
 }
 
 .form{
-margin-top:20px;
-text-align:center;
+margin-top:40px;
+background:white;
+display:inline-block;
+padding:25px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
 input{
 padding:8px;
-margin:5px;
+margin:6px;
+width:220px;
 }
 
 </style>
@@ -102,23 +111,34 @@ margin:5px;
 
 <div class="form">
 
-<h3>Place Order</h3>
+<h2>Place Order</h2>
 
-Name:<br>
+<br>
+
+Name<br>
 <input id="name"><br>
 
-Phone:<br>
+Phone<br>
 <input id="phone"><br>
 
-Product:<br>
+Product<br>
 <input id="product"><br>
 
-Quantity:<br>
+Quantity<br>
 <input id="qty" type="number"><br><br>
 
 <button onclick="placeOrder()">Submit Order</button>
 
 </div>
+
+<script>
+
+function selectProduct(product){
+document.getElementById("product").value = product;
+}
+
+</script>
+
 
 <script type="module">
 
@@ -126,12 +146,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/fireba
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
-  authDomain: "local-shop-orders-d48d0.firebaseapp.com",
-  projectId: "local-shop-orders-d48d0",
-  storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
-  messagingSenderId: "750524308284",
-  appId: "1:750524308284:web:d2a047c93580635e4e5c39"
+apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
+authDomain: "local-shop-orders-d48d0.firebaseapp.com",
+projectId: "local-shop-orders-d48d0",
+storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
+messagingSenderId: "750524308284",
+appId: "1:750524308284:web:d2a047c93580635e4e5c39"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -144,6 +164,11 @@ const phone = document.getElementById("phone").value;
 const product = document.getElementById("product").value;
 const qty = document.getElementById("qty").value;
 
+if(!name || !phone || !product || !qty){
+alert("Please fill all fields");
+return;
+}
+
 await addDoc(collection(db,"orders"),{
 name:name,
 phone:phone,
@@ -153,7 +178,12 @@ status:"Pending",
 time:new Date()
 });
 
-alert("Order submitted!");
+alert("Order submitted successfully!");
+
+document.getElementById("name").value="";
+document.getElementById("phone").value="";
+document.getElementById("product").value="";
+document.getElementById("qty").value="";
 
 }
 
@@ -161,3 +191,4 @@ alert("Order submitted!");
 
 </body>
 </html>
+```
