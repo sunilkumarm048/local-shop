@@ -120,10 +120,41 @@ Quantity:<br>
 
 </div>
 
-<script>
+<script type="module">
 
-function selectProduct(p){
-document.getElementById("product").value = p;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
+  authDomain: "local-shop-orders-d48d0.firebaseapp.com",
+  projectId: "local-shop-orders-d48d0",
+  storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
+  messagingSenderId: "750524308284",
+  appId: "1:750524308284:web:d2a047c93580635e4e5c39"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.placeOrder = async function(){
+
+const name = document.getElementById("name").value;
+const phone = document.getElementById("phone").value;
+const product = document.getElementById("product").value;
+const qty = document.getElementById("qty").value;
+
+await addDoc(collection(db,"orders"),{
+name:name,
+phone:phone,
+product:product,
+qty:qty,
+status:"Pending",
+time:new Date()
+});
+
+alert("Order submitted!");
+
 }
 
 </script>
