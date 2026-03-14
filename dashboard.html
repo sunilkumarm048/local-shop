@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Shop Dashboard</title>
+</head>
+
+<body>
+
+    <h2>Shop Orders Dashboard</h2>
+
+    <div id="orders"></div>
+
+    <script type="module">
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
+            authDomain: "local-shop-orders-d48d0.firebaseapp.com",
+            projectId: "local-shop-orders-d48d0",
+            storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
+            messagingSenderId: "750524308284",
+            appId: "1:750524308284:web:d2a047c93580635e4e5c39"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const ordersDiv = document.getElementById("orders");
+
+        onSnapshot(collection(db, "orders"), (snapshot) => {
+
+            ordersDiv.innerHTML = "";
+
+            snapshot.forEach(doc => {
+
+                const order = doc.data();
+
+                ordersDiv.innerHTML += `
+<hr>
+<b>Customer:</b> ${order.name} <br>
+<b>Phone:</b> ${order.phone} <br>
+<b>Product:</b> ${order.product} <br>
+<b>Quantity:</b> ${order.qty} <br>
+`;
+
+            });
+
+        });
+
+    </script>
+
+</body>
+
+</html>
