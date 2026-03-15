@@ -1,4 +1,4 @@
-```html id="complete_cart_code"
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,7 +16,7 @@ text-align:center;
 }
 
 h1{
-margin-bottom:25px;
+margin-bottom:20px;
 }
 
 .container{
@@ -89,6 +89,11 @@ margin:5px;
 width:220px;
 }
 
+select{
+padding:6px;
+margin:10px;
+}
+
 </style>
 
 </head>
@@ -96,6 +101,14 @@ width:220px;
 <body>
 
 <h1>Local Shop</h1>
+
+<h3>Select Shop</h3>
+
+<select id="shop">
+<option value="Bakery">Bakery</option>
+<option value="Tea Shop">Tea Shop</option>
+<option value="Fast Food">Fast Food</option>
+</select>
 
 <div class="container">
 
@@ -216,6 +229,7 @@ window.placeOrder = async function(){
 
 const name=document.getElementById("name").value
 const phone=document.getElementById("phone").value
+const shop=document.getElementById("shop").value
 
 if(cart.length===0){
 alert("Cart is empty")
@@ -226,6 +240,7 @@ await addDoc(collection(db,"orders"),{
 
 name:name,
 phone:phone,
+shop:shop,
 items:cart,
 total:total,
 status:"Pending",
