@@ -1,4 +1,4 @@
-```html
+```html id="complete_index_delivery"
 <!DOCTYPE html>
 <html>
 <head>
@@ -68,7 +68,7 @@ display:inline-block;
 padding:25px;
 border-radius:10px;
 box-shadow:0 4px 12px rgba(0,0,0,0.1);
-min-width:300px;
+min-width:320px;
 }
 
 .cartItem{
@@ -94,6 +94,12 @@ padding:6px;
 margin:10px;
 }
 
+textarea{
+width:220px;
+height:60px;
+margin:5px;
+}
+
 </style>
 
 </head>
@@ -109,6 +115,7 @@ margin:10px;
 <option value="Tea Shop">Tea Shop</option>
 <option value="Fast Food">Fast Food</option>
 </select>
+
 
 <div class="container">
 
@@ -135,6 +142,7 @@ margin:10px;
 
 </div>
 
+
 <div class="cart">
 
 <h2>Cart</h2>
@@ -149,7 +157,10 @@ Name<br>
 <input id="name"><br>
 
 Phone<br>
-<input id="phone"><br><br>
+<input id="phone"><br>
+
+Address<br>
+<textarea id="address"></textarea><br>
 
 <button onclick="placeOrder()">Submit Order</button>
 
@@ -163,7 +174,7 @@ let total=0
 
 window.addToCart=function(item,price){
 
-let found = cart.find(c=>c.item===item)
+let found=cart.find(c=>c.item===item)
 
 if(found){
 found.qty++
@@ -187,10 +198,10 @@ total=0
 
 cart.forEach((c,index)=>{
 
-let itemTotal = c.price * c.qty
-total += itemTotal
+let itemTotal=c.price*c.qty
+total+=itemTotal
 
-html += `
+html+=`
 <div class="cartItem">
 ${c.item} x${c.qty} = ₹${itemTotal}
 <button class="removeBtn" onclick="removeItem(${index})">X</button>
@@ -199,8 +210,8 @@ ${c.item} x${c.qty} = ₹${itemTotal}
 
 })
 
-document.getElementById("cartItems").innerHTML = html
-document.getElementById("total").innerText = total
+document.getElementById("cartItems").innerHTML=html
+document.getElementById("total").innerText=total
 
 }
 
@@ -229,6 +240,7 @@ window.placeOrder = async function(){
 
 const name=document.getElementById("name").value
 const phone=document.getElementById("phone").value
+const address=document.getElementById("address").value
 const shop=document.getElementById("shop").value
 
 if(cart.length===0){
@@ -240,6 +252,7 @@ await addDoc(collection(db,"orders"),{
 
 name:name,
 phone:phone,
+address:address,
 shop:shop,
 items:cart,
 total:total,
@@ -256,6 +269,7 @@ updateCart()
 
 document.getElementById("name").value=""
 document.getElementById("phone").value=""
+document.getElementById("address").value=""
 
 }
 
