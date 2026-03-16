@@ -1,9 +1,10 @@
-```html id="complete_index_delivery"
 <!DOCTYPE html>
 <html>
 <head>
 
-<title>Local Shop</title>
+<title>Local Shop Platform</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 
@@ -15,8 +16,21 @@ padding:20px;
 text-align:center;
 }
 
-h1{
-margin-bottom:20px;
+header{
+background:#ff5a5f;
+color:white;
+padding:15px;
+margin-bottom:25px;
+}
+
+nav a{
+margin:8px;
+text-decoration:none;
+background:white;
+padding:8px 14px;
+border-radius:6px;
+color:#ff5a5f;
+font-weight:bold;
 }
 
 .container{
@@ -83,21 +97,10 @@ font-size:12px;
 padding:3px 6px;
 }
 
-input{
+input,textarea,select{
 padding:6px;
 margin:5px;
 width:220px;
-}
-
-select{
-padding:6px;
-margin:10px;
-}
-
-textarea{
-width:220px;
-height:60px;
-margin:5px;
 }
 
 </style>
@@ -106,7 +109,21 @@ margin:5px;
 
 <body>
 
-<h1>Local Shop</h1>
+<header>
+
+<h1>Local Shop Platform</h1>
+
+<nav>
+
+<a href="customer/home.html">Customer App</a>
+<a href="shop/dashboard.html">Shop Panel</a>
+<a href="delivery/dashboard.html">Delivery</a>
+<a href="admin/dashboard.html">Admin</a>
+
+</nav>
+
+</header>
+
 
 <h3>Select Shop</h3>
 
@@ -277,4 +294,3 @@ document.getElementById("address").value=""
 
 </body>
 </html>
-```
