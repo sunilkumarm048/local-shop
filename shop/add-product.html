@@ -1,15 +1,38 @@
-
-<!DOCTYPE html>
-<html>
-<head><title>Add Product</title></head>
-<body>
-
 <h2>Add Product</h2>
 
-<input placeholder="Product name"><br><br>
-<input placeholder="Price"><br><br>
+Product Name
+<input id="name"><br><br>
 
-<button>Add</button>
+Price
+<input id="price"><br><br>
 
-</body>
-</html>
+Shop
+<input id="shop"><br><br>
+
+<button onclick="addProduct()">Add Product</button>
+
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+window.addProduct = async function(){
+
+const name = document.getElementById("name").value
+const price = Number(document.getElementById("price").value)
+const shop = document.getElementById("shop").value
+
+await addDoc(collection(db,"products"),{
+
+name:name,
+price:price,
+shop:shop,
+available:true
+
+})
+
+alert("Product Added")
+
+}
+
+</script>
