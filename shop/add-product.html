@@ -1,15 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Add Product</title>
+
+</head>
+
+<body>
+
 <h2>Add Product</h2>
 
 Product Name
-<input id="name"><br><br>
+<br>
+<input id="name">
+<br><br>
 
 Price
-<input id="price"><br><br>
+<br>
+<input id="price" type="number">
+<br><br>
 
 Shop
-<input id="shop"><br><br>
+<br>
+<select id="shop">
+<option value="Bakery">Bakery</option>
+<option value="Tea Shop">Tea Shop</option>
+<option value="Fast Food">Fast Food</option>
+</select>
+
+<br><br>
 
 <button onclick="addProduct()">Add Product</button>
+
+<p id="msg"></p>
+
 
 <script type="module">
 
@@ -22,6 +46,11 @@ const name = document.getElementById("name").value
 const price = Number(document.getElementById("price").value)
 const shop = document.getElementById("shop").value
 
+if(name=="" || price==""){
+alert("Fill all fields")
+return
+}
+
 await addDoc(collection(db,"products"),{
 
 name:name,
@@ -31,8 +60,14 @@ available:true
 
 })
 
-alert("Product Added")
+document.getElementById("msg").innerText="Product added successfully"
+
+document.getElementById("name").value=""
+document.getElementById("price").value=""
 
 }
 
 </script>
+
+</body>
+</html>
