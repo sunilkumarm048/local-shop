@@ -1,30 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Products</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+margin:0;
+}
+
+/* HEADER */
+.header{
+background:#ff5a5f;
+color:white;
+padding:15px;
+text-align:center;
+font-size:20px;
+font-weight:bold;
+}
+
+/* CONTAINER */
+.container{
+padding:15px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:15px;
+}
+
+/* CARD */
+.card{
+background:white;
+padding:10px;
+border-radius:10px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+.card img{
+width:100%;
+height:120px;
+object-fit:cover;
+border-radius:8px;
+}
+
+.price{
+color:green;
+font-weight:bold;
+}
+
+/* BUTTON */
+button{
+background:#ff5a5f;
+color:white;
+border:none;
+padding:6px 10px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* FLOATING CART */
+.cartBtn{
+position:fixed;
+bottom:20px;
+right:20px;
+background:black;
+color:white;
+padding:12px 18px;
+border-radius:50px;
+font-size:14px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header" id="shopTitle">Shop</div>
+
+<div class="container" id="products"></div>
+
+<div class="cartBtn" onclick="goCart()">
+🛒 Cart (<span id="count">0</span>)
+</div>
+
 <script type="module">
 
-import { db } from "../js/firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
+const firebaseConfig = {
+apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
+authDomain: "local-shop-orders-d48d0.firebaseapp.com",
+projectId: "local-shop-orders-d48d0",
+storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
+messagingSenderId: "750524308284",
+appId: "1:750524308284:web:d2a047c93580635e4e5c39"
+};
+
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
+
+// GET SELECTED SHOP
 const shop = localStorage.getItem("shop")
-const container = document.getElementById("products")
+document.getElementById("shopTitle").innerText = shop
 
-let cart = JSON.parse(localStorage.getItem("cart")) || []
+const productsDiv = document.getElementById("products")
 
-async function loadProducts(){
-
+// LOAD PRODUCTS
 const snapshot = await getDocs(collection(db,"products"))
 
-container.innerHTML=""
+snapshot.forEach(doc => {
 
-snapshot.forEach(doc=>{
-
-const p = doc.data()
+let p = doc.data()
 
 if(p.shop === shop){
 
-container.innerHTML += `
+productsDiv.innerHTML += `
 <div class="card">
+
+<img src="${p.image}">
 <h3>${p.name}</h3>
-<p>₹${p.price}</p>
+<p class="price">₹${p.price}</p>
+
 <button onclick="addToCart('${p.name}',${p.price})">Add</button>
+
 </div>
 `
 
@@ -32,18 +136,45 @@ container.innerHTML += `
 
 })
 
-}
+// CART SYSTEM
+let cart = JSON.parse(localStorage.getItem("cart")) || []
 
 window.addToCart = function(name,price){
 
-cart.push({item:name,price:price,qty:1})
+let found = cart.find(i=>i.name===name)
+
+if(found){
+found.qty++
+}else{
+cart.push({name,price,qty:1})
+}
 
 localStorage.setItem("cart",JSON.stringify(cart))
-
-alert("Added to cart")
+updateCartCount()
 
 }
 
-loadProducts()
+// UPDATE COUNT
+function updateCartCount(){
+
+let total = 0
+
+cart.forEach(i=>{
+total += i.qty
+})
+
+document.getElementById("count").innerText = total
+
+}
+
+updateCartCount()
+
+// GO TO CART
+window.goCart = function(){
+window.location.href = "cart.html"
+}
 
 </script>
+
+</body>
+</html>
