@@ -30,7 +30,7 @@ if(p.shop === shop){
 
 productsDiv.innerHTML += `
 <div class="card">
-<img src="${p.image}">
+<img src="${p.image || 'https://via.placeholder.com/150'}">
 <h3>${p.name}</h3>
 <p class="price">₹${p.price}</p>
 <button onclick="addToCart('${p.name}',${p.price})">Add</button>
