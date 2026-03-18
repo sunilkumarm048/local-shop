@@ -37,6 +37,11 @@ padding:10px;
 border-radius:10px;
 box-shadow:0 4px 12px rgba(0,0,0,0.1);
 text-align:center;
+transition:0.2s;
+}
+
+.card:hover{
+transform:scale(1.03);
 }
 
 .card img{
@@ -74,6 +79,13 @@ font-size:14px;
 cursor:pointer;
 }
 
+/* LOADING */
+.loading{
+text-align:center;
+margin-top:30px;
+font-size:18px;
+}
+
 </style>
 
 </head>
@@ -82,99 +94,16 @@ cursor:pointer;
 
 <div class="header" id="shopTitle">Shop</div>
 
-<div class="container" id="products"></div>
+<div class="container" id="products">
+<div class="loading">Loading products...</div>
+</div>
 
 <div class="cartBtn" onclick="goCart()">
 🛒 Cart (<span id="count">0</span>)
 </div>
 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-const firebaseConfig = {
-apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
-authDomain: "local-shop-orders-d48d0.firebaseapp.com",
-projectId: "local-shop-orders-d48d0",
-storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
-messagingSenderId: "750524308284",
-appId: "1:750524308284:web:d2a047c93580635e4e5c39"
-};
-
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
-
-// GET SELECTED SHOP
-const shop = localStorage.getItem("shop")
-document.getElementById("shopTitle").innerText = shop
-
-const productsDiv = document.getElementById("products")
-
-// LOAD PRODUCTS
-const snapshot = await getDocs(collection(db,"products"))
-
-snapshot.forEach(doc => {
-
-let p = doc.data()
-
-if(p.shop === shop){
-
-productsDiv.innerHTML += `
-<div class="card">
-
-<img src="${p.image}">
-<h3>${p.name}</h3>
-<p class="price">₹${p.price}</p>
-
-<button onclick="addToCart('${p.name}',${p.price})">Add</button>
-
-</div>
-`
-
-}
-
-})
-
-// CART SYSTEM
-let cart = JSON.parse(localStorage.getItem("cart")) || []
-
-window.addToCart = function(name,price){
-
-let found = cart.find(i=>i.name===name)
-
-if(found){
-found.qty++
-}else{
-cart.push({name,price,qty:1})
-}
-
-localStorage.setItem("cart",JSON.stringify(cart))
-updateCartCount()
-
-}
-
-// UPDATE COUNT
-function updateCartCount(){
-
-let total = 0
-
-cart.forEach(i=>{
-total += i.qty
-})
-
-document.getElementById("count").innerText = total
-
-}
-
-updateCartCount()
-
-// GO TO CART
-window.goCart = function(){
-window.location.href = "cart.html"
-}
-
-</script>
+<!-- ✅ IMPORTANT: USE YOUR JS FILE -->
+<script type="module" src="../js/customer.js"></script>
 
 </body>
 </html>
