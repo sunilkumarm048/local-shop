@@ -1,30 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Checkout</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+margin:0;
+padding:20px;
+}
+
+/* BOX */
+.box{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+max-width:400px;
+margin:auto;
+}
+
+/* INPUT */
+input,textarea{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+/* BUTTON */
+button{
+width:100%;
+padding:12px;
+background:#ff5a5f;
+color:white;
+border:none;
+border-radius:6px;
+font-size:16px;
+cursor:pointer;
+}
+
+/* TOTAL */
+.total{
+font-size:18px;
+margin-top:10px;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Checkout</h2>
+
+<div id="cartItems"></div>
+
+<div class="total">
+Total: ₹<span id="total">0</span>
+</div>
+
+<hr>
+
+<input id="name" placeholder="Your Name">
+<input id="phone" placeholder="Phone Number">
+<textarea id="address" placeholder="Address"></textarea>
+
+<button onclick="placeOrder()">Place Order</button>
+
+</div>
+
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// LOAD CART
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let cartDiv = document.getElementById("cartItems");
+
+let total = 0;
+
+cart.forEach(item=>{
+
+let t = item.price * item.qty;
+total += t;
+
+cartDiv.innerHTML += `
+<div>
+${item.name} x${item.qty} = ₹${t}
+</div>
+`;
+
+});
+
+document.getElementById("total").innerText = total;
+
+// PLACE ORDER
 window.placeOrder = async function(){
 
-let cart = JSON.parse(localStorage.getItem("cart")) || []
-let shop = localStorage.getItem("shop")
+let name = document.getElementById("name").value;
+let phone = document.getElementById("phone").value;
+let address = document.getElementById("address").value;
+let shop = localStorage.getItem("shop");
+
+// VALIDATION
+if(!name || !phone || !address){
+alert("Fill all details");
+return;
+}
+
+if(cart.length === 0){
+alert("Cart empty");
+return;
+}
+
+try{
 
 await addDoc(collection(db,"orders"),{
 
-name:document.getElementById("name").value,
-phone:document.getElementById("phone").value,
-address:document.getElementById("address").value,
-shop:shop,
+name,
+phone,
+address,
+shop,
 items:cart,
-total:cart.reduce((t,i)=>t+i.price*i.qty,0),
+total,
 status:"Pending",
 time:new Date()
 
-})
+});
 
-localStorage.removeItem("cart")
+// CLEAR CART
+localStorage.removeItem("cart");
 
-alert("Order placed!")
+alert("Order placed successfully!");
+
+// REDIRECT
+window.location.href = "home.html";
+
+}catch(e){
+alert("Error placing order");
+console.error(e);
+}
 
 }
 
 </script>
+
+</body>
+</html>
