@@ -1,16 +1,38 @@
+<script>
 
-<!DOCTYPE html>
-<html>
-<head><title>Cart</title></head>
-<body>
+let cart = JSON.parse(localStorage.getItem("cart")) || []
+let total = 0
 
-<h2>Your Cart</h2>
+function loadCart(){
 
-<div id="cart"></div>
+let html=""
+total=0
 
-<a href="checkout.html">Checkout</a>
+cart.forEach((c,index)=>{
 
-<script src="../js/customer.js"></script>
+let t = c.price*c.qty
+total+=t
 
-</body>
-</html>
+html+=`
+<div>
+${c.item} x${c.qty} = ₹${t}
+<button onclick="remove(${index})">X</button>
+</div>
+`
+
+})
+
+document.getElementById("cart").innerHTML=html
+document.getElementById("total").innerText=total
+
+}
+
+function remove(i){
+cart.splice(i,1)
+localStorage.setItem("cart",JSON.stringify(cart))
+loadCart()
+}
+
+loadCart()
+
+</script>
