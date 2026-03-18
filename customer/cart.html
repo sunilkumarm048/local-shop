@@ -1,38 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Cart</title>
+
+<style>
+
+body{
+font-family:Arial;
+padding:20px;
+background:#f5f5f5;
+}
+
+.item{
+background:white;
+padding:10px;
+margin-bottom:10px;
+border-radius:8px;
+}
+
+button{
+background:red;
+color:white;
+border:none;
+padding:5px 10px;
+border-radius:5px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Your Cart</h2>
+
+<div id="cart"></div>
+
+<h3>Total: ₹<span id="total">0</span></h3>
+
+<button onclick="checkout()">Checkout</button>
+
 <script>
 
 let cart = JSON.parse(localStorage.getItem("cart")) || []
+
+let cartDiv = document.getElementById("cart")
 let total = 0
 
-function loadCart(){
+cart.forEach((item,index)=>{
 
-let html=""
-total=0
+let t = item.price * item.qty
+total += t
 
-cart.forEach((c,index)=>{
-
-let t = c.price*c.qty
-total+=t
-
-html+=`
-<div>
-${c.item} x${c.qty} = ₹${t}
-<button onclick="remove(${index})">X</button>
+cartDiv.innerHTML += `
+<div class="item">
+${item.name} x${item.qty} = ₹${t}
+<button onclick="remove(${index})">Remove</button>
 </div>
 `
 
 })
 
-document.getElementById("cart").innerHTML=html
-document.getElementById("total").innerText=total
-
-}
+document.getElementById("total").innerText = total
 
 function remove(i){
 cart.splice(i,1)
 localStorage.setItem("cart",JSON.stringify(cart))
-loadCart()
+location.reload()
 }
 
-loadCart()
+function checkout(){
+window.location.href = "checkout.html"
+}
 
 </script>
+
+</body>
+</html>
