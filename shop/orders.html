@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Bakery Dashboard</title>
+<title>Bakery Orders Dashboard</title>
 
 <style>
 
@@ -79,7 +79,6 @@ font-size:14px;
 .reject{background:#f44336;color:white;}
 .readyBtn{background:#2196f3;color:white;}
 
-
 </style>
 
 </head>
@@ -124,33 +123,44 @@ if(order.shop === shopName){
 let itemsHTML=""
 
 order.items.forEach(i=>{
-itemsHTML += i.item + " x" + i.qty + "<br>"
+itemsHTML += "• " + i.item + " x" + i.qty + "<br>"
 })
 
-let statusClass = (order.status || "Pending").toLowerCase()
+let status = order.status || "Pending"
+let statusClass = status.toLowerCase()
 
 ordersDiv.innerHTML += `
 
 <div class="order">
 
 <div class="header">
-<b>${order.name}</b>
-<span class="status ${statusClass}">${order.status || "Pending"}</span>
+<b>👤 ${order.name}</b>
+<span class="status ${statusClass}">
+${status}
+</span>
 </div>
 
 📞 ${order.phone}<br>
-🏠 ${order.address || "No address"}<br><br>
+🏠 ${order.address || "No address"}
 
+<div class="items">
 <b>Items:</b><br>
 ${itemsHTML}
+</div>
 
-<br>
-<b>Total:</b> ₹${order.total}
+<div class="total">
+Total: ₹${order.total}
+</div>
 
-<br><br>
+<div class="buttons">
 
 <button class="accept" onclick="acceptOrder('${id}')">Accept</button>
+
+<button class="readyBtn" onclick="readyOrder('${id}')">Ready</button>
+
 <button class="reject" onclick="rejectOrder('${id}')">Reject</button>
+
+</div>
 
 </div>
 
@@ -168,6 +178,10 @@ await updateDoc(doc(db,"orders",id),{status:"Accepted"})
 
 window.rejectOrder = async(id)=>{
 await updateDoc(doc(db,"orders",id),{status:"Rejected"})
+}
+
+window.readyOrder = async(id)=>{
+await updateDoc(doc(db,"orders",id),{status:"Ready"})
 }
 
 </script>
