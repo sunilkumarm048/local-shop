@@ -1,22 +1,49 @@
+<script type="module">
 
-<!DOCTYPE html>
-<html>
-<head><title>Products</title></head>
-<body>
+import { db } from "../js/firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-<h2>Products</h2>
+const shop = localStorage.getItem("shop")
+const container = document.getElementById("products")
 
-<div>
-Puff - ₹20
-<button onclick="addCart('Puff',20)">Add</button>
+let cart = JSON.parse(localStorage.getItem("cart")) || []
+
+async function loadProducts(){
+
+const snapshot = await getDocs(collection(db,"products"))
+
+container.innerHTML=""
+
+snapshot.forEach(doc=>{
+
+const p = doc.data()
+
+if(p.shop === shop){
+
+container.innerHTML += `
+<div class="card">
+<h3>${p.name}</h3>
+<p>₹${p.price}</p>
+<button onclick="addToCart('${p.name}',${p.price})">Add</button>
 </div>
+`
 
-<div>
-Samosa - ₹15
-<button onclick="addCart('Samosa',15)">Add</button>
-</div>
+}
 
-<script src="../js/customer.js"></script>
+})
 
-</body>
-</html>
+}
+
+window.addToCart = function(name,price){
+
+cart.push({item:name,price:price,qty:1})
+
+localStorage.setItem("cart",JSON.stringify(cart))
+
+alert("Added to cart")
+
+}
+
+loadProducts()
+
+</script>
