@@ -1,24 +1,86 @@
+import { db } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let cart=[];
+// GET SHOP
+const shop = localStorage.getItem("shop") || "Bakery";
 
-function addCart(name,price){
-cart.push({name,price});
-localStorage.setItem("cart",JSON.stringify(cart));
-alert("Added to cart");
+// SET TITLE
+const title = document.getElementById("shopTitle");
+if(title) title.innerText = shop;
+
+// LOAD PRODUCTS
+async function loadProducts(){
+
+const productsDiv = document.getElementById("products");
+if(!productsDiv) return;
+
+productsDiv.innerHTML = "Loading...";
+
+try{
+
+const snapshot = await getDocs(collection(db,"products"));
+
+productsDiv.innerHTML = "";
+
+snapshot.forEach(doc => {
+
+let p = doc.data();
+
+if(p.shop === shop){
+
+productsDiv.innerHTML += `
+<div class="card">
+<img src="${p.image}">
+<h3>${p.name}</h3>
+<p class="price">₹${p.price}</p>
+<button onclick="addToCart('${p.name}',${p.price})">Add</button>
+</div>
+`;
+
 }
 
-window.onload=function(){
-const c = JSON.parse(localStorage.getItem("cart"))||[];
-const div=document.getElementById("cart");
-if(div){
-let html="";
-c.forEach(i=>{
-html+=i.name+" - ₹"+i.price+"<br>";
 });
-div.innerHTML=html;
-}
+
+}catch(e){
+productsDiv.innerHTML = "Error loading products";
+console.error(e);
 }
 
-function placeOrder(){
-alert("Order placed (connect Firebase later)");
 }
+
+loadProducts();
+
+// CART
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+window.addToCart = function(name,price){
+
+let found = cart.find(i=>i.name===name);
+
+if(found){
+found.qty++;
+}else{
+cart.push({name,price,qty:1});
+}
+
+localStorage.setItem("cart",JSON.stringify(cart));
+updateCart();
+
+};
+
+function updateCart(){
+
+let count = 0;
+cart.forEach(i=> count += i.qty);
+
+let el = document.getElementById("count");
+if(el) el.innerText = count;
+
+}
+
+updateCart();
+
+// GO CART
+window.goCart = function(){
+window.location.href = "cart.html";
+};
