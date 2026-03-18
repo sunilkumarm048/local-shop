@@ -1,17 +1,30 @@
+<script type="module">
 
-<!DOCTYPE html>
-<html>
-<head><title>Checkout</title></head>
-<body>
+import { db } from "../js/firebase.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
-<h2>Place Order</h2>
+window.placeOrder = async function(){
 
-<input id="name" placeholder="Name"><br><br>
-<input id="phone" placeholder="Phone"><br><br>
+let cart = JSON.parse(localStorage.getItem("cart")) || []
+let shop = localStorage.getItem("shop")
 
-<button onclick="placeOrder()">Place Order</button>
+await addDoc(collection(db,"orders"),{
 
-<script src="../js/customer.js"></script>
+name:document.getElementById("name").value,
+phone:document.getElementById("phone").value,
+address:document.getElementById("address").value,
+shop:shop,
+items:cart,
+total:cart.reduce((t,i)=>t+i.price*i.qty,0),
+status:"Pending",
+time:new Date()
 
-</body>
-</html>
+})
+
+localStorage.removeItem("cart")
+
+alert("Order placed!")
+
+}
+
+</script>
