@@ -8,29 +8,70 @@
 
 body{
 font-family:Arial;
-background:#f5f5f5;
+background:#f0f2f5;
 margin:0;
 }
 
+/* HEADER */
 .header{
 background:#ff5a5f;
 color:white;
-padding:15px;
+padding:18px;
 text-align:center;
-font-size:20px;
+font-size:22px;
+font-weight:bold;
 }
 
+/* SEARCH */
+.search{
+padding:10px;
+text-align:center;
+}
+
+.search input{
+width:90%;
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+/* CONTAINER */
 .container{
 padding:15px;
 }
 
+/* CARD */
 .card{
 background:white;
 padding:15px;
-margin-bottom:10px;
-border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
+margin-bottom:15px;
+border-radius:12px;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
 cursor:pointer;
+transition:0.2s;
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.card:hover{
+transform:scale(1.02);
+}
+
+/* ICON */
+.icon{
+font-size:30px;
+}
+
+/* TEXT */
+.title{
+font-size:18px;
+font-weight:bold;
+}
+
+.subtitle{
+font-size:13px;
+color:gray;
 }
 
 </style>
@@ -43,18 +84,34 @@ cursor:pointer;
 🛒 Local Market
 </div>
 
+<div class="search">
+<input placeholder="Search shop...">
+</div>
+
 <div class="container">
 
 <div class="card" onclick="openShop('Bakery')">
-🍞 Bakery
+<div class="icon">🍞</div>
+<div>
+<div class="title">Bakery</div>
+<div class="subtitle">Puff, Samosa, Snacks</div>
+</div>
 </div>
 
 <div class="card" onclick="openShop('Tea Shop')">
-☕ Tea Shop
+<div class="icon">☕</div>
+<div>
+<div class="title">Tea Shop</div>
+<div class="subtitle">Tea, Coffee</div>
+</div>
 </div>
 
 <div class="card" onclick="openShop('Fast Food')">
-🍔 Fast Food
+<div class="icon">🍔</div>
+<div>
+<div class="title">Fast Food</div>
+<div class="subtitle">Burger, Pizza</div>
+</div>
 </div>
 
 </div>
