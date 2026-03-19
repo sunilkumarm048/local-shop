@@ -148,15 +148,32 @@ try{
 
 const docRef = await addDoc(collection(db,"orders"),{
 
+// 👤 CUSTOMER
 name,
 phone,
 address,
+
+// 🏪 SHOP
 shop,
+
+// 🛒 ORDER
 items:cart,
 total,
+
+// 📦 STATUS
 status:"Pending",
-time:new Date(),
-deliveryStatus:"Not Assigned"
+deliveryStatus:"Waiting",
+
+// 🚚 DELIVERY
+deliveryBoy:null,
+
+// 💰 EARNINGS (NEW)
+shopEarning: total * 0.9,
+deliveryEarning: total * 0.1,
+platformFee: total * 0.05,
+
+// ⏱ TIME
+time:new Date()
 
 });
 
@@ -166,10 +183,13 @@ localStorage.removeItem("cart");
 // SAVE LAST ORDER ID (for tracking)
 localStorage.setItem("lastOrderId", docRef.id);
 
+// SAVE SHOP ALSO (important for tracking page)
+localStorage.setItem("lastShop", shop);
+
 alert("✅ Order placed successfully!");
 
-// REDIRECT TO TRACKING PAGE
-window.location.href = "tracking.html";
+// 🔥 REDIRECT TO TRACKING
+window.location.href = "tracking.html?orderId=" + docRef.id;
 
 }catch(e){
 alert("❌ Error placing order");
