@@ -1,29 +1,46 @@
-```html
 <!DOCTYPE html>
 <html>
-
 <head>
-<title>Track Order</title>
+
+<title>Order Tracking</title>
 
 <style>
 
 body{
 font-family:Arial;
+margin:0;
 background:#f5f5f5;
-padding:20px;
 }
 
-.result{
-background:white;
+/* HEADER */
+.header{
+background:#ff5a5f;
+color:white;
 padding:15px;
-margin-top:10px;
-border-radius:8px;
-box-shadow:0 3px 8px rgba(0,0,0,0.1);
+text-align:center;
+font-size:18px;
 }
 
-button{
-padding:6px 10px;
-margin-left:10px;
+/* STATUS BOX */
+.statusBox{
+padding:15px;
+background:white;
+margin:15px;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+/* MAP */
+#map{
+height:300px;
+width:100%;
+margin-top:10px;
+border-radius:10px;
+}
+
+.status{
+font-size:18px;
+font-weight:bold;
 }
 
 </style>
@@ -32,82 +49,85 @@ margin-left:10px;
 
 <body>
 
-<h2>Track Your Order</h2>
+<div class="header">
+📍 Live Order Tracking
+</div>
 
-Phone Number:
-<input id="phone">
+<div class="statusBox">
 
-<button onclick="searchOrder()">Check Status</button>
+<div>
+Order ID: <span id="orderId"></span>
+</div>
 
-<hr>
+<div class="status">
+Status: <span id="status">Loading...</span>
+</div>
 
-<div id="result"></div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
-const firebaseConfig = {
-apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
-authDomain: "local-shop-orders-d48d0.firebaseapp.com",
-projectId: "local-shop-orders-d48d0",
-storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
-messagingSenderId: "750524308284",
-appId: "1:750524308284:web:d2a047c93580635e4e5c39"
-};
-
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
-
-window.searchOrder = async function(){
-
-const phone = document.getElementById("phone").value
-
-const snapshot = await getDocs(collection(db,"orders"))
-
-let html=""
-
-snapshot.forEach((doc)=>{
-
-const order = doc.data()
-
-if(order.phone === phone){
-
-let itemsHTML=""
-
-if(order.items){
-order.items.forEach(i=>{
-itemsHTML += i.item + " x" + i.qty + "<br>"
-})
-}
-
-html += `
-
-<div class="result">
-
-<b>Customer:</b> ${order.name}<br>
-
-<b>Items:</b><br>
-${itemsHTML}
-
-<b>Total:</b> ₹${order.total}<br>
-<b>Status:</b> ${order.status || "Pending"}
+<div id="map"></div>
 
 </div>
 
-`
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// GET LAST ORDER
+const orderId = localStorage.getItem("lastOrderId");
+
+document.getElementById("orderId").innerText = orderId;
+
+// DEFAULT LOCATION (you can change)
+let userLocation = { lat: 20.2961, lng: 85.8245 }; // Bhubaneswar
+let deliveryLocation = { lat: 20.3000, lng: 85.8200 };
+
+// MAP
+let map, marker;
+
+// INIT MAP
+window.initMap = function(){
+
+map = new google.maps.Map(document.getElementById("map"),{
+center: userLocation,
+zoom: 14
+});
+
+marker = new google.maps.Marker({
+position: deliveryLocation,
+map: map,
+title: "Delivery Partner"
+});
 
 }
 
-})
+// REALTIME ORDER STATUS
+onSnapshot(doc(db,"orders",orderId),(docSnap)=>{
 
-document.getElementById("result").innerHTML = html || "No orders found."
+let data = docSnap.data();
+
+document.getElementById("status").innerText = data.status;
+
+// 🔥 SIMULATE MOVEMENT (future real GPS)
+moveMarker();
+
+});
+
+// MOVE DELIVERY (DEMO)
+function moveMarker(){
+
+deliveryLocation.lat += 0.0005;
+deliveryLocation.lng += 0.0005;
+
+marker.setPosition(deliveryLocation);
 
 }
 
 </script>
 
+<!-- GOOGLE MAP -->
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap">
+</script>
+
 </body>
 </html>
-```
