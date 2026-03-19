@@ -77,11 +77,15 @@ let data = docSnap.data();
 
 document.getElementById("status").innerText = data.status;
 
-// MOVE MARKER (DEMO)
-delivery[0] += 0.0005;
-delivery[1] += 0.0005;
+// REAL GPS UPDATE
+if(data.deliveryLat && data.deliveryLng){
 
-marker.setLatLng(delivery);
+let newPos = [data.deliveryLat, data.deliveryLng];
+
+marker.setLatLng(newPos);
+map.setView(newPos);
+
+}
 
 });
 
