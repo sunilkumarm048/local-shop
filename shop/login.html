@@ -1,12 +1,37 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Shop Login</title></head>
-<body>
+<head>
+<title>Shop Login</title>
+</head>
 
-<h2>Shop Login</h2>
+<body style="font-family:Arial;text-align:center;padding:40px;">
 
-<a href="dashboard.html">Open Dashboard</a>
+<h2>🔐 Shop Login</h2>
+
+<input id="email" placeholder="Email"><br><br>
+<input id="password" type="password" placeholder="Password"><br><br>
+
+<button onclick="login()">Login</button>
+
+<script type="module">
+
+import { auth } from "../js/firebase.js";
+import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+window.login = async function(){
+
+const email = document.getElementById("email").value;
+const pass = document.getElementById("password").value;
+
+await signInWithEmailAndPassword(auth,email,pass);
+
+localStorage.setItem("shopEmail",email);
+
+window.location.href = "dashboard.html";
+
+}
+
+</script>
 
 </body>
 </html>
