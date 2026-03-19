@@ -86,6 +86,12 @@ margin-top:30px;
 font-size:18px;
 }
 
+.empty{
+text-align:center;
+margin-top:30px;
+color:gray;
+}
+
 </style>
 
 </head>
@@ -102,8 +108,96 @@ font-size:18px;
 🛒 Cart (<span id="count">0</span>)
 </div>
 
-<!-- ✅ IMPORTANT: USE YOUR JS FILE -->
-<script type="module" src="../js/customer.js"></script>
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// ✅ FIX: use shopName (not shop)
+const shop = localStorage.getItem("shopName");
+
+document.getElementById("shopTitle").innerText = shop || "Shop";
+
+const productsDiv = document.getElementById("products");
+
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+// LOAD PRODUCTS
+const snapshot = await getDocs(collection(db,"products"));
+
+productsDiv.innerHTML = "";
+
+let found = false;
+
+snapshot.forEach(docSnap=>{
+
+let p = docSnap.data();
+
+if(p.shop === shop){
+
+found = true;
+
+productsDiv.innerHTML += `
+<div class="card">
+
+<img src="${p.image || 'https://via.placeholder.com/150'}">
+<h3>${p.name}</h3>
+<p class="price">₹${p.price}</p>
+
+<button onclick="addToCart('${docSnap.id}','${p.name}',${p.price})">
+Add
+</button>
+
+</div>
+`;
+
+}
+
+});
+
+// EMPTY STATE
+if(!found){
+productsDiv.innerHTML = `<div class="empty">No products found</div>`;
+}
+
+// ADD TO CART
+window.addToCart = function(id,name,price){
+
+let item = cart.find(i=>i.id === id);
+
+if(item){
+item.qty++;
+}else{
+cart.push({id,name,price,qty:1});
+}
+
+localStorage.setItem("cart",JSON.stringify(cart));
+
+updateCartCount();
+
+alert("Added to cart");
+
+};
+
+// UPDATE COUNT
+function updateCartCount(){
+
+let total = 0;
+
+cart.forEach(i=> total += i.qty);
+
+document.getElementById("count").innerText = total;
+
+}
+
+updateCartCount();
+
+// GO CART
+window.goCart = function(){
+window.location.href = "cart.html";
+};
+
+</script>
 
 </body>
 </html>
