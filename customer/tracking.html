@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Tracking</title>
+<title>Live Tracking</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
@@ -14,25 +14,38 @@ margin:0;
 background:#f5f5f5;
 }
 
+/* HEADER */
 .header{
 background:#ff5a5f;
 color:white;
 padding:15px;
 text-align:center;
+font-size:18px;
+font-weight:bold;
 }
 
+/* MAP */
 #map{
 height:350px;
 margin:15px;
 border-radius:10px;
 }
 
+/* BOX */
 .box{
 background:white;
 margin:15px;
 padding:15px;
 border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
+
+/* STATUS COLORS */
+.pending{color:orange;}
+.accepted{color:green;}
+.ready{color:blue;}
+.out{color:#ff9800;}
+.delivered{color:purple;}
 
 </style>
 
@@ -40,21 +53,27 @@ border-radius:10px;
 
 <body>
 
-<div class="header">📍 Live Tracking</div>
+<div class="header">📍 Live Order Tracking</div>
 
 <div class="box">
-Order ID: <span id="orderId"></span><br>
-Status: <b id="status">Loading...</b>
+Order ID: <span id="orderId"></span><br><br>
+Status: <b id="status">Loading...</b><br><br>
+Delivery Boy: <span id="boy">Not assigned</span>
 </div>
 
 <div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const orderId = localStorage.getItem("lastOrderId");
+// 🔥 GET ORDER ID FROM URL (NEW)
+const urlParams = new URLSearchParams(window.location.search);
+const orderId = urlParams.get("orderId") || localStorage.getItem("lastOrderId");
+
 document.getElementById("orderId").innerText = orderId;
 
 // DEFAULT LOCATION (Bhubaneswar)
@@ -70,14 +89,34 @@ maxZoom:19
 // MARKER
 let marker = L.marker(delivery).addTo(map);
 
-// FIRESTORE LIVE UPDATE
+// LIVE FIRESTORE
 onSnapshot(doc(db,"orders",orderId),(docSnap)=>{
+
+if(!docSnap.exists()){
+document.getElementById("status").innerText = "Order not found";
+return;
+}
 
 let data = docSnap.data();
 
+// STATUS TEXT
 document.getElementById("status").innerText = data.status;
 
-// REAL GPS UPDATE
+// DELIVERY BOY NAME
+document.getElementById("boy").innerText = data.deliveryBoy || "Not assigned";
+
+// STATUS COLOR
+let statusEl = document.getElementById("status");
+
+statusEl.className = "";
+
+if(data.status === "Pending") statusEl.classList.add("pending");
+if(data.status === "Accepted") statusEl.classList.add("accepted");
+if(data.status === "Ready") statusEl.classList.add("ready");
+if(data.status === "Out for Delivery") statusEl.classList.add("out");
+if(data.status === "Delivered") statusEl.classList.add("delivered");
+
+// 🔥 GPS UPDATE
 if(data.deliveryLat && data.deliveryLng){
 
 let newPos = [data.deliveryLat, data.deliveryLng];
@@ -87,11 +126,14 @@ map.setView(newPos);
 
 }
 
+// 🎉 AUTO SUCCESS MESSAGE
+if(data.status === "Delivered"){
+alert("🎉 Order Delivered Successfully!");
+}
+
 });
 
 </script>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 </body>
 </html>
