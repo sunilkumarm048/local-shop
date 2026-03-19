@@ -1,12 +1,73 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Delivery Tracking</title></head>
+<head>
+
+<title>Delivery Tracking</title>
+
+<style>
+body{
+font-family:Arial;
+text-align:center;
+padding:30px;
+}
+button{
+padding:12px 20px;
+font-size:16px;
+}
+</style>
+
+</head>
+
 <body>
 
-<h2>Live Delivery Tracking</h2>
+<h2>🚚 Delivery GPS Tracker</h2>
 
-<p>Map will show delivery route</p>
+<input id="orderId" placeholder="Enter Order ID"><br><br>
+
+<button onclick="startTracking()">Start Live Tracking</button>
+
+<p id="status"></p>
+
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let watchId;
+
+window.startTracking = function(){
+
+const orderId = document.getElementById("orderId").value;
+
+if(!orderId){
+alert("Enter Order ID");
+return;
+}
+
+document.getElementById("status").innerText = "Tracking started...";
+
+// GET LIVE GPS
+watchId = navigator.geolocation.watchPosition(async(position)=>{
+
+const lat = position.coords.latitude;
+const lng = position.coords.longitude;
+
+await updateDoc(doc(db,"orders",orderId),{
+deliveryLat: lat,
+deliveryLng: lng,
+status: "Out for Delivery"
+});
+
+},(err)=>{
+alert("GPS error");
+console.error(err);
+},{
+enableHighAccuracy:true
+});
+
+};
+
+</script>
 
 </body>
 </html>
