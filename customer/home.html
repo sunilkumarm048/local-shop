@@ -61,7 +61,7 @@ gap:15px;
 transform:scale(1.02);
 }
 
-/* HIDE WHEN SEARCH */
+/* HIDE */
 .hidden{
 display:none;
 }
@@ -96,32 +96,8 @@ color:gray;
 <input id="search" placeholder="Search shop..." onkeyup="searchShop()">
 </div>
 
-<div class="container">
-
-<div class="card" onclick="openShop('Bakery')">
-<div class="icon">🍞</div>
-<div>
-<div class="title">Bakery</div>
-<div class="subtitle">Puff, Samosa, Snacks</div>
-</div>
-</div>
-
-<div class="card" onclick="openShop('Tea Shop')">
-<div class="icon">☕</div>
-<div>
-<div class="title">Tea Shop</div>
-<div class="subtitle">Tea, Coffee</div>
-</div>
-</div>
-
-<div class="card" onclick="openShop('Fast Food')">
-<div class="icon">🍔</div>
-<div>
-<div class="title">Fast Food</div>
-<div class="subtitle">Burger, Pizza</div>
-</div>
-</div>
-
+<div class="container" id="shopList">
+Loading shops...
 </div>
 
 <script type="module">
@@ -129,11 +105,12 @@ color:gray;
 import { db } from "../js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const container = document.querySelector(".container");
+const container = document.getElementById("shopList");
 
+// LOAD SHOPS FROM FIRESTORE
 async function loadShops(){
 
-container.innerHTML = "Loading...";
+try{
 
 const snapshot = await getDocs(collection(db,"shops"));
 
@@ -145,23 +122,48 @@ let s = doc.data();
 
 container.innerHTML += `
 <div class="card" onclick="openShop('${s.name}')">
-<div class="icon">${s.icon}</div>
+<div class="icon">${s.icon || "🏪"}</div>
 <div>
 <div class="title">${s.name}</div>
-<div class="subtitle">${s.category}</div>
+<div class="subtitle">${s.category || ""}</div>
 </div>
 </div>
 `;
 
 });
 
+}catch(e){
+container.innerHTML = "❌ Error loading shops";
+console.error(e);
+}
+
 }
 
 loadShops();
 
+// ✅ FIXED: SAVE CORRECT KEY
 window.openShop = function(shop){
-localStorage.setItem("shop",shop);
+localStorage.setItem("shopName", shop);  // 🔥 IMPORTANT FIX
 window.location.href = "product.html";
+}
+
+// 🔍 SEARCH
+window.searchShop = function(){
+
+let input = document.getElementById("search").value.toLowerCase();
+let cards = document.querySelectorAll(".card");
+
+cards.forEach(card=>{
+let text = card.innerText.toLowerCase();
+
+if(text.includes(input)){
+card.classList.remove("hidden");
+}else{
+card.classList.add("hidden");
+}
+
+});
+
 }
 
 </script>
