@@ -124,38 +124,44 @@ color:gray;
 
 </div>
 
-<script>
+<script type="module">
 
-// SEARCH FUNCTION
-function searchShop(){
+import { db } from "../js/firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let input = document.getElementById("search").value.toLowerCase()
-let cards = document.querySelectorAll(".card")
+const container = document.querySelector(".container");
 
-cards.forEach(card=>{
+async function loadShops(){
 
-let text = card.innerText.toLowerCase()
+container.innerHTML = "Loading...";
 
-if(text.includes(input)){
-card.classList.remove("hidden")
-}else{
-card.classList.add("hidden")
+const snapshot = await getDocs(collection(db,"shops"));
+
+container.innerHTML = "";
+
+snapshot.forEach(doc=>{
+
+let s = doc.data();
+
+container.innerHTML += `
+<div class="card" onclick="openShop('${s.name}')">
+<div class="icon">${s.icon}</div>
+<div>
+<div class="title">${s.name}</div>
+<div class="subtitle">${s.category}</div>
+</div>
+</div>
+`;
+
+});
+
 }
 
-})
+loadShops();
 
-}
-
-// OPEN SHOP
-function openShop(shop){
-
-localStorage.setItem("shop",shop)
-
-// small animation delay
-setTimeout(()=>{
-window.location.href="product.html"
-},200)
-
+window.openShop = function(shop){
+localStorage.setItem("shop",shop);
+window.location.href = "product.html";
 }
 
 </script>
