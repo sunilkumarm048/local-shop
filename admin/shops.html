@@ -1,12 +1,98 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Shops</title></head>
-<body>
+<head>
+<title>Upload Shops</title>
+</head>
 
-<h2>All Shops</h2>
+<body style="font-family:Arial;text-align:center;padding:50px;">
 
-<p>Admin manages shops here</p>
+<h2>🚀 Upload All Shops</h2>
+
+<button onclick="upload()" style="padding:15px 25px;font-size:18px;">
+Upload Shops
+</button>
+
+<p id="status"></p>
+
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const shops = [
+
+{ name:"Grocery Shop", category:"Food & Daily Needs", icon:"🛒" },
+{ name:"Bakery", category:"Food & Daily Needs", icon:"🍞" },
+{ name:"Vegetable Shop", category:"Food & Daily Needs", icon:"🥦" },
+{ name:"Fruit Shop", category:"Food & Daily Needs", icon:"🍎" },
+{ name:"Meat Shop", category:"Food & Daily Needs", icon:"🍗" },
+{ name:"Fish Shop", category:"Food & Daily Needs", icon:"🐟" },
+{ name:"Dairy Shop", category:"Food & Daily Needs", icon:"🥛" },
+{ name:"Sweet Shop", category:"Food & Daily Needs", icon:"🍬" },
+{ name:"Fast Food", category:"Food & Daily Needs", icon:"🍔" },
+{ name:"Tea Shop", category:"Food & Daily Needs", icon:"☕" },
+{ name:"Restaurant", category:"Food & Daily Needs", icon:"🍽️" },
+
+{ name:"Hardware Shop", category:"Household", icon:"🔧" },
+{ name:"Electrical Shop", category:"Household", icon:"💡" },
+{ name:"Plumbing Shop", category:"Household", icon:"🚰" },
+{ name:"Paint Shop", category:"Household", icon:"🎨" },
+{ name:"Furniture Shop", category:"Household", icon:"🪑" },
+{ name:"Kitchenware", category:"Household", icon:"🍳" },
+{ name:"Plastic Shop", category:"Household", icon:"🧴" },
+{ name:"Gas Appliance", category:"Household", icon:"🔥" },
+
+{ name:"Mobile Shop", category:"Electronics", icon:"📱" },
+{ name:"Mobile Repair", category:"Electronics", icon:"🔧" },
+{ name:"Computer Shop", category:"Electronics", icon:"💻" },
+{ name:"Electronics Store", category:"Electronics", icon:"📺" },
+{ name:"CCTV Shop", category:"Electronics", icon:"📷" },
+{ name:"Solar Shop", category:"Electronics", icon:"☀️" },
+
+{ name:"Bike Parts", category:"Automobile", icon:"🏍️" },
+{ name:"Car Parts", category:"Automobile", icon:"🚗" },
+{ name:"Tyre Shop", category:"Automobile", icon:"🛞" },
+{ name:"Bike Garage", category:"Automobile", icon:"🔧" },
+{ name:"Car Garage", category:"Automobile", icon:"🔧" },
+{ name:"Battery Shop", category:"Automobile", icon:"🔋" },
+{ name:"Oil Shop", category:"Automobile", icon:"🛢️" },
+
+{ name:"Garments", category:"Fashion", icon:"👕" },
+{ name:"Saree Shop", category:"Fashion", icon:"👗" },
+{ name:"Shoe Shop", category:"Fashion", icon:"👟" },
+{ name:"Tailor", category:"Fashion", icon:"✂️" },
+{ name:"Cosmetics", category:"Fashion", icon:"💄" },
+{ name:"Jewellery", category:"Fashion", icon:"💍" },
+
+{ name:"Salon", category:"Services", icon:"💇" },
+{ name:"Laundry", category:"Services", icon:"🧺" },
+{ name:"Print Shop", category:"Services", icon:"🖨️" },
+{ name:"Cyber Cafe", category:"Services", icon:"🌐" },
+{ name:"Travel Agency", category:"Services", icon:"✈️" },
+{ name:"Courier", category:"Services", icon:"📦" },
+
+{ name:"Cement Shop", category:"Construction", icon:"🏗️" },
+{ name:"Steel Shop", category:"Construction", icon:"🔩" },
+{ name:"Tiles Shop", category:"Construction", icon:"🧱" },
+{ name:"Building Materials", category:"Construction", icon:"🏠" }
+
+];
+
+window.upload = async function(){
+
+document.getElementById("status").innerText = "Uploading...";
+
+for(let shop of shops){
+
+await addDoc(collection(db,"shops"), shop);
+
+}
+
+document.getElementById("status").innerText = "✅ All shops uploaded successfully!";
+
+}
+
+</script>
 
 </body>
 </html>
