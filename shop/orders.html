@@ -91,43 +91,44 @@ font-size:14px;
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyDiENWyBsHdVCNszjPb_gKT_JqBWxkKPfU",
-authDomain: "local-shop-orders-d48d0.firebaseapp.com",
-projectId: "local-shop-orders-d48d0",
-storageBucket: "local-shop-orders-d48d0.firebasestorage.app",
-messagingSenderId: "750524308284",
-appId: "1:750524308284:web:d2a047c93580635e4e5c39"
-};
+const ordersDiv = document.getElementById("orders");
 
-const app = initializeApp(firebaseConfig)
-const db = getFirestore(app)
+// 🔐 CHECK LOGIN
+onAuthStateChanged(auth,(user)=>{
 
-const shopName = "Bakery"
-const ordersDiv = document.getElementById("orders")
+if(!user){
+alert("Please login");
+window.location.href = "login.html";
+return;
+}
 
+const shopEmail = user.email; // 🔥 THIS IS KEY
+
+// LOAD ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
-ordersDiv.innerHTML=""
+ordersDiv.innerHTML="";
 
 snapshot.forEach((docSnap)=>{
 
-const order = docSnap.data()
-const id = docSnap.id
+const order = docSnap.data();
+const id = docSnap.id;
 
-if(order.shop === shopName){
+// 🔥 FILTER BY SHOP EMAIL
+if(order.shopEmail === shopEmail){
 
-let itemsHTML=""
+let itemsHTML="";
 
 order.items.forEach(i=>{
-itemsHTML += "• " + i.item + " x" + i.qty + "<br>"
-})
+itemsHTML += "• " + i.name + " x" + i.qty + "<br>";
+});
 
-let status = order.status || "Pending"
-let statusClass = status.toLowerCase()
+let status = order.status || "Pending";
+let statusClass = status.toLowerCase();
 
 ordersDiv.innerHTML += `
 
@@ -164,24 +165,27 @@ Total: ₹${order.total}
 
 </div>
 
-`
+`;
 
 }
 
-})
+});
 
-})
+});
 
+});
+
+// STATUS UPDATE
 window.acceptOrder = async(id)=>{
-await updateDoc(doc(db,"orders",id),{status:"Accepted"})
+await updateDoc(doc(db,"orders",id),{status:"Accepted"});
 }
 
 window.rejectOrder = async(id)=>{
-await updateDoc(doc(db,"orders",id),{status:"Rejected"})
+await updateDoc(doc(db,"orders",id),{status:"Rejected"});
 }
 
 window.readyOrder = async(id)=>{
-await updateDoc(doc(db,"orders",id),{status:"Ready"})
+await updateDoc(doc(db,"orders",id),{status:"Ready"});
 }
 
 </script>
