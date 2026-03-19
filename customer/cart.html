@@ -10,21 +10,61 @@ body{
 font-family:Arial;
 padding:20px;
 background:#f5f5f5;
+margin:0;
 }
 
+h2{
+text-align:center;
+}
+
+/* ITEM */
 .item{
 background:white;
-padding:10px;
+padding:12px;
 margin-bottom:10px;
-border-radius:8px;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
 
+/* BUTTONS */
 button{
+border:none;
+padding:6px 10px;
+border-radius:5px;
+cursor:pointer;
+}
+
+.remove{
 background:red;
 color:white;
-border:none;
-padding:5px 10px;
-border-radius:5px;
+}
+
+.qtyBtn{
+background:#ff5a5f;
+color:white;
+}
+
+.checkout{
+width:100%;
+padding:12px;
+background:#ff5a5f;
+color:white;
+font-size:16px;
+margin-top:15px;
+}
+
+/* EMPTY */
+.empty{
+text-align:center;
+margin-top:40px;
+color:gray;
+}
+
+.topBtn{
+margin-bottom:10px;
 }
 
 </style>
@@ -33,46 +73,114 @@ border-radius:5px;
 
 <body>
 
-<h2>Your Cart</h2>
+<button class="topBtn" onclick="goBack()">⬅ Back</button>
+
+<h2>🛒 Your Cart</h2>
 
 <div id="cart"></div>
 
 <h3>Total: ₹<span id="total">0</span></h3>
 
-<button onclick="checkout()">Checkout</button>
+<button class="checkout" onclick="checkout()">Proceed to Checkout</button>
 
 <script>
 
-let cart = JSON.parse(localStorage.getItem("cart")) || []
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-let cartDiv = document.getElementById("cart")
-let total = 0
+const cartDiv = document.getElementById("cart");
+const totalEl = document.getElementById("total");
+
+// 🔄 RENDER CART
+function renderCart(){
+
+cartDiv.innerHTML = "";
+let total = 0;
+
+if(cart.length === 0){
+cartDiv.innerHTML = `<div class="empty">🛒 Cart is empty</div>`;
+totalEl.innerText = 0;
+return;
+}
 
 cart.forEach((item,index)=>{
 
-let t = item.price * item.qty
-total += t
+let t = item.price * item.qty;
+total += t;
 
 cartDiv.innerHTML += `
 <div class="item">
-${item.name} x${item.qty} = ₹${t}
-<button onclick="remove(${index})">Remove</button>
+
+<div>
+<b>${item.name}</b><br>
+₹${item.price} x ${item.qty}
 </div>
-`
 
-})
+<div>
 
-document.getElementById("total").innerText = total
+<button class="qtyBtn" onclick="decrease(${index})">-</button>
+${item.qty}
+<button class="qtyBtn" onclick="increase(${index})">+</button>
 
-function remove(i){
-cart.splice(i,1)
-localStorage.setItem("cart",JSON.stringify(cart))
-location.reload()
+<br><br>
+
+<button class="remove" onclick="removeItem(${index})">Remove</button>
+
+</div>
+
+</div>
+`;
+
+});
+
+totalEl.innerText = total;
+
 }
 
+// ➕ INCREASE
+function increase(i){
+cart[i].qty++;
+save();
+}
+
+// ➖ DECREASE
+function decrease(i){
+cart[i].qty--;
+
+if(cart[i].qty <= 0){
+cart.splice(i,1);
+}
+
+save();
+}
+
+// ❌ REMOVE
+function removeItem(i){
+cart.splice(i,1);
+save();
+}
+
+// 💾 SAVE
+function save(){
+localStorage.setItem("cart", JSON.stringify(cart));
+renderCart();
+}
+
+// 🔁 BACK
+function goBack(){
+window.location.href = "product.html";
+}
+
+// 🛒 CHECKOUT
 function checkout(){
-window.location.href = "checkout.html"
+if(cart.length === 0){
+alert("Cart is empty");
+return;
 }
+window.location.href = "checkout.html";
+}
+
+// INIT
+renderCart();
 
 </script>
 
