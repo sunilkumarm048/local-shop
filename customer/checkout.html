@@ -17,9 +17,9 @@ padding:20px;
 .box{
 background:white;
 padding:20px;
-border-radius:10px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
-max-width:400px;
+border-radius:12px;
+box-shadow:0 6px 18px rgba(0,0,0,0.1);
+max-width:420px;
 margin:auto;
 }
 
@@ -44,11 +44,24 @@ font-size:16px;
 cursor:pointer;
 }
 
+/* ITEM */
+.item{
+padding:8px 0;
+border-bottom:1px solid #eee;
+}
+
 /* TOTAL */
 .total{
 font-size:18px;
 margin-top:10px;
 font-weight:bold;
+}
+
+/* EMPTY */
+.empty{
+text-align:center;
+color:gray;
+padding:20px;
 }
 
 </style>
@@ -59,7 +72,7 @@ font-weight:bold;
 
 <div class="box">
 
-<h2>Checkout</h2>
+<h2>🧾 Checkout</h2>
 
 <div id="cartItems"></div>
 
@@ -88,43 +101,52 @@ let cartDiv = document.getElementById("cartItems");
 
 let total = 0;
 
+// SHOW CART
+if(cart.length === 0){
+
+cartDiv.innerHTML = `<div class="empty">🛒 Cart is empty</div>`;
+
+}else{
+
 cart.forEach(item=>{
 
 let t = item.price * item.qty;
 total += t;
 
 cartDiv.innerHTML += `
-<div>
+<div class="item">
 ${item.name} x${item.qty} = ₹${t}
 </div>
 `;
 
 });
 
+}
+
 document.getElementById("total").innerText = total;
 
 // PLACE ORDER
 window.placeOrder = async function(){
 
-let name = document.getElementById("name").value;
-let phone = document.getElementById("phone").value;
-let address = document.getElementById("address").value;
+let name = document.getElementById("name").value.trim();
+let phone = document.getElementById("phone").value.trim();
+let address = document.getElementById("address").value.trim();
 let shop = localStorage.getItem("shop");
 
 // VALIDATION
 if(!name || !phone || !address){
-alert("Fill all details");
+alert("⚠️ Please fill all details");
 return;
 }
 
 if(cart.length === 0){
-alert("Cart empty");
+alert("🛒 Cart is empty");
 return;
 }
 
 try{
 
-await addDoc(collection(db,"orders"),{
+const docRef = await addDoc(collection(db,"orders"),{
 
 name,
 phone,
@@ -133,20 +155,24 @@ shop,
 items:cart,
 total,
 status:"Pending",
-time:new Date()
+time:new Date(),
+deliveryStatus:"Not Assigned"
 
 });
 
 // CLEAR CART
 localStorage.removeItem("cart");
 
-alert("Order placed successfully!");
+// SAVE LAST ORDER ID (for tracking)
+localStorage.setItem("lastOrderId", docRef.id);
 
-// REDIRECT
-window.location.href = "home.html";
+alert("✅ Order placed successfully!");
+
+// REDIRECT TO TRACKING PAGE
+window.location.href = "tracking.html";
 
 }catch(e){
-alert("Error placing order");
+alert("❌ Error placing order");
 console.error(e);
 }
 
