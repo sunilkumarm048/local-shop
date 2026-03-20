@@ -4,36 +4,24 @@
 
 <title>Add Product</title>
 
+<style>
+body{font-family:Arial;padding:20px;background:#f5f5f5;}
+input{padding:10px;width:100%;margin-bottom:10px;}
+button{padding:10px;background:#ff5a5f;color:white;border:none;width:100%;}
+</style>
+
 </head>
 
 <body>
 
 <h2>Add Product</h2>
 
-Product Name
-<br>
-<input id="name">
-<br><br>
-
-Price
-<br>
-<input id="price" type="number">
-<br><br>
-
-Shop
-<br>
-<select id="shop">
-<option value="Bakery">Bakery</option>
-<option value="Tea Shop">Tea Shop</option>
-<option value="Fast Food">Fast Food</option>
-</select>
-
-<br><br>
+<input id="name" placeholder="Product Name">
+<input id="price" type="number" placeholder="Price">
 
 <button onclick="addProduct()">Add Product</button>
 
 <p id="msg"></p>
-
 
 <script type="module">
 
@@ -42,28 +30,23 @@ import { collection, addDoc } from "https://www.gstatic.com/firebasejs/12.10.0/f
 
 window.addProduct = async function(){
 
-const name = document.getElementById("name").value
-const price = Number(document.getElementById("price").value)
-const shop = document.getElementById("shop").value
+const name = document.getElementById("name").value;
+const price = Number(document.getElementById("price").value);
+const shopEmail = localStorage.getItem("shopEmail");
 
-if(name=="" || price==""){
-alert("Fill all fields")
-return
+if(!name || !price){
+alert("Fill all fields");
+return;
 }
 
 await addDoc(collection(db,"products"),{
-
-name:name,
-price:price,
-shop:shop,
+name,
+price,
+shopEmail,
 available:true
+});
 
-})
-
-document.getElementById("msg").innerText="Product added successfully"
-
-document.getElementById("name").value=""
-document.getElementById("price").value=""
+document.getElementById("msg").innerText="✅ Product added";
 
 }
 
