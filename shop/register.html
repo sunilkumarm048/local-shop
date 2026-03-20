@@ -9,25 +9,36 @@
 body{
 font-family:Arial;
 text-align:center;
-padding:40px;
+padding:30px;
 background:#f5f5f5;
 }
 
-input{
+.container{
+background:white;
+padding:25px;
+border-radius:12px;
+max-width:400px;
+margin:auto;
+box-shadow:0 6px 18px rgba(0,0,0,0.1);
+}
+
+input,select{
 padding:10px;
-margin:10px;
-width:260px;
+margin:10px 0;
+width:100%;
 border-radius:6px;
 border:1px solid #ccc;
 }
 
 button{
-padding:10px 20px;
+padding:12px;
 background:#ff5a5f;
 color:white;
 border:none;
 border-radius:6px;
 cursor:pointer;
+width:100%;
+font-size:16px;
 }
 
 </style>
@@ -36,34 +47,75 @@ cursor:pointer;
 
 <body>
 
+<div class="container">
+
 <h2>🏪 Shop Registration</h2>
 
-<input id="name" placeholder="Shop Name (Bakery)">
-<br>
+<input id="name" placeholder="Shop Name (Sunil Bakery)">
 
 <input id="email" placeholder="Email (bakery@shop.com)">
-<br>
 
 <input id="password" type="password" placeholder="Password">
-<br>
+
+<!-- 🔥 CATEGORY -->
+<select id="category">
+<option>Loading categories...</option>
+</select>
+
+<!-- 🔥 LOCATION -->
+<input id="location" placeholder="City / Area (Bhubaneswar)">
 
 <button onclick="register()">Register</button>
 
 <p id="msg"></p>
 
+</div>
+
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { setDoc, doc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// 🔥 LOAD CATEGORIES FROM FIRESTORE
+async function loadCategories(){
+
+const select = document.getElementById("category");
+
+try{
+
+const snapshot = await getDocs(collection(db,"shopCategories"));
+
+select.innerHTML = "";
+
+snapshot.forEach(docSnap=>{
+let c = docSnap.data();
+
+select.innerHTML += `
+<option value="${c.name}">${c.name}</option>
+`;
+});
+
+}catch(e){
+select.innerHTML = `<option>Default Shop</option>`;
+console.error(e);
+}
+
+}
+
+loadCategories();
+
+
+// 🔥 REGISTER FUNCTION
 window.register = async function(){
 
 const name = document.getElementById("name").value.trim();
 const email = document.getElementById("email").value.trim();
 const pass = document.getElementById("password").value.trim();
+const category = document.getElementById("category").value;
+const location = document.getElementById("location").value.trim();
 
-if(!name || !email || !pass){
+if(!name || !email || !pass || !location){
 alert("Fill all fields");
 return;
 }
@@ -72,14 +124,29 @@ try{
 
 const user = await createUserWithEmailAndPassword(auth,email,pass);
 
+// 📍 OPTIONAL GPS (auto)
+let lat = null;
+let lng = null;
+
+if(navigator.geolocation){
+navigator.geolocation.getCurrentPosition(pos=>{
+lat = pos.coords.latitude;
+lng = pos.coords.longitude;
+});
+}
+
 // 🔥 SAVE SHOP DATA
 await setDoc(doc(db,"shops",user.user.uid),{
 shopName:name,
 email:email,
+category:category,
+location:location,
+lat:lat,
+lng:lng,
 createdAt:new Date()
 });
 
-// 🔥 SAVE IN LOCAL (important)
+// 🔥 SAVE LOCAL
 localStorage.setItem("shopEmail", email);
 localStorage.setItem("shopName", name);
 
