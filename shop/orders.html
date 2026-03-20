@@ -2,90 +2,22 @@
 <html>
 <head>
 
-<title>Bakery Orders Dashboard</title>
+<title>Orders</title>
 
 <style>
-
-body{
-font-family:Arial;
-background:#eef1f5;
-padding:20px;
-}
-
-h2{
-text-align:center;
-margin-bottom:20px;
-}
-
-.order{
-background:white;
-padding:20px;
-margin-bottom:15px;
-border-radius:14px;
-box-shadow:0 6px 18px rgba(0,0,0,0.08);
-transition:0.3s;
-}
-
-.order:hover{
-transform:scale(1.01);
-}
-
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:10px;
-}
-
-.status{
-padding:6px 14px;
-border-radius:20px;
-font-size:12px;
-color:white;
-font-weight:bold;
-}
-
-.pending{background:#ff9800;}
-.accepted{background:#4caf50;}
-.rejected{background:#f44336;}
-.ready{background:#2196f3;}
-.delivered{background:#673ab7;}
-
-.items{
-margin:10px 0;
-line-height:1.6;
-}
-
-.total{
-font-size:18px;
-font-weight:bold;
-margin-top:10px;
-}
-
-.buttons{
-margin-top:12px;
-}
-
-button{
-padding:8px 14px;
-margin-right:6px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-font-size:14px;
-}
-
-.accept{background:#4caf50;color:white;}
-.reject{background:#f44336;color:white;}
-.readyBtn{background:#2196f3;color:white;}
-
+body{font-family:Arial;background:#eef1f5;padding:20px;}
+.order{background:white;padding:15px;margin-bottom:15px;border-radius:10px;}
+button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;}
+.accept{background:green;}
+.reject{background:red;}
+.ready{background:blue;}
 </style>
 
 </head>
 
 <body>
 
-<h2>🍞 Bakery Orders Dashboard</h2>
+<h2>📦 Your Orders</h2>
 
 <div id="orders"></div>
 
@@ -97,74 +29,46 @@ import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/
 
 const ordersDiv = document.getElementById("orders");
 
-// 🔐 CHECK LOGIN
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
-alert("Please login");
-window.location.href = "login.html";
+alert("Login required");
+location.href="login.html";
 return;
 }
 
-const shopEmail = user.email; // 🔥 THIS IS KEY
+const shopEmail = user.email;
 
-// LOAD ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML="";
 
-snapshot.forEach((docSnap)=>{
+snapshot.forEach(docSnap=>{
 
 const order = docSnap.data();
 const id = docSnap.id;
 
-// 🔥 FILTER BY SHOP EMAIL
 if(order.shopEmail === shopEmail){
 
-let itemsHTML="";
-
+let items = "";
 order.items.forEach(i=>{
-itemsHTML += "• " + i.name + " x" + i.qty + "<br>";
+items += i.name + " x" + i.qty + "<br>";
 });
 
-let status = order.status || "Pending";
-let statusClass = status.toLowerCase();
-
 ordersDiv.innerHTML += `
-
 <div class="order">
-
-<div class="header">
-<b>👤 ${order.name}</b>
-<span class="status ${statusClass}">
-${status}
-</span>
-</div>
-
+<b>${order.name}</b><br>
 📞 ${order.phone}<br>
-🏠 ${order.address || "No address"}
 
-<div class="items">
-<b>Items:</b><br>
-${itemsHTML}
+${items}
+
+Total: ₹${order.total}<br>
+Status: ${order.status}<br>
+
+<button class="accept" onclick="accept('${id}')">Accept</button>
+<button class="ready" onclick="ready('${id}')">Ready</button>
+<button class="reject" onclick="reject('${id}')">Reject</button>
 </div>
-
-<div class="total">
-Total: ₹${order.total}
-</div>
-
-<div class="buttons">
-
-<button class="accept" onclick="acceptOrder('${id}')">Accept</button>
-
-<button class="readyBtn" onclick="readyOrder('${id}')">Ready</button>
-
-<button class="reject" onclick="rejectOrder('${id}')">Reject</button>
-
-</div>
-
-</div>
-
 `;
 
 }
@@ -175,18 +79,9 @@ Total: ₹${order.total}
 
 });
 
-// STATUS UPDATE
-window.acceptOrder = async(id)=>{
-await updateDoc(doc(db,"orders",id),{status:"Accepted"});
-}
-
-window.rejectOrder = async(id)=>{
-await updateDoc(doc(db,"orders",id),{status:"Rejected"});
-}
-
-window.readyOrder = async(id)=>{
-await updateDoc(doc(db,"orders",id),{status:"Ready"});
-}
+window.accept = id=>updateDoc(doc(db,"orders",id),{status:"Accepted"});
+window.ready = id=>updateDoc(doc(db,"orders",id),{status:"Ready"});
+window.reject = id=>updateDoc(doc(db,"orders",id),{status:"Rejected"});
 
 </script>
 
