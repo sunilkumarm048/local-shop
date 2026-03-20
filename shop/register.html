@@ -82,18 +82,23 @@ async function loadCategories(){
 
 const select = document.getElementById("category");
 
-try{
-
 const snapshot = await getDocs(collection(db,"shops"));
 
 select.innerHTML = "";
 
+let used = new Set(); // avoid duplicates
+
 snapshot.forEach(docSnap=>{
-let c = docSnap.data();
+let s = docSnap.data();
+
+if(!used.has(s.name)){
+used.add(s.name);
 
 select.innerHTML += `
-<option value="${c.name}">${c.name}</option>
+<option value="${s.name}">${s.name}</option>
 `;
+}
+
 });
 
 }catch(e){
