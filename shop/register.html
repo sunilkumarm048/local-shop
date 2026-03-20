@@ -4,6 +4,8 @@
 
 <title>Shop Register</title>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
 <style>
 
 body{
@@ -17,7 +19,7 @@ background:#f5f5f5;
 background:white;
 padding:25px;
 border-radius:12px;
-max-width:400px;
+max-width:420px;
 margin:auto;
 box-shadow:0 6px 18px rgba(0,0,0,0.1);
 }
@@ -41,6 +43,12 @@ width:100%;
 font-size:16px;
 }
 
+#map{
+height:250px;
+margin-top:10px;
+border-radius:10px;
+}
+
 </style>
 
 </head>
@@ -52,18 +60,17 @@ font-size:16px;
 <h2>🏪 Shop Registration</h2>
 
 <input id="name" placeholder="Shop Name (Sunil Bakery)">
-
 <input id="email" placeholder="Email (bakery@shop.com)">
-
 <input id="password" type="password" placeholder="Password">
 
-<!-- 🔥 CATEGORY -->
-<select id="category">
-<option>Loading categories...</option>
-</select>
+<!-- CATEGORY -->
+<select id="category"></select>
 
-<!-- 🔥 LOCATION -->
+<!-- LOCATION -->
 <input id="location" placeholder="City / Area (Bhubaneswar)">
+
+<!-- MAP -->
+<div id="map"></div>
 
 <button onclick="register()">Register</button>
 
@@ -71,47 +78,88 @@ font-size:16px;
 
 </div>
 
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { setDoc, doc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 LOAD CATEGORIES FROM FIRESTORE
+let lat = 20.2961;
+let lng = 85.8245;
+
+// 🔥 MAP INIT
+const map = L.map('map').setView([lat, lng], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+maxZoom:19
+}).addTo(map);
+
+let marker = L.marker([lat,lng], {draggable:true}).addTo(map);
+
+// DRAG LOCATION
+marker.on('dragend', ()=>{
+const pos = marker.getLatLng();
+lat = pos.lat;
+lng = pos.lng;
+});
+
+// GPS AUTO
+if(navigator.geolocation){
+navigator.geolocation.getCurrentPosition(pos=>{
+lat = pos.coords.latitude;
+lng = pos.coords.longitude;
+
+map.setView([lat,lng],15);
+marker.setLatLng([lat,lng]);
+});
+}
+
+// 🔥 LOAD CATEGORY
 async function loadCategories(){
 
 const select = document.getElementById("category");
+
+try{
 
 const snapshot = await getDocs(collection(db,"shops"));
 
 select.innerHTML = "";
 
-let used = new Set(); // avoid duplicates
+let used = new Set();
 
 snapshot.forEach(docSnap=>{
 let s = docSnap.data();
 
-if(!used.has(s.name)){
-used.add(s.name);
+if(s.category && !used.has(s.category)){
+used.add(s.category);
 
 select.innerHTML += `
-<option value="${s.name}">${s.name}</option>
+<option value="${s.category}">${s.category}</option>
+`;
+}
+});
+
+// fallback
+if(select.innerHTML === ""){
+select.innerHTML = `
+<option value="Bakery">Bakery</option>
+<option value="Tea Shop">Tea Shop</option>
+<option value="Fast Food">Fast Food</option>
 `;
 }
 
-});
-
 }catch(e){
-select.innerHTML = `<option>Default Shop</option>`;
 console.error(e);
+select.innerHTML = `<option>Bakery</option>`;
 }
 
 }
 
 loadCategories();
 
-
-// 🔥 REGISTER FUNCTION
+// 🔥 REGISTER
 window.register = async function(){
 
 const name = document.getElementById("name").value.trim();
@@ -129,18 +177,7 @@ try{
 
 const user = await createUserWithEmailAndPassword(auth,email,pass);
 
-// 📍 OPTIONAL GPS (auto)
-let lat = null;
-let lng = null;
-
-if(navigator.geolocation){
-navigator.geolocation.getCurrentPosition(pos=>{
-lat = pos.coords.latitude;
-lng = pos.coords.longitude;
-});
-}
-
-// 🔥 SAVE SHOP DATA
+// SAVE SHOP
 await setDoc(doc(db,"shops",user.user.uid),{
 shopName:name,
 email:email,
@@ -151,19 +188,18 @@ lng:lng,
 createdAt:new Date()
 });
 
-// 🔥 SAVE LOCAL
+// LOCAL SAVE
 localStorage.setItem("shopEmail", email);
 localStorage.setItem("shopName", name);
 
 document.getElementById("msg").innerText = "✅ Registered Successfully";
 
-// REDIRECT
 setTimeout(()=>{
 window.location.href = "dashboard.html";
 },1000);
 
 }catch(e){
-alert("❌ Error: " + e.message);
+alert("❌ " + e.message);
 console.error(e);
 }
 
