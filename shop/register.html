@@ -28,9 +28,7 @@ width:360px;
 box-shadow:0 6px 20px rgba(0,0,0,0.1);
 }
 
-h2{
-text-align:center;
-}
+h2{text-align:center;}
 
 input,select{
 width:100%;
@@ -52,6 +50,10 @@ cursor:pointer;
 margin-top:10px;
 }
 
+button:disabled{
+background:gray;
+}
+
 #map{
 height:200px;
 border-radius:10px;
@@ -66,6 +68,12 @@ margin-top:10px;
 .link a{
 color:#ff5a5f;
 text-decoration:none;
+font-weight:bold;
+}
+
+#msg{
+text-align:center;
+margin-top:10px;
 font-weight:bold;
 }
 
@@ -89,7 +97,7 @@ font-weight:bold;
 
 <div id="map"></div>
 
-<button onclick="register()">Register</button>
+<button id="btn" onclick="register()">Register</button>
 
 <p id="msg"></p>
 
@@ -110,20 +118,21 @@ import { setDoc, doc, collection, getDocs } from "https://www.gstatic.com/fireba
 let lat = 20.2961;
 let lng = 85.8245;
 
-// MAP
+// 🔥 MAP INIT
 const map = L.map('map').setView([lat, lng], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 let marker = L.marker([lat,lng], {draggable:true}).addTo(map);
 
+// DRAG
 marker.on('dragend', ()=>{
 const pos = marker.getLatLng();
 lat = pos.lat;
 lng = pos.lng;
 });
 
-// GPS
+// GPS AUTO
 if(navigator.geolocation){
 navigator.geolocation.getCurrentPosition(pos=>{
 lat = pos.coords.latitude;
@@ -133,12 +142,14 @@ marker.setLatLng([lat,lng]);
 });
 }
 
-// LOAD CATEGORY
+// 🔥 LOAD CATEGORY
 async function loadCategories(){
 
 const select = document.getElementById("category");
 
 try{
+
+console.log("Loading categories...");
 
 const snapshot = await getDocs(collection(db,"shops"));
 
@@ -150,11 +161,11 @@ let s = docSnap.data();
 
 if(s.category && !used.has(s.category)){
 used.add(s.category);
-
 select.innerHTML += `<option>${s.category}</option>`;
 }
 });
 
+// fallback
 if(select.innerHTML===""){
 select.innerHTML=`
 <option>Bakery</option>
@@ -164,6 +175,7 @@ select.innerHTML=`
 }
 
 }catch(e){
+console.error("Category load error:", e);
 select.innerHTML=`<option>Bakery</option>`;
 }
 
@@ -171,8 +183,13 @@ select.innerHTML=`<option>Bakery</option>`;
 
 loadCategories();
 
-// REGISTER
+// 🔥 REGISTER FUNCTION
 window.register = async function(){
+
+console.log("Register clicked");
+
+const btn = document.getElementById("btn");
+const msg = document.getElementById("msg");
 
 const name = document.getElementById("name").value.trim();
 const email = document.getElementById("email").value.trim();
@@ -180,16 +197,31 @@ const pass = document.getElementById("password").value.trim();
 const category = document.getElementById("category").value;
 const location = document.getElementById("location").value.trim();
 
+console.log(name, email, pass, category, location);
+
+// VALIDATION
 if(!name || !email || !pass || !location){
 alert("Fill all fields");
 return;
 }
 
+if(pass.length < 6){
+alert("Password must be at least 6 characters");
+return;
+}
+
+btn.disabled = true;
+msg.innerText = "⏳ Registering...";
+
 try{
 
-const user = await createUserWithEmailAndPassword(auth,email,pass);
+// 🔥 CREATE USER
+const userCredential = await createUserWithEmailAndPassword(auth,email,pass);
 
-await setDoc(doc(db,"shops",user.user.uid),{
+console.log("User created:", userCredential.user.uid);
+
+// 🔥 SAVE DATA
+await setDoc(doc(db,"shops",userCredential.user.uid),{
 shopName:name,
 email:email,
 category:category,
@@ -199,17 +231,29 @@ lng:lng,
 createdAt:new Date()
 });
 
+console.log("Saved to Firestore");
+
+// LOCAL STORAGE
 localStorage.setItem("shopEmail", email);
 localStorage.setItem("shopName", name);
 
-document.getElementById("msg").innerText="✅ Registered! Redirecting...";
+// SUCCESS
+msg.innerText = "✅ Registered Successfully";
 
 setTimeout(()=>{
 window.location.href="dashboard.html";
 },1200);
 
 }catch(e){
-alert("❌ "+e.message);
+
+console.error("Register error:", e);
+
+// SHOW ERROR
+msg.innerText = "❌ " + e.message;
+alert(e.message);
+
+btn.disabled = false;
+
 }
 
 }
