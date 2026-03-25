@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <title>Shop Register</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
 <style>
-
 body{
 margin:0;
 font-family:Arial;
@@ -17,23 +13,22 @@ background:#f8f8f8;
 display:flex;
 justify-content:center;
 align-items:center;
-min-height:100vh;
+height:100vh;
 }
 
 .container{
 background:white;
 padding:25px;
 border-radius:12px;
-width:360px;
+width:320px;
 box-shadow:0 6px 20px rgba(0,0,0,0.1);
+text-align:center;
 }
-
-h2{text-align:center;}
 
 input,select{
 width:100%;
 padding:12px;
-margin:8px 0;
+margin:10px 0;
 border-radius:8px;
 border:1px solid #ccc;
 }
@@ -45,40 +40,9 @@ background:#ff5a5f;
 color:white;
 border:none;
 border-radius:8px;
-font-size:16px;
-cursor:pointer;
-margin-top:10px;
-}
-
-button:disabled{
-background:gray;
-}
-
-#map{
-height:200px;
-border-radius:10px;
-margin-top:10px;
-}
-
-.link{
-text-align:center;
-margin-top:10px;
-}
-
-.link a{
-color:#ff5a5f;
-text-decoration:none;
-font-weight:bold;
-}
-
-#msg{
-text-align:center;
-margin-top:10px;
-font-weight:bold;
 }
 
 </style>
-
 </head>
 
 <body>
@@ -91,105 +55,27 @@ font-weight:bold;
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
 
-<select id="category"></select>
+<select id="category">
+<option>Bakery</option>
+<option>Tea Shop</option>
+<option>Fast Food</option>
+</select>
 
-<input id="location" placeholder="City / Area">
+<input id="location" placeholder="Location">
 
-<div id="map"></div>
-
-<button id="btn" onclick="register()">Register</button>
+<button onclick="register()">Register</button>
 
 <p id="msg"></p>
 
-<div class="link">
-Already have account? <a href="login.html">Login</a>
 </div>
-
-</div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { setDoc, doc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let lat = 20.2961;
-let lng = 85.8245;
-
-// 🔥 MAP INIT
-const map = L.map('map').setView([lat, lng], 13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-let marker = L.marker([lat,lng], {draggable:true}).addTo(map);
-
-// DRAG
-marker.on('dragend', ()=>{
-const pos = marker.getLatLng();
-lat = pos.lat;
-lng = pos.lng;
-});
-
-// GPS AUTO
-if(navigator.geolocation){
-navigator.geolocation.getCurrentPosition(pos=>{
-lat = pos.coords.latitude;
-lng = pos.coords.longitude;
-map.setView([lat,lng],15);
-marker.setLatLng([lat,lng]);
-});
-}
-
-// 🔥 LOAD CATEGORY
-async function loadCategories(){
-
-const select = document.getElementById("category");
-
-try{
-
-console.log("Loading categories...");
-
-const snapshot = await getDocs(collection(db,"shops"));
-
-let used = new Set();
-select.innerHTML="";
-
-snapshot.forEach(docSnap=>{
-let s = docSnap.data();
-
-if(s.category && !used.has(s.category)){
-used.add(s.category);
-select.innerHTML += `<option>${s.category}</option>`;
-}
-});
-
-// fallback
-if(select.innerHTML===""){
-select.innerHTML=`
-<option>Bakery</option>
-<option>Tea Shop</option>
-<option>Fast Food</option>
-`;
-}
-
-}catch(e){
-console.error("Category load error:", e);
-select.innerHTML=`<option>Bakery</option>`;
-}
-
-}
-
-loadCategories();
-
-// 🔥 REGISTER FUNCTION
 window.register = async function(){
-
-console.log("Register clicked");
-
-const btn = document.getElementById("btn");
-const msg = document.getElementById("msg");
 
 const name = document.getElementById("name").value.trim();
 const email = document.getElementById("email").value.trim();
@@ -197,63 +83,36 @@ const pass = document.getElementById("password").value.trim();
 const category = document.getElementById("category").value;
 const location = document.getElementById("location").value.trim();
 
-console.log(name, email, pass, category, location);
-
-// VALIDATION
 if(!name || !email || !pass || !location){
 alert("Fill all fields");
 return;
 }
 
-if(pass.length < 6){
-alert("Password must be at least 6 characters");
-return;
-}
-
-btn.disabled = true;
-msg.innerText = "⏳ Registering...";
-
 try{
 
-// 🔥 CREATE USER
-const userCredential = await createUserWithEmailAndPassword(auth,email,pass);
+const user = await createUserWithEmailAndPassword(auth,email,pass);
 
-console.log("User created:", userCredential.user.uid);
-
-// 🔥 SAVE DATA
-await setDoc(doc(db,"shops",userCredential.user.uid),{
-shopName:name,
-email:email,
-category:category,
-location:location,
-lat:lat,
-lng:lng,
-createdAt:new Date()
+// 🔥 SAVE SHOP (IMPORTANT FIX)
+await setDoc(doc(db,"shops",user.user.uid),{
+shopName: name,
+email: email,
+category: category,
+location: location,
+createdAt: new Date()
 });
 
-console.log("Saved to Firestore");
-
-// LOCAL STORAGE
+// SAVE LOCAL
 localStorage.setItem("shopEmail", email);
 localStorage.setItem("shopName", name);
 
-// SUCCESS
-msg.innerText = "✅ Registered Successfully";
+document.getElementById("msg").innerText="✅ Registered";
 
 setTimeout(()=>{
 window.location.href="dashboard.html";
-},1200);
+},1000);
 
 }catch(e){
-
-console.error("Register error:", e);
-
-// SHOW ERROR
-msg.innerText = "❌ " + e.message;
 alert(e.message);
-
-btn.disabled = false;
-
 }
 
 }
