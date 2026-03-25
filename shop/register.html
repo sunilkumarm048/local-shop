@@ -2,13 +2,51 @@
 <html>
 <head>
 <title>Register Shop</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{font-family:Arial;background:#f5f5f5;text-align:center;padding:30px;}
-.container{background:white;padding:20px;border-radius:10px;max-width:350px;margin:auto;}
-input,select{width:100%;padding:10px;margin:10px 0;}
-button{width:100%;padding:12px;background:#ff5a5f;color:white;border:none;}
+body{
+margin:0;
+font-family:Arial;
+background:#f5f5f5;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.container{
+background:white;
+padding:25px;
+border-radius:12px;
+width:320px;
+box-shadow:0 6px 20px rgba(0,0,0,0.1);
+text-align:center;
+}
+
+input,select{
+width:100%;
+padding:12px;
+margin:10px 0;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+background:#ff5a5f;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+#msg{
+margin-top:10px;
+font-weight:bold;
+}
 </style>
 </head>
 
@@ -32,21 +70,27 @@ button{width:100%;padding:12px;background:#ff5a5f;color:white;border:none;}
 
 <button onclick="register()">Register</button>
 
+<p id="msg"></p>
+
 </div>
 
 <script type="module">
 
-import { auth, db } from "../js/firebase.js";
+// 🔥 IMPORTANT: CORRECT PATH FOR GITHUB PAGES
+import { auth, db } from "/local-shop/js/firebase.js";
+
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 window.register = async function(){
 
-const name = document.getElementById("name").value;
-const email = document.getElementById("email").value;
-const pass = document.getElementById("password").value;
+console.log("STEP 1: Button clicked");
+
+const name = document.getElementById("name").value.trim();
+const email = document.getElementById("email").value.trim();
+const pass = document.getElementById("password").value.trim();
 const category = document.getElementById("category").value;
-const location = document.getElementById("location").value;
+const location = document.getElementById("location").value.trim();
 
 if(!name || !email || !pass || !location){
 alert("Fill all fields");
@@ -55,8 +99,12 @@ return;
 
 try{
 
+// 🔐 AUTH
 const user = await createUserWithEmailAndPassword(auth,email,pass);
 
+console.log("STEP 2: User created", user.user.uid);
+
+// 🔥 FIRESTORE SAVE
 await addDoc(collection(db,"localshop-details"),{
 shopName: name,
 email: email,
@@ -69,14 +117,24 @@ ownerUid: user.user.uid,
 createdAt: new Date()
 });
 
+console.log("STEP 3: Firestore saved");
+
+// LOCAL SAVE
 localStorage.setItem("shopName", name);
 localStorage.setItem("shopEmail", email);
 
-alert("✅ Registered!");
-window.location.href = "dashboard.html";
+// SUCCESS
+document.getElementById("msg").innerText = "✅ Registered Successfully";
+
+setTimeout(()=>{
+window.location.href="dashboard.html";
+},1200);
 
 }catch(e){
-alert(e.message);
+
+console.error("ERROR:", e);
+alert("❌ " + e.message);
+
 }
 
 }
