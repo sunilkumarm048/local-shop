@@ -4,49 +4,69 @@
 
 <title>Shop Register</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 
 body{
+margin:0;
 font-family:Arial;
-text-align:center;
-padding:30px;
-background:#f5f5f5;
+background:#f8f8f8;
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
 }
 
 .container{
 background:white;
 padding:25px;
 border-radius:12px;
-max-width:420px;
-margin:auto;
-box-shadow:0 6px 18px rgba(0,0,0,0.1);
+width:360px;
+box-shadow:0 6px 20px rgba(0,0,0,0.1);
+}
+
+h2{
+text-align:center;
 }
 
 input,select{
-padding:10px;
-margin:10px 0;
 width:100%;
-border-radius:6px;
+padding:12px;
+margin:8px 0;
+border-radius:8px;
 border:1px solid #ccc;
 }
 
 button{
+width:100%;
 padding:12px;
 background:#ff5a5f;
 color:white;
 border:none;
-border-radius:6px;
-cursor:pointer;
-width:100%;
+border-radius:8px;
 font-size:16px;
+cursor:pointer;
+margin-top:10px;
 }
 
 #map{
-height:250px;
-margin-top:10px;
+height:200px;
 border-radius:10px;
+margin-top:10px;
+}
+
+.link{
+text-align:center;
+margin-top:10px;
+}
+
+.link a{
+color:#ff5a5f;
+text-decoration:none;
+font-weight:bold;
 }
 
 </style>
@@ -57,24 +77,25 @@ border-radius:10px;
 
 <div class="container">
 
-<h2>🏪 Shop Registration</h2>
+<h2>🏪 Register Shop</h2>
 
-<input id="name" placeholder="Shop Name (Sunil Bakery)">
-<input id="email" placeholder="Email (bakery@shop.com)">
+<input id="name" placeholder="Shop Name">
+<input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
 
-<!-- CATEGORY -->
 <select id="category"></select>
 
-<!-- LOCATION -->
-<input id="location" placeholder="City / Area (Bhubaneswar)">
+<input id="location" placeholder="City / Area">
 
-<!-- MAP -->
 <div id="map"></div>
 
 <button onclick="register()">Register</button>
 
 <p id="msg"></p>
+
+<div class="link">
+Already have account? <a href="login.html">Login</a>
+</div>
 
 </div>
 
@@ -89,34 +110,30 @@ import { setDoc, doc, collection, getDocs } from "https://www.gstatic.com/fireba
 let lat = 20.2961;
 let lng = 85.8245;
 
-// 🔥 MAP INIT
+// MAP
 const map = L.map('map').setView([lat, lng], 13);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-maxZoom:19
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 let marker = L.marker([lat,lng], {draggable:true}).addTo(map);
 
-// DRAG LOCATION
 marker.on('dragend', ()=>{
 const pos = marker.getLatLng();
 lat = pos.lat;
 lng = pos.lng;
 });
 
-// GPS AUTO
+// GPS
 if(navigator.geolocation){
 navigator.geolocation.getCurrentPosition(pos=>{
 lat = pos.coords.latitude;
 lng = pos.coords.longitude;
-
 map.setView([lat,lng],15);
 marker.setLatLng([lat,lng]);
 });
 }
 
-// 🔥 LOAD CATEGORY
+// LOAD CATEGORY
 async function loadCategories(){
 
 const select = document.getElementById("category");
@@ -125,9 +142,8 @@ try{
 
 const snapshot = await getDocs(collection(db,"shops"));
 
-select.innerHTML = "";
-
 let used = new Set();
+select.innerHTML="";
 
 snapshot.forEach(docSnap=>{
 let s = docSnap.data();
@@ -135,31 +151,27 @@ let s = docSnap.data();
 if(s.category && !used.has(s.category)){
 used.add(s.category);
 
-select.innerHTML += `
-<option value="${s.category}">${s.category}</option>
-`;
+select.innerHTML += `<option>${s.category}</option>`;
 }
 });
 
-// fallback
-if(select.innerHTML === ""){
-select.innerHTML = `
-<option value="Bakery">Bakery</option>
-<option value="Tea Shop">Tea Shop</option>
-<option value="Fast Food">Fast Food</option>
+if(select.innerHTML===""){
+select.innerHTML=`
+<option>Bakery</option>
+<option>Tea Shop</option>
+<option>Fast Food</option>
 `;
 }
 
 }catch(e){
-console.error(e);
-select.innerHTML = `<option>Bakery</option>`;
+select.innerHTML=`<option>Bakery</option>`;
 }
 
 }
 
 loadCategories();
 
-// 🔥 REGISTER
+// REGISTER
 window.register = async function(){
 
 const name = document.getElementById("name").value.trim();
@@ -177,7 +189,6 @@ try{
 
 const user = await createUserWithEmailAndPassword(auth,email,pass);
 
-// SAVE SHOP
 await setDoc(doc(db,"shops",user.user.uid),{
 shopName:name,
 email:email,
@@ -188,19 +199,17 @@ lng:lng,
 createdAt:new Date()
 });
 
-// LOCAL SAVE
 localStorage.setItem("shopEmail", email);
 localStorage.setItem("shopName", name);
 
-document.getElementById("msg").innerText = "✅ Registered Successfully";
+document.getElementById("msg").innerText="✅ Registered! Redirecting...";
 
 setTimeout(()=>{
-window.location.href = "dashboard.html";
-},1000);
+window.location.href="dashboard.html";
+},1200);
 
 }catch(e){
-alert("❌ " + e.message);
-console.error(e);
+alert("❌ "+e.message);
 }
 
 }
