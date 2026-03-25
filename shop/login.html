@@ -3,12 +3,8 @@
 <head>
 <title>Shop Login</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
 <style>
-
 body{
-margin:0;
 font-family:Arial;
 background:#f8f8f8;
 display:flex;
@@ -22,12 +18,8 @@ background:white;
 padding:30px;
 border-radius:12px;
 width:320px;
-box-shadow:0 6px 20px rgba(0,0,0,0.1);
 text-align:center;
-}
-
-h2{
-margin-bottom:20px;
+box-shadow:0 6px 20px rgba(0,0,0,0.1);
 }
 
 input{
@@ -45,25 +37,7 @@ background:#ff5a5f;
 color:white;
 border:none;
 border-radius:8px;
-font-size:16px;
-cursor:pointer;
 }
-
-button:hover{
-background:#e04848;
-}
-
-.link{
-margin-top:15px;
-font-size:14px;
-}
-
-.link a{
-color:#ff5a5f;
-text-decoration:none;
-font-weight:bold;
-}
-
 </style>
 
 </head>
@@ -79,16 +53,13 @@ font-weight:bold;
 
 <button onclick="login()">Login</button>
 
-<div class="link">
-New shop? <a href="register.html">Register</a>
-</div>
-
 </div>
 
 <script type="module">
 
-import { auth } from "../js/firebase.js";
+import { auth, db } from "../js/firebase.js";
 import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 window.login = async function(){
 
@@ -102,16 +73,28 @@ return;
 
 try{
 
-await signInWithEmailAndPassword(auth,email,pass);
+const user = await signInWithEmailAndPassword(auth,email,pass);
 
-// SAVE SHOP INFO
-localStorage.setItem("shopEmail", email);
-localStorage.setItem("shopName", email.split("@")[0]);
+// 🔥 FETCH SHOP DATA
+const snap = await getDoc(doc(db,"shops",user.user.uid));
+
+if(snap.exists()){
+
+const data = snap.data();
+
+// SAVE CORRECT DATA
+localStorage.setItem("shopEmail", data.email);
+localStorage.setItem("shopName", data.shopName);
+
+}else{
+alert("Shop data not found");
+return;
+}
 
 window.location.href = "dashboard.html";
 
 }catch(e){
-alert("❌ " + e.message);
+alert(e.message);
 }
 
 }
