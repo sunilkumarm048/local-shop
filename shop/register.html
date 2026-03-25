@@ -1,47 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Shop Register</title>
-
+<title>Register Shop</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#f8f8f8;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
-}
-
-.container{
-background:white;
-padding:25px;
-border-radius:12px;
-width:320px;
-box-shadow:0 6px 20px rgba(0,0,0,0.1);
-text-align:center;
-}
-
-input,select{
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:8px;
-border:1px solid #ccc;
-}
-
-button{
-width:100%;
-padding:12px;
-background:#ff5a5f;
-color:white;
-border:none;
-border-radius:8px;
-}
-
+body{font-family:Arial;background:#f5f5f5;text-align:center;padding:30px;}
+.container{background:white;padding:20px;border-radius:10px;max-width:350px;margin:auto;}
+input,select{width:100%;padding:10px;margin:10px 0;}
+button{width:100%;padding:12px;background:#ff5a5f;color:white;border:none;}
 </style>
 </head>
 
@@ -65,23 +32,21 @@ border-radius:8px;
 
 <button onclick="register()">Register</button>
 
-<p id="msg"></p>
-
 </div>
 
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { setDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 window.register = async function(){
 
-const name = document.getElementById("name").value.trim();
-const email = document.getElementById("email").value.trim();
-const pass = document.getElementById("password").value.trim();
+const name = document.getElementById("name").value;
+const email = document.getElementById("email").value;
+const pass = document.getElementById("password").value;
 const category = document.getElementById("category").value;
-const location = document.getElementById("location").value.trim();
+const location = document.getElementById("location").value;
 
 if(!name || !email || !pass || !location){
 alert("Fill all fields");
@@ -92,24 +57,23 @@ try{
 
 const user = await createUserWithEmailAndPassword(auth,email,pass);
 
-// 🔥 SAVE SHOP (IMPORTANT FIX)
-await setDoc(doc(db,"shops",user.user.uid),{
+await addDoc(collection(db,"localshop-details"),{
 shopName: name,
 email: email,
 category: category,
 location: location,
+lat: 0,
+lng: 0,
+icon: "🏪",
+ownerUid: user.user.uid,
 createdAt: new Date()
 });
 
-// SAVE LOCAL
-localStorage.setItem("shopEmail", email);
 localStorage.setItem("shopName", name);
+localStorage.setItem("shopEmail", email);
 
-document.getElementById("msg").innerText="✅ Registered";
-
-setTimeout(()=>{
-window.location.href="dashboard.html";
-},1000);
+alert("✅ Registered!");
+window.location.href = "dashboard.html";
 
 }catch(e){
 alert(e.message);
