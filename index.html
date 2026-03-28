@@ -76,10 +76,9 @@ let filteredProducts = [];
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let total = 0;
 
-// 🔥 SAVE DEFAULT SHOP (important for orders)
+// SAVE SHOP
 localStorage.setItem("shop","Local Shop");
 
-// 🔥 LOAD PRODUCTS
 async function loadProducts(){
 
 const snapshot = await getDocs(collection(db,"products"));
@@ -95,7 +94,6 @@ updateCart();
 
 loadProducts();
 
-// 🎨 RENDER PRODUCTS
 function renderProducts(){
 
 const container = document.getElementById("products");
@@ -116,7 +114,6 @@ container.innerHTML += `
 
 }
 
-// 🔍 SEARCH
 window.searchProducts = function(){
 
 const text = document.getElementById("search").value.toLowerCase();
@@ -129,7 +126,6 @@ renderProducts();
 
 }
 
-// 📂 FILTER CATEGORY
 window.filterCategory = function(cat){
 
 if(cat === "All"){
@@ -142,7 +138,6 @@ renderProducts();
 
 }
 
-// 🛒 ADD TO CART (FIXED 🔥)
 window.addToCart = function(name,price){
 
 let found = cart.find(c=>c.name === name);
@@ -157,13 +152,11 @@ saveCart();
 
 }
 
-// 💾 SAVE CART
 function saveCart(){
 localStorage.setItem("cart", JSON.stringify(cart));
 updateCart();
 }
 
-// 🔄 UPDATE CART TOTAL
 function updateCart(){
 
 total = 0;
@@ -176,9 +169,9 @@ document.getElementById("total").innerText = total;
 
 }
 
-// 🚀 OPEN CART PAGE
+// ✅ FIXED HERE
 window.openCart = function(){
-window.location.href = "cart.html";
+window.location.href = "customer/cart.html";
 }
 
 </script>
