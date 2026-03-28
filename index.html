@@ -3,111 +3,35 @@
 <head>
 
 <title>Local Shop</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+body{margin:0;font-family:Arial;background:#f8f8f8;}
 
-body{
-margin:0;
-font-family:Arial;
-background:#f8f8f8;
-}
+.header{background:#ffcc00;padding:12px;}
+.location{font-size:14px;font-weight:bold;}
 
-/* HEADER */
-.header{
-background:#ffcc00;
-padding:12px;
-}
+.search{margin-top:10px;}
+.search input{width:100%;padding:10px;border-radius:8px;border:none;}
 
-.location{
-font-size:14px;
-font-weight:bold;
-}
+.categories{display:flex;overflow-x:auto;gap:12px;padding:15px;}
+.cat{min-width:80px;background:white;padding:10px;border-radius:10px;text-align:center;cursor:pointer;}
 
-.search{
-margin-top:10px;
-}
+.section{padding:10px;}
+.products{display:flex;overflow-x:auto;gap:15px;}
 
-.search input{
-width:100%;
-padding:10px;
-border-radius:8px;
-border:none;
-}
+.card{min-width:160px;background:white;border-radius:12px;padding:10px;}
+.card img{width:100%;height:100px;object-fit:cover;border-radius:8px;}
 
-/* CATEGORY */
-.categories{
-display:flex;
-overflow-x:auto;
-gap:12px;
-padding:15px;
-}
+.price{color:green;font-weight:bold;}
 
-.cat{
-min-width:80px;
-background:white;
-padding:10px;
-border-radius:10px;
-text-align:center;
-box-shadow:0 2px 8px rgba(0,0,0,0.1);
-}
+button{background:#ff5a5f;color:white;border:none;padding:6px 10px;border-radius:6px;}
 
-/* PRODUCTS */
-.section{
-padding:10px;
-}
-
-.products{
-display:flex;
-overflow-x:auto;
-gap:15px;
-}
-
-.card{
-min-width:160px;
-background:white;
-border-radius:12px;
-padding:10px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}
-
-.card img{
-width:100%;
-height:100px;
-object-fit:cover;
-border-radius:8px;
-}
-
-.price{
-color:green;
-font-weight:bold;
-}
-
-/* BUTTON */
-button{
-background:#ff5a5f;
-color:white;
-border:none;
-padding:6px 10px;
-border-radius:6px;
-cursor:pointer;
-}
-
-/* CART BUTTON */
 .cartBtn{
-position:fixed;
-bottom:15px;
-left:10px;
-right:10px;
-background:black;
-color:white;
-padding:15px;
-text-align:center;
-border-radius:12px;
-font-weight:bold;
+position:fixed;bottom:15px;left:10px;right:10px;
+background:black;color:white;padding:15px;text-align:center;
+border-radius:12px;font-weight:bold;
 }
-
 </style>
 
 </head>
@@ -119,88 +43,131 @@ font-weight:bold;
 <div class="location">📍 Deliver to Brahmapur</div>
 
 <div class="search">
-<input placeholder="Search for products...">
+<input id="search" placeholder="Search for products..." oninput="searchProducts()">
 </div>
 </div>
 
 <!-- CATEGORIES -->
 <div class="categories">
-
-<div class="cat">🍞<br>Bakery</div>
-<div class="cat">☕ Tea</div>
-<div class="cat">🍔 Fast Food</div>
-<div class="cat">🥦 Grocery</div>
-
+<div class="cat" onclick="filterCategory('All')">All</div>
+<div class="cat" onclick="filterCategory('Bakery')">🍞 Bakery</div>
+<div class="cat" onclick="filterCategory('Tea Shop')">☕ Tea</div>
+<div class="cat" onclick="filterCategory('Fast Food')">🍔 Fast Food</div>
 </div>
 
 <!-- PRODUCTS -->
 <div class="section">
-<h3>Popular Items</h3>
-
-<div class="products">
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d">
-<h4>Puff</h4>
-<p class="price">₹20</p>
-<button onclick="addToCart('Puff',20)">Add</button>
+<h3>Products</h3>
+<div id="products" class="products"></div>
 </div>
 
-<div class="card">
-<img src="https://images.unsplash.com/photo-1601050690597-df0568f70950">
-<h4>Samosa</h4>
-<p class="price">₹15</p>
-<button onclick="addToCart('Samosa',15)">Add</button>
-</div>
-
-<div class="card">
-<img src="https://images.unsplash.com/photo-1511920170033-f8396924c348">
-<h4>Tea</h4>
-<p class="price">₹10</p>
-<button onclick="addToCart('Tea',10)">Add</button>
-</div>
-
-</div>
-</div>
-
-<!-- CART BUTTON -->
+<!-- CART -->
 <div class="cartBtn" onclick="openCart()">
 🛒 View Cart (₹<span id="total">0</span>)
 </div>
 
-<script>
+<script type="module">
 
-let cart=[]
-let total=0
+import { db } from "/local-shop/js/firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-window.addToCart=function(item,price){
+let allProducts = [];
+let filteredProducts = [];
+let cart = [];
+let total = 0;
 
-let found=cart.find(c=>c.item===item)
+// 🔥 LOAD PRODUCTS FROM FIRESTORE
+async function loadProducts(){
 
-if(found){
-found.qty++
-}else{
-cart.push({item,price,qty:1})
+const snapshot = await getDocs(collection(db,"products"));
+
+allProducts = snapshot.docs.map(doc => doc.data());
+
+filteredProducts = allProducts;
+
+renderProducts();
+
 }
 
-updateCart()
+loadProducts();
+
+// 🎨 RENDER PRODUCTS
+function renderProducts(){
+
+const container = document.getElementById("products");
+
+container.innerHTML = "";
+
+filteredProducts.forEach(p=>{
+
+container.innerHTML += `
+<div class="card">
+<img src="https://source.unsplash.com/200x150/?food">
+<h4>${p.name}</h4>
+<p class="price">₹${p.price}</p>
+<button onclick="addToCart('${p.name}',${p.price})">Add</button>
+</div>
+`;
+
+});
+
+}
+
+// 🔍 SEARCH
+window.searchProducts = function(){
+
+const text = document.getElementById("search").value.toLowerCase();
+
+filteredProducts = allProducts.filter(p =>
+p.name.toLowerCase().includes(text)
+);
+
+renderProducts();
+
+}
+
+// 📂 FILTER CATEGORY
+window.filterCategory = function(cat){
+
+if(cat === "All"){
+filteredProducts = allProducts;
+}else{
+filteredProducts = allProducts.filter(p => p.category === cat);
+}
+
+renderProducts();
+
+}
+
+// 🛒 CART
+window.addToCart = function(item,price){
+
+let found = cart.find(c=>c.item===item);
+
+if(found){
+found.qty++;
+}else{
+cart.push({item,price,qty:1});
+}
+
+updateCart();
 
 }
 
 function updateCart(){
 
-total=0
+total = 0;
 
 cart.forEach(c=>{
-total += c.price*c.qty
-})
+total += c.price * c.qty;
+});
 
-document.getElementById("total").innerText=total
+document.getElementById("total").innerText = total;
 
 }
 
-function openCart(){
-alert("Cart UI coming next 😎")
+window.openCart = function(){
+alert("Cart UI coming next 😎");
 }
 
 </script>
