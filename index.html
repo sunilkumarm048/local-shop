@@ -73,10 +73,13 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/
 
 let allProducts = [];
 let filteredProducts = [];
-let cart = [];
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let total = 0;
 
-// 🔥 LOAD PRODUCTS FROM FIRESTORE
+// 🔥 SAVE DEFAULT SHOP (important for orders)
+localStorage.setItem("shop","Local Shop");
+
+// 🔥 LOAD PRODUCTS
 async function loadProducts(){
 
 const snapshot = await getDocs(collection(db,"products"));
@@ -86,6 +89,7 @@ allProducts = snapshot.docs.map(doc => doc.data());
 filteredProducts = allProducts;
 
 renderProducts();
+updateCart();
 
 }
 
@@ -95,7 +99,6 @@ loadProducts();
 function renderProducts(){
 
 const container = document.getElementById("products");
-
 container.innerHTML = "";
 
 filteredProducts.forEach(p=>{
@@ -139,21 +142,28 @@ renderProducts();
 
 }
 
-// 🛒 CART
-window.addToCart = function(item,price){
+// 🛒 ADD TO CART (FIXED 🔥)
+window.addToCart = function(name,price){
 
-let found = cart.find(c=>c.item===item);
+let found = cart.find(c=>c.name === name);
 
 if(found){
 found.qty++;
 }else{
-cart.push({item,price,qty:1});
+cart.push({name,price,qty:1});
 }
 
+saveCart();
+
+}
+
+// 💾 SAVE CART
+function saveCart(){
+localStorage.setItem("cart", JSON.stringify(cart));
 updateCart();
-
 }
 
+// 🔄 UPDATE CART TOTAL
 function updateCart(){
 
 total = 0;
@@ -166,8 +176,9 @@ document.getElementById("total").innerText = total;
 
 }
 
+// 🚀 OPEN CART PAGE
 window.openCart = function(){
-alert("Cart UI coming next 😎");
+window.location.href = "cart.html";
 }
 
 </script>
