@@ -49,6 +49,8 @@ import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/
 
 const ordersDiv = document.getElementById("orders");
 
+let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
@@ -59,6 +61,7 @@ return;
 
 const shopEmail = user.email;
 
+// 🔥 LIVE ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML="";
@@ -68,7 +71,13 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
+// 🔥 FILTER CORRECT SHOP
 if(order.shopEmail === shopEmail){
+
+// 🔔 NOTIFICATION
+if(order.status === "Pending"){
+audio.play();
+}
 
 let itemsHTML = "";
 
@@ -77,35 +86,27 @@ itemsHTML += `
 <div class="item">
 <input type="checkbox" id="item_${id}_${index}" checked>
 ${i.name} x${i.qty}
-</div>
-`;
+</div>`;
 });
 
 ordersDiv.innerHTML += `
 <div class="order">
 
 <b>${order.name}</b><br>
-📞 ${order.phone}<br><br>
+📞 ${order.phone}<br>
+📍 ${order.address}<br><br>
 
 ${itemsHTML}
 
-<br>
 Total: ₹${order.total}<br>
 Status: ${order.status}<br>
 
-<button class="accept" onclick="accept('${id}')">Accept All</button>
-
-<button class="partial" onclick="partialAccept('${id}')">
-Accept Selected
-</button>
-
+<button class="accept" onclick="accept('${id}')">Accept</button>
+<button class="partial" onclick="partialAccept('${id}')">Partial</button>
 <button class="ready" onclick="ready('${id}')">Ready</button>
-
 <button class="reject" onclick="reject('${id}')">Reject</button>
 
-</div>
-`;
-
+</div>`;
 }
 
 });
@@ -114,52 +115,42 @@ Accept Selected
 
 });
 
-// ✅ ACCEPT ALL
+// ✅ ACTIONS
 window.accept = id=>{
-updateDoc(doc(db,"orders",id),{
-status:"Accepted"
-});
+updateDoc(doc(db,"orders",id),{status:"Accepted"});
 };
 
-// ✅ READY
 window.ready = id=>{
-updateDoc(doc(db,"orders",id),{
-status:"Ready"
-});
+updateDoc(doc(db,"orders",id),{status:"Ready"});
 };
 
-// ❌ REJECT
 window.reject = id=>{
-updateDoc(doc(db,"orders",id),{
-status:"Rejected"
-});
+updateDoc(doc(db,"orders",id),{status:"Rejected"});
 };
 
-// 🔥 PARTIAL ACCEPT
 window.partialAccept = async function(id){
 
 const checkboxes = document.querySelectorAll(`[id^="item_${id}_"]`);
 
-let selectedItems = [];
+let selected = [];
 
-checkboxes.forEach((cb,index)=>{
+checkboxes.forEach(cb=>{
 if(cb.checked){
-let text = cb.parentElement.innerText;
-selectedItems.push(text);
+selected.push(cb.parentElement.innerText);
 }
 });
 
-if(selectedItems.length === 0){
-alert("Select at least one item");
+if(selected.length === 0){
+alert("Select items");
 return;
 }
 
 await updateDoc(doc(db,"orders",id),{
 status:"Partial Accepted",
-availableItems: selectedItems
+availableItems: selected
 });
 
-alert("✅ Partial order accepted");
+alert("✅ Partial accepted");
 
 };
 
