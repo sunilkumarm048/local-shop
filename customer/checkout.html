@@ -1,27 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Checkout</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+margin:0;
+padding:20px;
+}
+
+/* BOX */
+.box{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 6px 18px rgba(0,0,0,0.1);
+max-width:420px;
+margin:auto;
+}
+
+/* INPUT */
+input,textarea{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+/* BUTTON */
+button{
+width:100%;
+padding:12px;
+background:#ff5a5f;
+color:white;
+border:none;
+border-radius:6px;
+font-size:16px;
+cursor:pointer;
+}
+
+/* ITEM */
+.item{
+padding:8px 0;
+border-bottom:1px solid #eee;
+}
+
+/* TOTAL */
+.total{
+font-size:18px;
+margin-top:10px;
+font-weight:bold;
+}
+
+/* EMPTY */
+.empty{
+text-align:center;
+color:gray;
+padding:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>🧾 Checkout</h2>
+
+<div id="cartItems"></div>
+
+<div class="total">
+Total: ₹<span id="total">0</span>
+</div>
+
+<hr>
+
+<input id="name" placeholder="Your Name">
+<input id="phone" placeholder="Phone Number">
+<textarea id="address" placeholder="Address"></textarea>
+
+<button onclick="placeOrder()">Place Order</button>
+
+</div>
+
 <script type="module">
 
 import { db } from "../js/firebase.js";
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// LOAD CART
+// 🛒 LOAD CART
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let cartDiv = document.getElementById("cartItems");
 
 let total = 0;
 
-// SHOW CART
+// 🔄 DISPLAY CART
 if(cart.length === 0){
+
 cartDiv.innerHTML = `<div class="empty">🛒 Cart is empty</div>`;
+
 }else{
+
 cart.forEach(item=>{
+
 let t = item.price * item.qty;
 total += t;
 
 cartDiv.innerHTML += `
 <div class="item">
 ${item.name} x${item.qty} = ₹${t}
-</div>`;
+</div>
+`;
+
 });
+
 }
 
 document.getElementById("total").innerText = total;
@@ -39,17 +140,17 @@ let shopName = localStorage.getItem("shopName");
 
 // VALIDATION
 if(!name || !phone || !address){
-alert("⚠️ Fill all details");
+alert("⚠️ Please fill all details");
 return;
 }
 
 if(cart.length === 0){
-alert("🛒 Cart empty");
+alert("🛒 Cart is empty");
 return;
 }
 
 if(!shopEmail){
-alert("❌ No shop selected");
+alert("❌ No shop selected / login required");
 return;
 }
 
@@ -58,24 +159,24 @@ try{
 const docRef = await addDoc(collection(db,"orders"),{
 
 // 👤 CUSTOMER
-name,
-phone,
-address,
+name: name,
+phone: phone,
+address: address,
 
-// 🏪 SHOP (IMPORTANT)
+// 🏪 SHOP (VERY IMPORTANT 🔥)
 shopEmail: shopEmail,
 shopName: shopName,
 
-// 🛒 ORDER
+// 🛒 ORDER DATA
 items: cart,
 total: total,
 
 // 📦 STATUS
-status:"Pending",
-deliveryStatus:"Waiting",
+status: "Pending",
+deliveryStatus: "Waiting",
 
 // 🚚 DELIVERY
-deliveryBoy:null,
+deliveryBoy: null,
 
 // 💰 EARNINGS
 shopEarning: total * 0.9,
@@ -83,26 +184,31 @@ deliveryEarning: total * 0.1,
 platformFee: total * 0.05,
 
 // ⏱ TIME
-time:new Date()
+time: new Date()
 
 });
 
-// CLEAR CART
+// 🧹 CLEAR CART
 localStorage.removeItem("cart");
 
-// SAVE ORDER ID
+// 💾 SAVE ORDER ID
 localStorage.setItem("lastOrderId", docRef.id);
 
-alert("✅ Order placed!");
+alert("✅ Order placed successfully!");
 
-// REDIRECT
+// 🚀 REDIRECT
 window.location.href = "tracking.html?orderId=" + docRef.id;
 
 }catch(e){
+
 alert("❌ Error placing order");
 console.error(e);
-}
 
 }
+
+};
 
 </script>
+
+</body>
+</html>
