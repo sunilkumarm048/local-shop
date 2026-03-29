@@ -6,11 +6,31 @@
 
 <style>
 body{font-family:Arial;background:#eef1f5;padding:20px;}
-.order{background:white;padding:15px;margin-bottom:15px;border-radius:10px;}
-button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;}
+
+.order{
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+}
+
+button{
+margin:5px;
+padding:6px 10px;
+border:none;
+border-radius:5px;
+color:white;
+cursor:pointer;
+}
+
 .accept{background:green;}
 .reject{background:red;}
 .ready{background:blue;}
+.partial{background:orange;}
+
+.item{
+margin:5px 0;
+}
 </style>
 
 </head>
@@ -50,24 +70,39 @@ const id = docSnap.id;
 
 if(order.shopEmail === shopEmail){
 
-let items = "";
-order.items.forEach(i=>{
-items += i.name + " x" + i.qty + "<br>";
+let itemsHTML = "";
+
+order.items.forEach((i,index)=>{
+itemsHTML += `
+<div class="item">
+<input type="checkbox" id="item_${id}_${index}" checked>
+${i.name} x${i.qty}
+</div>
+`;
 });
 
 ordersDiv.innerHTML += `
 <div class="order">
+
 <b>${order.name}</b><br>
-📞 ${order.phone}<br>
+📞 ${order.phone}<br><br>
 
-${items}
+${itemsHTML}
 
+<br>
 Total: ₹${order.total}<br>
 Status: ${order.status}<br>
 
-<button class="accept" onclick="accept('${id}')">Accept</button>
+<button class="accept" onclick="accept('${id}')">Accept All</button>
+
+<button class="partial" onclick="partialAccept('${id}')">
+Accept Selected
+</button>
+
 <button class="ready" onclick="ready('${id}')">Ready</button>
+
 <button class="reject" onclick="reject('${id}')">Reject</button>
+
 </div>
 `;
 
@@ -79,9 +114,54 @@ Status: ${order.status}<br>
 
 });
 
-window.accept = id=>updateDoc(doc(db,"orders",id),{status:"Accepted"});
-window.ready = id=>updateDoc(doc(db,"orders",id),{status:"Ready"});
-window.reject = id=>updateDoc(doc(db,"orders",id),{status:"Rejected"});
+// ✅ ACCEPT ALL
+window.accept = id=>{
+updateDoc(doc(db,"orders",id),{
+status:"Accepted"
+});
+};
+
+// ✅ READY
+window.ready = id=>{
+updateDoc(doc(db,"orders",id),{
+status:"Ready"
+});
+};
+
+// ❌ REJECT
+window.reject = id=>{
+updateDoc(doc(db,"orders",id),{
+status:"Rejected"
+});
+};
+
+// 🔥 PARTIAL ACCEPT
+window.partialAccept = async function(id){
+
+const checkboxes = document.querySelectorAll(`[id^="item_${id}_"]`);
+
+let selectedItems = [];
+
+checkboxes.forEach((cb,index)=>{
+if(cb.checked){
+let text = cb.parentElement.innerText;
+selectedItems.push(text);
+}
+});
+
+if(selectedItems.length === 0){
+alert("Select at least one item");
+return;
+}
+
+await updateDoc(doc(db,"orders",id),{
+status:"Partial Accepted",
+availableItems: selectedItems
+});
+
+alert("✅ Partial order accepted");
+
+};
 
 </script>
 
