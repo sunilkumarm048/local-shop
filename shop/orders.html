@@ -45,7 +45,14 @@ margin:5px 0;
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+collection, 
+onSnapshot, 
+doc, 
+updateDoc, 
+getDoc, 
+addDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 
@@ -71,16 +78,17 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// 🔥 FILTER CORRECT SHOP
+// 🔥 SHOW ONLY THIS SHOP ORDERS
 if(order.shopEmail === shopEmail){
 
-// 🔔 NOTIFICATION
+// 🔔 SOUND
 if(order.status === "Pending"){
 audio.play();
 }
 
 let itemsHTML = "";
 
+// ITEMS WITH CHECKBOX
 order.items.forEach((i,index)=>{
 itemsHTML += `
 <div class="item">
@@ -89,6 +97,7 @@ ${i.name} x${i.qty}
 </div>`;
 });
 
+// UI
 ordersDiv.innerHTML += `
 <div class="order">
 
@@ -115,45 +124,88 @@ Status: ${order.status}<br>
 
 });
 
-// ✅ ACTIONS
+// ✅ ACCEPT FULL
 window.accept = id=>{
 updateDoc(doc(db,"orders",id),{status:"Accepted"});
 };
 
+// ✅ READY
 window.ready = id=>{
 updateDoc(doc(db,"orders",id),{status:"Ready"});
 };
 
+// ❌ REJECT
 window.reject = id=>{
 updateDoc(doc(db,"orders",id),{status:"Rejected"});
 };
 
+// 🔥 PARTIAL ACCEPT (REAL LOGIC)
 window.partialAccept = async function(id){
 
+const orderRef = doc(db,"orders",id);
+const snap = await getDoc(orderRef);
+const order = snap.data();
+
+// GET CHECKBOXES
 const checkboxes = document.querySelectorAll(`[id^="item_${id}_"]`);
 
-let selected = [];
+let selectedItems = [];
+let remainingItems = [];
 
-checkboxes.forEach(cb=>{
+checkboxes.forEach((cb,index)=>{
+
 if(cb.checked){
-selected.push(cb.parentElement.innerText);
+selectedItems.push(order.items[index]);
+}else{
+remainingItems.push(order.items[index]);
 }
+
 });
 
-if(selected.length === 0){
-alert("Select items");
+if(selectedItems.length === 0){
+alert("⚠️ Select at least 1 item");
 return;
 }
 
-await updateDoc(doc(db,"orders",id),{
-status:"Partial Accepted",
-availableItems: selected
+// ✅ UPDATE CURRENT ORDER (ONLY SELECTED ITEMS)
+await updateDoc(orderRef,{
+items: selectedItems,
+status: "Accepted"
 });
 
-alert("✅ Partial accepted");
+// 🔥 CREATE NEW ORDER FOR REMAINING ITEMS
+if(remainingItems.length > 0){
+
+await addDoc(collection(db,"orders"),{
+
+// CUSTOMER
+name: order.name,
+phone: order.phone,
+address: order.address,
+
+// REMAINING ITEMS
+items: remainingItems,
+total: remainingItems.reduce((t,i)=>t+i.price*i.qty,0),
+
+// STATUS
+status: "Pending",
+deliveryStatus: "Waiting",
+
+// 🚨 REMOVE SHOP → NEW SHOP CAN TAKE
+shopEmail: null,
+shopName: null,
+
+time: new Date()
+
+});
+
+}
+
+alert("✅ Partial accepted & forwarded to next shop");
 
 };
 
 </script>
+
 </body>
 </html>
