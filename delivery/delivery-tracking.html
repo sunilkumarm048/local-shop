@@ -10,134 +10,107 @@ font-family:Arial;
 text-align:center;
 padding:30px;
 }
-
-input{
-padding:10px;
-width:250px;
-}
-
 button{
 padding:12px 20px;
-font-size:16px;
 margin:5px;
-cursor:pointer;
 }
-
-#status{
-margin-top:15px;
-font-weight:bold;
-}
-
 </style>
 
 </head>
 
 <body>
 
-<h2>🚚 Delivery GPS Tracker</h2>
+<h2>🚚 Delivery Navigation</h2>
 
-<input id="orderId" placeholder="Enter Order ID"><br><br>
+<p id="info">Loading...</p>
 
-<button onclick="startTracking()">▶ Start Tracking</button>
-<button onclick="stopTracking()">⏹ Stop</button>
+<button onclick="startTracking()">▶ Start Delivery</button>
+<button onclick="markPicked()">📦 Picked from Shop</button>
 <button onclick="markDelivered()">✅ Delivered</button>
 
-<p id="status">Waiting...</p>
+<p id="status"></p>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let watchId = null;
+let watchId;
+let orderId = localStorage.getItem("activeDeliveryOrder");
 
-// ▶ START TRACKING
+if(!orderId){
+document.getElementById("info").innerText = "❌ No active order";
+}else{
+document.getElementById("info").innerText = "Order: " + orderId;
+}
+
+let orderData = null;
+
+// 🔥 LOAD ORDER DATA
+async function loadOrder(){
+
+const snap = await getDoc(doc(db,"orders",orderId));
+
+orderData = snap.data();
+
+console.log("ORDER:", orderData);
+
+}
+
+loadOrder();
+
+// ▶ START GPS TRACKING
 window.startTracking = function(){
 
-const orderId = document.getElementById("orderId").value;
-
 if(!orderId){
-alert("Enter Order ID");
+alert("No order");
 return;
 }
 
-document.getElementById("status").innerText = "📡 Tracking started...";
+watchId = navigator.geolocation.watchPosition(async(pos)=>{
 
-console.log("START tracking for:", orderId);
+let lat = pos.coords.latitude;
+let lng = pos.coords.longitude;
 
-// START GPS WATCH
-watchId = navigator.geolocation.watchPosition(async(position)=>{
-
-const lat = position.coords.latitude;
-const lng = position.coords.longitude;
-
-console.log("GPS:", lat, lng);
-
-try{
-
+// 🔥 SEND LOCATION
 await updateDoc(doc(db,"orders",orderId),{
-
 deliveryLat: lat,
-deliveryLng: lng,
-status: "Out for Delivery",
-deliveryBoy: "Rider 1" // you can make dynamic later
-
+deliveryLng: lng
 });
 
-document.getElementById("status").innerText = 
-"🚚 Live: " + lat.toFixed(5) + ", " + lng.toFixed(5);
-
-}catch(e){
-console.error("Firestore error:", e);
-}
-
-},(err)=>{
-
-console.error("GPS error:", err);
-alert("❌ GPS error. Allow location permission.");
+document.getElementById("status").innerText =
+"🚚 Moving: " + lat.toFixed(5) + "," + lng.toFixed(5);
 
 },{
-enableHighAccuracy:true,
-maximumAge:0,
-timeout:5000
+enableHighAccuracy:true
 });
 
 };
 
-// ⏹ STOP TRACKING
-window.stopTracking = function(){
-
-if(watchId !== null){
-navigator.geolocation.clearWatch(watchId);
-watchId = null;
-document.getElementById("status").innerText = "⏹ Tracking stopped";
-console.log("Tracking stopped");
-}
-
-};
-
-// ✅ MARK DELIVERED
-window.markDelivered = async function(){
-
-const orderId = document.getElementById("orderId").value;
-
-if(!orderId){
-alert("Enter Order ID");
-return;
-}
-
-try{
+// 📦 PICKED FROM SHOP
+window.markPicked = async function(){
 
 await updateDoc(doc(db,"orders",orderId),{
-status: "Delivered"
+deliveryStatus: "Picked",
+status: "Out for Delivery"
 });
 
-document.getElementById("status").innerText = "🎉 Order Delivered";
+alert("📦 Picked from shop");
 
-}catch(e){
-console.error(e);
-alert("Error updating status");
-}
+};
+
+// ✅ DELIVERED
+window.markDelivered = async function(){
+
+await updateDoc(doc(db,"orders",orderId),{
+status: "Delivered",
+deliveryStatus: "Completed"
+});
+
+alert("🎉 Delivered");
+
+// CLEAR ORDER
+localStorage.removeItem("activeDeliveryOrder");
 
 };
 
