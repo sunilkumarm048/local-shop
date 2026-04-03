@@ -27,6 +27,12 @@ border:none;
 border-radius:5px;
 cursor:pointer;
 }
+
+.busy{
+color:red;
+font-weight:bold;
+margin-bottom:10px;
+}
 </style>
 
 </head>
@@ -34,6 +40,8 @@ cursor:pointer;
 <body>
 
 <h2>📦 Available Orders</h2>
+
+<p id="busyStatus"></p>
 
 <div id="orders"></div>
 
@@ -43,8 +51,16 @@ import { db } from "../js/firebase.js";
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const div = document.getElementById("orders");
+const busyStatus = document.getElementById("busyStatus");
 
-// LOAD AVAILABLE ORDERS
+// 🚨 CHECK ACTIVE DELIVERY
+let activeOrder = localStorage.getItem("activeDeliveryOrder");
+
+if(activeOrder){
+busyStatus.innerHTML = "🚚 You already have an active delivery!";
+}
+
+// LOAD ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 div.innerHTML="";
@@ -54,8 +70,11 @@ snapshot.forEach(docSnap=>{
 let o = docSnap.data();
 let id = docSnap.id;
 
-// ONLY SHOW READY ORDERS (shop prepared)
+// ONLY SHOW READY + NOT ASSIGNED
 if(o.status === "Ready" && !o.deliveryBoy){
+
+// 🚫 IF BUSY → DISABLE BUTTON
+let disabled = activeOrder ? "disabled" : "";
 
 div.innerHTML += `
 <div class="order">
@@ -65,7 +84,7 @@ div.innerHTML += `
 📍 ${o.address}<br>
 💰 ₹${o.total}<br><br>
 
-<button onclick="acceptDelivery('${id}')">
+<button ${disabled} onclick="acceptDelivery('${id}')">
 Accept Delivery
 </button>
 
@@ -78,18 +97,39 @@ Accept Delivery
 
 });
 
-// ACCEPT DELIVERY
+// 🚀 ACCEPT DELIVERY
 window.acceptDelivery = async(id)=>{
 
-let deliveryName = prompt("Enter your name");
+// 🚫 BLOCK IF ALREADY BUSY
+if(localStorage.getItem("activeDeliveryOrder")){
+alert("⚠️ Finish current delivery first");
+return;
+}
 
+try{
+
+// AUTO NAME (later replace with login user)
+let deliveryName = "sonu";
+
+// 🔥 UPDATE ORDER
 await updateDoc(doc(db,"orders",id),{
 deliveryBoy: deliveryName,
 deliveryStatus: "Assigned",
 status: "Out for Delivery"
 });
 
-alert("Order assigned!");
+// 💾 SAVE ACTIVE ORDER
+localStorage.setItem("activeDeliveryOrder", id);
+
+alert("🚚 Delivery Assigned!");
+
+// 🚀 REDIRECT TO TRACKING
+window.location.href = "delivery-tracking.html";
+
+}catch(e){
+console.error(e);
+alert("Error assigning delivery");
+}
 
 };
 
