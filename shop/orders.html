@@ -130,7 +130,10 @@ Status: ${order.status}<br>
 
 // ✅ ACCEPT FULL
 window.accept = id=>{
-updateDoc(doc(db,"orders",id),{status:"Accepted"});
+updateDoc(doc(db,"orders",id),{
+    status:"Accepted",
+    shopEmail: auth.currentUser.email
+});
 };
 
 // ✅ READY
