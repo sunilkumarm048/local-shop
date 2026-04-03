@@ -127,6 +127,30 @@ ${item.name} x${item.qty} = ₹${t}
 
 document.getElementById("total").innerText = total;
 
+// 🌍 GET LOCATION (AUTO)
+function getLocation(){
+
+return new Promise((resolve)=>{
+
+navigator.geolocation.getCurrentPosition(pos=>{
+
+resolve({
+lat: pos.coords.latitude,
+lng: pos.coords.longitude
+});
+
+},()=>{
+// ❌ if permission denied → fallback
+resolve({lat:null,lng:null});
+},{
+enableHighAccuracy:true,
+timeout:5000
+});
+
+});
+
+}
+
 // 🚀 PLACE ORDER
 window.placeOrder = async function(){
 
@@ -134,7 +158,6 @@ let name = document.getElementById("name").value.trim();
 let phone = document.getElementById("phone").value.trim();
 let address = document.getElementById("address").value.trim();
 
-// 🔥 GET SHOP INFO
 let shopEmail = localStorage.getItem("shopEmail");
 let shopName = localStorage.getItem("shopName");
 
@@ -149,12 +172,10 @@ alert("🛒 Cart is empty");
 return;
 }
 
-if(!shopEmail){
-alert("❌ No shop selected / login required");
-return;
-}
-
 try{
+
+// 🔥 GET USER LOCATION
+const location = await getLocation();
 
 const docRef = await addDoc(collection(db,"orders"),{
 
@@ -163,11 +184,15 @@ name: name,
 phone: phone,
 address: address,
 
-// 🏪 SHOP (VERY IMPORTANT 🔥)
-shopEmail: shopEmail,
-shopName: shopName,
+// 📍 LOCATION (NEW 🔥)
+customerLat: location.lat,
+customerLng: location.lng,
 
-// 🛒 ORDER DATA
+// 🏪 SHOP (TEMP - will auto assign later)
+shopEmail: shopEmail || null,
+shopName: shopName || null,
+
+// 🛒 ORDER
 items: cart,
 total: total,
 
