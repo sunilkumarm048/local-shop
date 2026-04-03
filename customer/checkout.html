@@ -119,11 +119,15 @@ document.getElementById("total").innerText = total;
 function getLocation(){
 return new Promise((resolve)=>{
 navigator.geolocation.getCurrentPosition(pos=>{
+console.log("GPS:", pos.coords);
+
 resolve({
 lat: pos.coords.latitude,
 lng: pos.coords.longitude
 });
-},()=>{
+
+},(err)=>{
+console.error("GPS error:", err);
 resolve({lat:null,lng:null});
 },{
 enableHighAccuracy:true,
@@ -134,13 +138,13 @@ timeout:5000
 
 // 📏 DISTANCE FUNCTION
 function getDistance(lat1,lng1,lat2,lng2){
-return Math.sqrt(
-(lat1-lat2)**2 + (lng1-lng2)**2
-);
+return Math.sqrt((lat1-lat2)**2 + (lng1-lng2)**2);
 }
 
 // 🚀 PLACE ORDER
 window.placeOrder = async function(){
+
+console.log("STEP 1: Start placing order");
 
 let name = document.getElementById("name").value.trim();
 let phone = document.getElementById("phone").value.trim();
@@ -158,16 +162,18 @@ return;
 
 try{
 
-// 📍 GET CUSTOMER LOCATION
+// 📍 LOCATION
 const location = await getLocation();
+console.log("STEP 2: Location:", location);
 
 if(!location.lat){
-alert("⚠️ Location permission needed");
+alert("⚠️ Allow location permission");
 return;
 }
 
-// 🔥 GET ALL SHOPS
+// 🔥 GET SHOPS
 const snapshot = await getDocs(collection(db,"localshop-details"));
+console.log("STEP 3: Shops fetched");
 
 let nearestShop = null;
 let minDist = Infinity;
@@ -192,41 +198,41 @@ nearestShop = s;
 }
 });
 
-// ⚠️ If no shop found
+console.log("STEP 4: Nearest shop:", nearestShop);
+
+// ❌ NO SHOP
 if(!nearestShop){
 alert("❌ No nearby shop found");
 return;
 }
 
-console.log("Nearest Shop:", nearestShop);
+// 💾 SAVE ORDER
+console.log("STEP 5: Saving order...");
 
-// 🚀 CREATE ORDER
 const docRef = await addDoc(collection(db,"orders"),{
 
-// 👤 CUSTOMER
-name: name,
-phone: phone,
-address: address,
+// CUSTOMER
+name,
+phone,
+address,
 
-// 📍 CUSTOMER LOCATION
+// LOCATION
 customerLat: location.lat,
 customerLng: location.lng,
 
-// 🏪 AUTO ASSIGNED SHOP
+// SHOP AUTO
 shopEmail: nearestShop.email,
 shopName: nearestShop.shopName,
 shopLat: nearestShop.lat,
 shopLng: nearestShop.lng,
 
-// 🛒 ORDER
+// ORDER
 items: cart,
 total: total,
 
 // STATUS
 status: "Pending",
 deliveryStatus: "Waiting",
-
-// DELIVERY
 deliveryBoy: null,
 
 // EARNINGS
@@ -234,10 +240,11 @@ shopEarning: total * 0.9,
 deliveryEarning: total * 0.1,
 platformFee: total * 0.05,
 
-// TIME
 time: new Date()
 
 });
+
+console.log("STEP 6: Order saved:", docRef.id);
 
 // CLEAR CART
 localStorage.removeItem("cart");
@@ -245,15 +252,15 @@ localStorage.removeItem("cart");
 // SAVE ORDER ID
 localStorage.setItem("lastOrderId", docRef.id);
 
-alert("✅ Order placed to nearest shop!");
+alert("✅ Order placed successfully!");
 
 // REDIRECT
 window.location.href = "tracking.html?orderId=" + docRef.id;
 
 }catch(e){
 
-console.error(e);
-alert("❌ Error placing order");
+console.error("❌ FULL ERROR:", e);
+alert("Error: " + e.message);
 
 }
 
