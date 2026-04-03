@@ -124,8 +124,17 @@ if(data.deliveryLat && data.deliveryLng){
 
 let pos = [data.deliveryLat, data.deliveryLng];
 
+// 🔥 FORCE UPDATE (important fix)
 deliveryMarker.setLatLng(pos);
-map.setView(pos, 15);
+
+// Smooth movement (better UX)
+map.panTo(pos);
+
+// Optional zoom control
+map.setZoom(16);
+
+// DEBUG
+console.log("🚚 Updated Delivery Location:", pos);
 
 }
 
