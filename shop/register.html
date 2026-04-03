@@ -86,11 +86,13 @@ function getLocation(){
 return new Promise((resolve)=>{
 
 navigator.geolocation.getCurrentPosition(pos=>{
+console.log("GPS success:", pos.coords);
 resolve({
 lat: pos.coords.latitude,
 lng: pos.coords.longitude
 });
-},()=>{
+},(err)=>{
+console.error("GPS error:", err);
 resolve({lat:0,lng:0});
 },{
 enableHighAccuracy:true,
@@ -103,7 +105,6 @@ timeout:5000
 window.register = async function(){
 
 const msg = document.getElementById("msg");
-msg.innerText = "📍 Getting location...";
 
 const name = document.getElementById("name").value.trim();
 const email = document.getElementById("email").value.trim();
@@ -112,21 +113,31 @@ const category = document.getElementById("category").value;
 const locationText = document.getElementById("location").value.trim();
 
 if(!name || !email || !pass || !locationText){
-alert("Fill all fields");
+alert("⚠️ Fill all fields");
 return;
 }
 
 try{
 
-// 🌍 GET GPS LOCATION
+msg.innerText = "📍 Getting location...";
+console.log("STEP 1: Getting location");
+
 const loc = await getLocation();
+
+console.log("STEP 2: Location:", loc);
 
 msg.innerText = "⏳ Creating account...";
 
 // 🔐 AUTH
-const user = await createUserWithEmailAndPassword(auth,email,pass);
+const userCred = await createUserWithEmailAndPassword(auth,email,pass);
 
-// 🔥 SAVE IN localshop-details (IMPORTANT)
+console.log("STEP 3: Auth success", userCred.user.uid);
+
+msg.innerText = "💾 Saving shop data...";
+
+// 🔥 FIRESTORE SAVE
+console.log("STEP 4: Before Firestore save");
+
 await addDoc(collection(db,"localshop-details"),{
 
 shopName: name,
@@ -139,25 +150,31 @@ lat: loc.lat,
 lng: loc.lng,
 
 icon: "🏪",
-ownerUid: user.user.uid,
+ownerUid: userCred.user.uid,
 createdAt: new Date()
 
 });
+
+console.log("STEP 5: Firestore saved successfully");
+
+msg.innerText = "✅ Registered Successfully";
 
 // SAVE LOCAL
 localStorage.setItem("shopName", name);
 localStorage.setItem("shopEmail", email);
 
-msg.innerText = "✅ Registered Successfully";
-
+// REDIRECT
 setTimeout(()=>{
 window.location.href="dashboard.html";
 },1200);
 
 }catch(e){
 
-console.error(e);
-alert("❌ " + e.message);
+console.error("❌ FULL ERROR:", e);
+
+msg.innerText = "❌ Error: " + e.message;
+
+alert("Error: " + e.message);
 
 }
 
