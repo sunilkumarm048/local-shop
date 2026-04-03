@@ -1,13 +1,57 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Shops</title></head>
+<head>
+
+<title>Nearby Shops</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+#map{height:400px;}
+</style>
+
+</head>
+
 <body>
 
-<h2>Available Shops</h2>
+<h2>📍 Nearby Shops</h2>
 
-<a href="product.html">Bakery</a><br>
-<a href="product.html">Tea Shop</a>
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+// DEFAULT
+var map = L.map('map').setView([20.2961, 85.8245], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+// USER LOCATION
+navigator.geolocation.getCurrentPosition(pos => {
+
+let userLat = pos.coords.latitude;
+let userLng = pos.coords.longitude;
+
+L.marker([userLat, userLng]).addTo(map).bindPopup("You");
+
+// DEMO SHOPS (later from Firebase)
+let shops = [
+  {name:"Tea Shop", lat:userLat+0.01, lng:userLng+0.01},
+  {name:"Bakery", lat:userLat-0.01, lng:userLng-0.01}
+];
+
+shops.forEach(shop=>{
+  L.marker([shop.lat, shop.lng])
+    .addTo(map)
+    .bindPopup(shop.name);
+});
+
+map.setView([userLat, userLng], 14);
+
+});
+
+</script>
 
 </body>
 </html>
