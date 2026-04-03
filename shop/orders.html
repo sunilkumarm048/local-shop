@@ -79,7 +79,11 @@ const order = docSnap.data();
 const id = docSnap.id;
 
 // 🔥 SHOW ONLY THIS SHOP ORDERS
-if(order.shopEmail === shopEmail){
+// SHOW ORDERS IF:
+// 1. Already assigned to this shop
+// 2. OR not assigned yet (NEW ORDER)
+
+if(order.shopEmail === shopEmail || !order.shopEmail){
 
 // 🔔 SOUND
 if(order.status === "Pending"){
