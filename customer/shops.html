@@ -20,31 +20,40 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-<script>
+<script type="module">
 
-// DEFAULT
-var map = L.map('map').setView([20.2961, 85.8245], 13);
+import { db } from "../js/firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// INIT MAP
+let map = L.map('map').setView([20.2961, 85.8245], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// USER LOCATION
-navigator.geolocation.getCurrentPosition(pos => {
+// GET USER LOCATION
+navigator.geolocation.getCurrentPosition(async(pos)=>{
 
 let userLat = pos.coords.latitude;
 let userLng = pos.coords.longitude;
 
 L.marker([userLat, userLng]).addTo(map).bindPopup("You");
 
-// DEMO SHOPS (later from Firebase)
-let shops = [
-  {name:"Tea Shop", lat:userLat+0.01, lng:userLng+0.01},
-  {name:"Bakery", lat:userLat-0.01, lng:userLng-0.01}
-];
+// 🔥 GET SHOPS FROM FIRESTORE
+const snapshot = await getDocs(collection(db,"localshop-details"));
 
-shops.forEach(shop=>{
-  L.marker([shop.lat, shop.lng])
-    .addTo(map)
-    .bindPopup(shop.name);
+let shops = [];
+
+snapshot.forEach(doc=>{
+let s = doc.data();
+
+if(s.lat && s.lng){
+shops.push(s);
+
+L.marker([s.lat, s.lng])
+.addTo(map)
+.bindPopup(s.shopName);
+}
+
 });
 
 map.setView([userLat, userLng], 14);
