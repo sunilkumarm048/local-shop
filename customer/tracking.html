@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-
 body{
 font-family:Arial;
 margin:0;
@@ -70,24 +69,29 @@ Delivery Boy: <span id="boy">Not assigned</span>
 import { db } from "../js/firebase.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 GET ORDER ID FROM URL (NEW)
+// 🔥 GET ORDER ID
 const urlParams = new URLSearchParams(window.location.search);
 const orderId = urlParams.get("orderId") || localStorage.getItem("lastOrderId");
 
 document.getElementById("orderId").innerText = orderId;
 
-// DEFAULT LOCATION (Bhubaneswar)
-let delivery = [20.2961, 85.8245];
+// DEFAULT LOCATION
+let defaultLoc = [20.2961, 85.8245];
 
 // INIT MAP
-let map = L.map('map').setView(delivery, 14);
+let map = L.map('map').setView(defaultLoc, 14);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
 maxZoom:19
 }).addTo(map);
 
-// MARKER
-let marker = L.marker(delivery).addTo(map);
+// MARKERS
+let deliveryMarker = L.marker(defaultLoc).addTo(map).bindPopup("Delivery");
+let customerMarker = null;
+let shopMarker = null;
+
+// 🚫 Prevent multiple alerts
+let deliveredShown = false;
 
 // LIVE FIRESTORE
 onSnapshot(doc(db,"orders",orderId),(docSnap)=>{
@@ -99,15 +103,14 @@ return;
 
 let data = docSnap.data();
 
-// STATUS TEXT
+// STATUS
 document.getElementById("status").innerText = data.status;
 
-// DELIVERY BOY NAME
+// DELIVERY BOY
 document.getElementById("boy").innerText = data.deliveryBoy || "Not assigned";
 
 // STATUS COLOR
 let statusEl = document.getElementById("status");
-
 statusEl.className = "";
 
 if(data.status === "Pending") statusEl.classList.add("pending");
@@ -116,18 +119,49 @@ if(data.status === "Ready") statusEl.classList.add("ready");
 if(data.status === "Out for Delivery") statusEl.classList.add("out");
 if(data.status === "Delivered") statusEl.classList.add("delivered");
 
-// 🔥 GPS UPDATE
+// 🚚 DELIVERY LOCATION
 if(data.deliveryLat && data.deliveryLng){
 
-let newPos = [data.deliveryLat, data.deliveryLng];
+let pos = [data.deliveryLat, data.deliveryLng];
 
-marker.setLatLng(newPos);
-map.setView(newPos);
+deliveryMarker.setLatLng(pos);
+map.setView(pos, 15);
 
 }
 
-// 🎉 AUTO SUCCESS MESSAGE
-if(data.status === "Delivered"){
+// 👤 CUSTOMER LOCATION
+if(data.customerLat && data.customerLng){
+
+let pos = [data.customerLat, data.customerLng];
+
+if(!customerMarker){
+customerMarker = L.marker(pos)
+.addTo(map)
+.bindPopup("Customer");
+}else{
+customerMarker.setLatLng(pos);
+}
+
+}
+
+// 🏪 SHOP LOCATION
+if(data.shopLat && data.shopLng){
+
+let pos = [data.shopLat, data.shopLng];
+
+if(!shopMarker){
+shopMarker = L.marker(pos)
+.addTo(map)
+.bindPopup("Shop");
+}else{
+shopMarker.setLatLng(pos);
+}
+
+}
+
+// 🎉 SHOW ALERT ONLY ONCE
+if(data.status === "Delivered" && !deliveredShown){
+deliveredShown = true;
 alert("🎉 Order Delivered Successfully!");
 }
 
