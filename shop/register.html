@@ -64,6 +64,7 @@ font-weight:bold;
 <option>Bakery</option>
 <option>Tea Shop</option>
 <option>Fast Food</option>
+<option>Household</option>
 </select>
 
 <input id="location" placeholder="Location (Area name)">
@@ -80,7 +81,7 @@ import { auth, db } from "/local-shop/js/firebase.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🌍 GET GPS LOCATION
+// 🌍 GET LOCATION
 function getLocation(){
 return new Promise((resolve)=>{
 
@@ -90,8 +91,7 @@ lat: pos.coords.latitude,
 lng: pos.coords.longitude
 });
 },()=>{
-// fallback if denied
-resolve({lat:0, lng:0});
+resolve({lat:0,lng:0});
 },{
 enableHighAccuracy:true,
 timeout:5000
@@ -118,7 +118,7 @@ return;
 
 try{
 
-// 🌍 GET LOCATION
+// 🌍 GET GPS LOCATION
 const loc = await getLocation();
 
 msg.innerText = "⏳ Creating account...";
@@ -126,23 +126,25 @@ msg.innerText = "⏳ Creating account...";
 // 🔐 AUTH
 const user = await createUserWithEmailAndPassword(auth,email,pass);
 
-// 🔥 SAVE SHOP WITH LOCATION
-await addDoc(collection(db,"shops"),{
-name: name,
+// 🔥 SAVE IN localshop-details (IMPORTANT)
+await addDoc(collection(db,"localshop-details"),{
+
+shopName: name,
 email: email,
 category: category,
 location: locationText,
 
-// 📍 REAL GPS
+// 📍 GPS
 lat: loc.lat,
 lng: loc.lng,
 
 icon: "🏪",
 ownerUid: user.user.uid,
 createdAt: new Date()
+
 });
 
-// LOCAL SAVE
+// SAVE LOCAL
 localStorage.setItem("shopName", name);
 localStorage.setItem("shopEmail", email);
 
@@ -159,7 +161,7 @@ alert("❌ " + e.message);
 
 }
 
-}
+};
 
 </script>
 
