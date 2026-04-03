@@ -129,11 +129,19 @@ Status: ${order.status}<br>
 });
 
 // ✅ ACCEPT FULL
-window.accept = id=>{
-updateDoc(doc(db,"orders",id),{
+window.accept = async (id)=>{
+
+navigator.geolocation.getCurrentPosition(async(pos)=>{
+
+await updateDoc(doc(db,"orders",id),{
     status:"Accepted",
-    shopEmail: auth.currentUser.email
+    shopEmail: auth.currentUser.email,
+    shopLat: pos.coords.latitude,
+    shopLng: pos.coords.longitude
 });
+
+});
+
 };
 
 // ✅ READY
