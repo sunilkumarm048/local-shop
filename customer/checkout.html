@@ -15,7 +15,6 @@ margin:0;
 padding:20px;
 }
 
-/* BOX */
 .box{
 background:white;
 padding:20px;
@@ -25,7 +24,6 @@ max-width:420px;
 margin:auto;
 }
 
-/* INPUT */
 input,textarea{
 width:100%;
 padding:10px;
@@ -34,7 +32,6 @@ border-radius:6px;
 border:1px solid #ccc;
 }
 
-/* BUTTON */
 button{
 width:100%;
 padding:12px;
@@ -46,20 +43,17 @@ font-size:16px;
 cursor:pointer;
 }
 
-/* ITEM */
 .item{
 padding:8px 0;
 border-bottom:1px solid #eee;
 }
 
-/* TOTAL */
 .total{
 font-size:18px;
 margin-top:10px;
 font-weight:bold;
 }
 
-/* EMPTY */
 .empty{
 text-align:center;
 color:gray;
@@ -95,7 +89,7 @@ Total: ₹<span id="total">0</span>
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 🛒 LOAD CART
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -103,15 +97,11 @@ let cartDiv = document.getElementById("cartItems");
 
 let total = 0;
 
-// 🔄 DISPLAY CART
+// DISPLAY CART
 if(cart.length === 0){
-
 cartDiv.innerHTML = `<div class="empty">🛒 Cart is empty</div>`;
-
 }else{
-
 cart.forEach(item=>{
-
 let t = item.price * item.qty;
 total += t;
 
@@ -120,35 +110,33 @@ cartDiv.innerHTML += `
 ${item.name} x${item.qty} = ₹${t}
 </div>
 `;
-
 });
-
 }
 
 document.getElementById("total").innerText = total;
 
-// 🌍 GET LOCATION (AUTO)
+// 🌍 GET LOCATION
 function getLocation(){
-
 return new Promise((resolve)=>{
-
 navigator.geolocation.getCurrentPosition(pos=>{
-
 resolve({
 lat: pos.coords.latitude,
 lng: pos.coords.longitude
 });
-
 },()=>{
-// ❌ if permission denied → fallback
 resolve({lat:null,lng:null});
 },{
 enableHighAccuracy:true,
 timeout:5000
 });
-
 });
+}
 
+// 📏 DISTANCE FUNCTION
+function getDistance(lat1,lng1,lat2,lng2){
+return Math.sqrt(
+(lat1-lat2)**2 + (lng1-lng2)**2
+);
 }
 
 // 🚀 PLACE ORDER
@@ -158,10 +146,6 @@ let name = document.getElementById("name").value.trim();
 let phone = document.getElementById("phone").value.trim();
 let address = document.getElementById("address").value.trim();
 
-let shopEmail = localStorage.getItem("shopEmail");
-let shopName = localStorage.getItem("shopName");
-
-// VALIDATION
 if(!name || !phone || !address){
 alert("⚠️ Please fill all details");
 return;
@@ -174,9 +158,49 @@ return;
 
 try{
 
-// 🔥 GET USER LOCATION
+// 📍 GET CUSTOMER LOCATION
 const location = await getLocation();
 
+if(!location.lat){
+alert("⚠️ Location permission needed");
+return;
+}
+
+// 🔥 GET ALL SHOPS
+const snapshot = await getDocs(collection(db,"localshop-details"));
+
+let nearestShop = null;
+let minDist = Infinity;
+
+snapshot.forEach(doc=>{
+let s = doc.data();
+
+if(s.lat && s.lng){
+
+let dist = getDistance(
+location.lat,
+location.lng,
+s.lat,
+s.lng
+);
+
+if(dist < minDist){
+minDist = dist;
+nearestShop = s;
+}
+
+}
+});
+
+// ⚠️ If no shop found
+if(!nearestShop){
+alert("❌ No nearby shop found");
+return;
+}
+
+console.log("Nearest Shop:", nearestShop);
+
+// 🚀 CREATE ORDER
 const docRef = await addDoc(collection(db,"orders"),{
 
 // 👤 CUSTOMER
@@ -184,50 +208,52 @@ name: name,
 phone: phone,
 address: address,
 
-// 📍 LOCATION (NEW 🔥)
+// 📍 CUSTOMER LOCATION
 customerLat: location.lat,
 customerLng: location.lng,
 
-// 🏪 SHOP (TEMP - will auto assign later)
-shopEmail: shopEmail || null,
-shopName: shopName || null,
+// 🏪 AUTO ASSIGNED SHOP
+shopEmail: nearestShop.email,
+shopName: nearestShop.shopName,
+shopLat: nearestShop.lat,
+shopLng: nearestShop.lng,
 
 // 🛒 ORDER
 items: cart,
 total: total,
 
-// 📦 STATUS
+// STATUS
 status: "Pending",
 deliveryStatus: "Waiting",
 
-// 🚚 DELIVERY
+// DELIVERY
 deliveryBoy: null,
 
-// 💰 EARNINGS
+// EARNINGS
 shopEarning: total * 0.9,
 deliveryEarning: total * 0.1,
 platformFee: total * 0.05,
 
-// ⏱ TIME
+// TIME
 time: new Date()
 
 });
 
-// 🧹 CLEAR CART
+// CLEAR CART
 localStorage.removeItem("cart");
 
-// 💾 SAVE ORDER ID
+// SAVE ORDER ID
 localStorage.setItem("lastOrderId", docRef.id);
 
-alert("✅ Order placed successfully!");
+alert("✅ Order placed to nearest shop!");
 
-// 🚀 REDIRECT
+// REDIRECT
 window.location.href = "tracking.html?orderId=" + docRef.id;
 
 }catch(e){
 
-alert("❌ Error placing order");
 console.error(e);
+alert("❌ Error placing order");
 
 }
 
