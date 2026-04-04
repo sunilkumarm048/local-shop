@@ -28,6 +28,11 @@ border-radius:5px;
 cursor:pointer;
 }
 
+button:disabled{
+background:gray;
+cursor:not-allowed;
+}
+
 .busy{
 color:red;
 font-weight:bold;
@@ -41,26 +46,69 @@ margin-bottom:10px;
 
 <h2>📦 Available Orders</h2>
 
-<p id="busyStatus"></p>
+<p id="busyStatus" class="busy"></p>
 
 <div id="orders"></div>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+collection, 
+onSnapshot, 
+doc, 
+updateDoc, 
+getDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const div = document.getElementById("orders");
 const busyStatus = document.getElementById("busyStatus");
 
-// 🚨 CHECK ACTIVE DELIVERY
-let activeOrder = localStorage.getItem("activeDeliveryOrder");
+let activeOrder = null;
 
-if(activeOrder){
-busyStatus.innerHTML = "🚚 You already have an active delivery!";
+// 🔥 CHECK ACTIVE DELIVERY (SMART CHECK)
+async function checkActiveOrder(){
+
+let saved = localStorage.getItem("activeDeliveryOrder");
+
+if(!saved){
+activeOrder = null;
+return;
 }
 
-// LOAD ORDERS
+try{
+
+const snap = await getDoc(doc(db,"orders",saved));
+
+if(!snap.exists()){
+localStorage.removeItem("activeDeliveryOrder");
+activeOrder = null;
+return;
+}
+
+let data = snap.data();
+
+// ❌ REMOVE IF DELIVERED / COMPLETED
+if(data.status === "Delivered" || data.deliveryStatus === "Completed"){
+localStorage.removeItem("activeDeliveryOrder");
+activeOrder = null;
+return;
+}
+
+// ✅ VALID ACTIVE ORDER
+activeOrder = saved;
+busyStatus.innerHTML = "🚚 You already have an active delivery!";
+
+}catch(e){
+console.error("Check error:", e);
+activeOrder = null;
+}
+
+}
+
+// 🔥 LOAD ORDERS AFTER CHECK
+await checkActiveOrder();
+
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 div.innerHTML="";
@@ -73,7 +121,6 @@ let id = docSnap.id;
 // ONLY SHOW READY + NOT ASSIGNED
 if(o.status === "Ready" && !o.deliveryBoy){
 
-// 🚫 IF BUSY → DISABLE BUTTON
 let disabled = activeOrder ? "disabled" : "";
 
 div.innerHTML += `
@@ -100,18 +147,15 @@ Accept Delivery
 // 🚀 ACCEPT DELIVERY
 window.acceptDelivery = async(id)=>{
 
-// 🚫 BLOCK IF ALREADY BUSY
-if(localStorage.getItem("activeDeliveryOrder")){
+if(activeOrder){
 alert("⚠️ Finish current delivery first");
 return;
 }
 
 try{
 
-// AUTO NAME (later replace with login user)
-let deliveryName = "sonu";
+let deliveryName = "sonu"; // later dynamic
 
-// 🔥 UPDATE ORDER
 await updateDoc(doc(db,"orders",id),{
 deliveryBoy: deliveryName,
 deliveryStatus: "Assigned",
@@ -123,7 +167,7 @@ localStorage.setItem("activeDeliveryOrder", id);
 
 alert("🚚 Delivery Assigned!");
 
-// 🚀 REDIRECT TO TRACKING
+// 🚀 GO TO TRACKING
 window.location.href = "delivery-tracking.html";
 
 }catch(e){
