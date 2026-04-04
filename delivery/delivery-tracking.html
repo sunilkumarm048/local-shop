@@ -67,17 +67,19 @@ font-weight:bold;
 import { db } from "../js/firebase.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// 🔥 GET ORDER ID
 let orderId = localStorage.getItem("activeDeliveryOrder");
 
 if(!orderId){
-document.getElementById("info").innerText = "❌ No active order";
+document.getElementById("info").innerText = "❌ No active order found";
+throw new Error("No active order");
 }
 
 let orderData = null;
 let watchId = null;
 
-// 🌍 MAP INIT
-let map = L.map('map').setView([20°24'34.65 , 86°13'58.12],13);
+// ✅ CORRECT MAP INIT (Decimal coordinates)
+let map = L.map('map').setView([20.2961, 85.8245], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
@@ -87,33 +89,47 @@ let deliveryMarker=null, shopMarker=null, customerMarker=null, routeLine=null;
 // 🔥 YOUR API KEY
 const API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZiNTA0NmI1ZTc3ZDQwZjVhMjA0ZWEyZDg2ZTFlNjY4IiwiaCI6Im11cm11cjY0In0=";
 
-// LOAD ORDER
+// 🔥 LOAD ORDER
 async function loadOrder(){
 
+try{
+
 const snap = await getDoc(doc(db,"orders",orderId));
+
+if(!snap.exists()){
+document.getElementById("info").innerText = "❌ Order not found";
+return;
+}
 
 orderData = snap.data();
 
 document.getElementById("info").innerText = "Order: " + orderId;
 
-// SHOP MARKER
+// 🏪 SHOP
 if(orderData.shopLat && orderData.shopLng){
 shopMarker = L.marker([orderData.shopLat,orderData.shopLng])
 .addTo(map).bindPopup("🏪 Shop");
 }
 
-// CUSTOMER MARKER
+// 👤 CUSTOMER
 if(orderData.customerLat && orderData.customerLng){
 customerMarker = L.marker([orderData.customerLat,orderData.customerLng])
 .addTo(map).bindPopup("👤 Customer");
 }
 
+}catch(e){
+console.error(e);
+document.getElementById("info").innerText = "❌ Error loading order";
 }
 
-loadOrder();
+}
+
+await loadOrder();
 
 // 📍 DRAW ROUTE
 async function drawRoute(start,end){
+
+if(!start || !end) return;
 
 if(routeLine){
 map.removeLayer(routeLine);
@@ -137,8 +153,12 @@ coordinates:[
 
 let data = await res.json();
 
-let coords = data.features[0].geometry.coordinates;
+if(!data.features){
+console.error("Route error:", data);
+return;
+}
 
+let coords = data.features[0].geometry.coordinates;
 let latlngs = coords.map(c => [c[1],c[0]]);
 
 routeLine = L.polyline(latlngs,{
@@ -157,19 +177,14 @@ console.error("Route error:", e);
 // ▶ START TRACKING
 window.startTracking = function(){
 
-if(!orderId){
-alert("No order");
-return;
-}
-
 watchId = navigator.geolocation.watchPosition(async(pos)=>{
 
 let lat = pos.coords.latitude;
 let lng = pos.coords.longitude;
 
-// DELIVERY MARKER
 let position = [lat,lng];
 
+// 🚚 DELIVERY MARKER
 if(!deliveryMarker){
 deliveryMarker = L.marker(position)
 .addTo(map).bindPopup("🚚 You");
@@ -185,10 +200,9 @@ deliveryLat: lat,
 deliveryLng: lng
 });
 
-// 🔥 ROUTE LOGIC
+// 🔥 ROUTE SWITCH
 if(orderData.deliveryStatus === "Picked"){
 
-// 🚚 → CUSTOMER
 drawRoute(
 {lat,lng},
 {lat:orderData.customerLat,lng:orderData.customerLng}
@@ -196,7 +210,6 @@ drawRoute(
 
 }else{
 
-// 🚚 → SHOP
 drawRoute(
 {lat,lng},
 {lat:orderData.shopLat,lng:orderData.shopLng}
@@ -207,6 +220,9 @@ drawRoute(
 document.getElementById("status").innerText =
 "🚚 Live: " + lat.toFixed(5) + "," + lng.toFixed(5);
 
+},(err)=>{
+console.error(err);
+alert("❌ GPS error. Allow location permission.");
 },{
 enableHighAccuracy:true
 });
@@ -237,12 +253,12 @@ deliveryStatus:"Completed"
 
 alert("🎉 Delivered");
 
-// STOP TRACKING
+// STOP GPS
 if(watchId){
 navigator.geolocation.clearWatch(watchId);
 }
 
-// CLEAR
+// CLEAR STORAGE
 localStorage.removeItem("activeDeliveryOrder");
 
 };
