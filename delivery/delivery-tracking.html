@@ -2,17 +2,45 @@
 <html>
 <head>
 
-<title>Delivery Tracking</title>
+<title>Delivery Navigation</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 body{
 font-family:Arial;
+margin:0;
+background:#f5f5f5;
 text-align:center;
-padding:30px;
 }
+
+.header{
+background:#ff5a5f;
+color:white;
+padding:15px;
+font-size:18px;
+font-weight:bold;
+}
+
+#map{
+height:400px;
+margin:10px;
+border-radius:10px;
+}
+
 button{
-padding:12px 20px;
+padding:10px 15px;
 margin:5px;
+border:none;
+border-radius:6px;
+background:#333;
+color:white;
+cursor:pointer;
+}
+
+#status{
+margin-top:10px;
+font-weight:bold;
 }
 </style>
 
@@ -20,46 +48,113 @@ margin:5px;
 
 <body>
 
-<h2>🚚 Delivery Navigation</h2>
+<div class="header">🚚 Delivery Navigation</div>
 
-<p id="info">Loading...</p>
+<p id="info">Loading order...</p>
 
-<button onclick="startTracking()">▶ Start Delivery</button>
-<button onclick="markPicked()">📦 Picked from Shop</button>
+<div id="map"></div>
+
+<button onclick="startTracking()">▶ Start</button>
+<button onclick="markPicked()">📦 Picked</button>
 <button onclick="markDelivered()">✅ Delivered</button>
 
 <p id="status"></p>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let watchId;
 let orderId = localStorage.getItem("activeDeliveryOrder");
 
 if(!orderId){
 document.getElementById("info").innerText = "❌ No active order";
-}else{
-document.getElementById("info").innerText = "Order: " + orderId;
 }
 
 let orderData = null;
+let watchId = null;
 
-// 🔥 LOAD ORDER DATA
+// 🌍 MAP INIT
+let map = L.map('map').setView([20.2961,85.8245],13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+// MARKERS
+let deliveryMarker=null, shopMarker=null, customerMarker=null, routeLine=null;
+
+// 🔥 YOUR API KEY
+const API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZiNTA0NmI1ZTc3ZDQwZjVhMjA0ZWEyZDg2ZTFlNjY4IiwiaCI6Im11cm11cjY0In0=";
+
+// LOAD ORDER
 async function loadOrder(){
 
 const snap = await getDoc(doc(db,"orders",orderId));
 
 orderData = snap.data();
 
-console.log("ORDER:", orderData);
+document.getElementById("info").innerText = "Order: " + orderId;
+
+// SHOP MARKER
+if(orderData.shopLat && orderData.shopLng){
+shopMarker = L.marker([orderData.shopLat,orderData.shopLng])
+.addTo(map).bindPopup("🏪 Shop");
+}
+
+// CUSTOMER MARKER
+if(orderData.customerLat && orderData.customerLng){
+customerMarker = L.marker([orderData.customerLat,orderData.customerLng])
+.addTo(map).bindPopup("👤 Customer");
+}
 
 }
 
 loadOrder();
 
-// ▶ START GPS TRACKING
+// 📍 DRAW ROUTE
+async function drawRoute(start,end){
+
+if(routeLine){
+map.removeLayer(routeLine);
+}
+
+try{
+
+let res = await fetch("https://api.openrouteservice.org/v2/directions/driving-car",{
+method:"POST",
+headers:{
+"Authorization": API_KEY,
+"Content-Type":"application/json"
+},
+body: JSON.stringify({
+coordinates:[
+[start.lng,start.lat],
+[end.lng,end.lat]
+]
+})
+});
+
+let data = await res.json();
+
+let coords = data.features[0].geometry.coordinates;
+
+let latlngs = coords.map(c => [c[1],c[0]]);
+
+routeLine = L.polyline(latlngs,{
+color:"blue",
+weight:5
+}).addTo(map);
+
+map.fitBounds(routeLine.getBounds());
+
+}catch(e){
+console.error("Route error:", e);
+}
+
+}
+
+// ▶ START TRACKING
 window.startTracking = function(){
 
 if(!orderId){
@@ -72,14 +167,45 @@ watchId = navigator.geolocation.watchPosition(async(pos)=>{
 let lat = pos.coords.latitude;
 let lng = pos.coords.longitude;
 
-// 🔥 SEND LOCATION
+// DELIVERY MARKER
+let position = [lat,lng];
+
+if(!deliveryMarker){
+deliveryMarker = L.marker(position)
+.addTo(map).bindPopup("🚚 You");
+}else{
+deliveryMarker.setLatLng(position);
+}
+
+map.panTo(position);
+
+// 🔥 UPDATE FIRESTORE
 await updateDoc(doc(db,"orders",orderId),{
 deliveryLat: lat,
 deliveryLng: lng
 });
 
+// 🔥 ROUTE LOGIC
+if(orderData.deliveryStatus === "Picked"){
+
+// 🚚 → CUSTOMER
+drawRoute(
+{lat,lng},
+{lat:orderData.customerLat,lng:orderData.customerLng}
+);
+
+}else{
+
+// 🚚 → SHOP
+drawRoute(
+{lat,lng},
+{lat:orderData.shopLat,lng:orderData.shopLng}
+);
+
+}
+
 document.getElementById("status").innerText =
-"🚚 Moving: " + lat.toFixed(5) + "," + lng.toFixed(5);
+"🚚 Live: " + lat.toFixed(5) + "," + lng.toFixed(5);
 
 },{
 enableHighAccuracy:true
@@ -87,13 +213,15 @@ enableHighAccuracy:true
 
 };
 
-// 📦 PICKED FROM SHOP
+// 📦 PICKED
 window.markPicked = async function(){
 
 await updateDoc(doc(db,"orders",orderId),{
-deliveryStatus: "Picked",
-status: "Out for Delivery"
+deliveryStatus:"Picked",
+status:"Out for Delivery"
 });
+
+orderData.deliveryStatus = "Picked";
 
 alert("📦 Picked from shop");
 
@@ -103,13 +231,18 @@ alert("📦 Picked from shop");
 window.markDelivered = async function(){
 
 await updateDoc(doc(db,"orders",orderId),{
-status: "Delivered",
-deliveryStatus: "Completed"
+status:"Delivered",
+deliveryStatus:"Completed"
 });
 
 alert("🎉 Delivered");
 
-// CLEAR ORDER
+// STOP TRACKING
+if(watchId){
+navigator.geolocation.clearWatch(watchId);
+}
+
+// CLEAR
 localStorage.removeItem("activeDeliveryOrder");
 
 };
