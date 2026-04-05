@@ -7,7 +7,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-
 body{
 font-family:Arial;
 background:#f5f5f5;
@@ -41,7 +40,6 @@ border-radius:6px;
 font-size:16px;
 cursor:pointer;
 }
-
 </style>
 
 </head>
@@ -60,28 +58,19 @@ cursor:pointer;
 <input id="license" placeholder="Driving License Number">
 <input id="bikeNo" placeholder="Bike Number">
 
-<label>📸 Upload License Photo</label>
-<input type="file" id="licensePhoto">
-
-<label>🏍 Upload Bike Photo</label>
-<input type="file" id="bikePhoto">
-
 <button onclick="register()">Register</button>
 
 </div>
 
 <script type="module">
 
-import { auth, db, storage } from "../js/firebase.js";
+import { auth, db } from "../js/firebase.js";
 
 import { createUserWithEmailAndPassword } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { doc, setDoc } 
 from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-import { ref, uploadBytes, getDownloadURL } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 // 📍 GET LOCATION
 function getLocation(){
@@ -100,15 +89,12 @@ resolve({lat:null,lng:null});
 // 🚀 REGISTER
 window.register = async function(){
 
-let name = document.getElementById("name").value;
-let email = document.getElementById("email").value;
-let password = document.getElementById("password").value;
-let phone = document.getElementById("phone").value;
-let license = document.getElementById("license").value;
-let bikeNo = document.getElementById("bikeNo").value;
-
-let licenseFile = document.getElementById("licensePhoto").files[0];
-let bikeFile = document.getElementById("bikePhoto").files[0];
+let name = document.getElementById("name").value.trim();
+let email = document.getElementById("email").value.trim();
+let password = document.getElementById("password").value.trim();
+let phone = document.getElementById("phone").value.trim();
+let license = document.getElementById("license").value.trim();
+let bikeNo = document.getElementById("bikeNo").value.trim();
 
 if(!name || !email || !password || !phone || !license || !bikeNo){
 alert("⚠️ Fill all details");
@@ -118,28 +104,12 @@ return;
 try{
 
 // 🔐 CREATE USER
-const userCred = await createUserWithEmailAndPassword(auth,email,password);
+await createUserWithEmailAndPassword(auth,email,password);
 
 // 📍 LOCATION
 const location = await getLocation();
 
-// 📸 UPLOAD LICENSE PHOTO
-let licenseURL = "";
-if(licenseFile){
-let licenseRef = ref(storage,"licenses/"+email);
-await uploadBytes(licenseRef,licenseFile);
-licenseURL = await getDownloadURL(licenseRef);
-}
-
-// 📸 UPLOAD BIKE PHOTO
-let bikeURL = "";
-if(bikeFile){
-let bikeRef = ref(storage,"bikes/"+email);
-await uploadBytes(bikeRef,bikeFile);
-bikeURL = await getDownloadURL(bikeRef);
-}
-
-// 💾 SAVE DATA
+// 💾 SAVE DELIVERY DATA
 await setDoc(doc(db,"delivery",email),{
 
 name,
@@ -149,25 +119,23 @@ phone,
 licenseNumber: license,
 bikeNumber: bikeNo,
 
-licensePhoto: licenseURL,
-bikePhoto: bikeURL,
-
 lat: location.lat,
 lng: location.lng,
 
 available: true,
-verified: false,
+verified: true, // skip approval for now
 
 createdAt: new Date()
 
 });
 
-alert("✅ Registered successfully! Wait for approval");
+alert("✅ Registered successfully");
 
-location.href = "login.html";
+// 🔄 REDIRECT TO LOGIN
+window.location.href = "login.html";
 
 }catch(e){
-alert(e.message);
+alert("❌ " + e.message);
 }
 
 };
