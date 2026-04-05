@@ -2,13 +2,29 @@
 <html>
 <head>
 
-<title>Delivery Dashboard</title>
+<title>Delivery App</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+
 body{
 font-family:Arial;
 background:#f5f5f5;
-padding:20px;
+margin:0;
+}
+
+.header{
+background:#ff5a5f;
+color:white;
+padding:15px;
+text-align:center;
+font-size:18px;
+font-weight:bold;
+}
+
+.container{
+padding:15px;
 }
 
 .order{
@@ -16,6 +32,7 @@ background:white;
 padding:15px;
 margin-bottom:15px;
 border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
 button{
@@ -28,7 +45,17 @@ cursor:pointer;
 }
 
 .accept{background:green;}
+.start{background:orange;}
 .complete{background:blue;}
+
+.mapBtn{
+background:black;
+}
+
+.status{
+font-weight:bold;
+margin-top:5px;
+}
 
 </style>
 
@@ -36,9 +63,11 @@ cursor:pointer;
 
 <body>
 
-<h2>🚚 Delivery Dashboard</h2>
+<div class="header">🚚 Delivery App</div>
 
-<div id="orders"></div>
+<div class="container" id="orders"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
@@ -54,19 +83,29 @@ updateDoc
 const ordersDiv = document.getElementById("orders");
 
 // 📍 LIVE LOCATION UPDATE
-function startLocationUpdate(){
+function startLiveLocation(){
 
 navigator.geolocation.watchPosition(async(pos)=>{
 
 let lat = pos.coords.latitude;
 let lng = pos.coords.longitude;
 
+// 🔥 UPDATE DELIVERY LOCATION
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 lat,
-lng,
-available:false
+lng
 });
 
+console.log("Live:",lat,lng);
+
+},
+(err)=>{
+console.log(err);
+},
+{
+enableHighAccuracy:true,
+maximumAge:0,
+timeout:5000
 });
 
 }
@@ -75,14 +114,14 @@ available:false
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
-alert("Login first");
+alert("Login required");
 location.href="login.html";
 return;
 }
 
-startLocationUpdate();
+startLiveLocation();
 
-// 📦 ORDERS
+// 📦 ORDERS LIST
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML = "";
@@ -92,8 +131,11 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// SHOW ONLY ASSIGNED DELIVERY
+// ONLY SHOW ASSIGNED ORDERS
 if(order.deliveryBoy === user.email){
+
+// ❌ REMOVE DELIVERED
+if(order.deliveryStatus === "Delivered") return;
 
 let items = "";
 order.items.forEach(i=>{
@@ -109,9 +151,14 @@ ordersDiv.innerHTML += `
 
 ${items}
 
-Total: ₹${order.total}<br>
+💰 ₹${order.total}<br>
 
+<div class="status">Status: ${order.deliveryStatus}</div>
+
+<button class="accept" onclick="accept('${id}')">Accept</button>
+<button class="start" onclick="startDelivery('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
+<button class="mapBtn" onclick="openMap(${order.customerLat},${order.customerLng})">📍 Map</button>
 
 </div>
 `;
@@ -124,6 +171,20 @@ Total: ₹${order.total}<br>
 
 });
 
+// ✅ ACCEPT DELIVERY
+window.accept = async (id)=>{
+await updateDoc(doc(db,"orders",id),{
+deliveryStatus:"Accepted"
+});
+};
+
+// 🚚 START DELIVERY
+window.startDelivery = async (id)=>{
+await updateDoc(doc(db,"orders",id),{
+deliveryStatus:"On the way"
+});
+};
+
 // ✅ COMPLETE DELIVERY
 window.complete = async (id)=>{
 
@@ -131,13 +192,18 @@ await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"Delivered"
 });
 
-// 🔓 MAKE DELIVERY BOY FREE AGAIN
+// 🔓 FREE DELIVERY BOY
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 available:true
 });
 
-alert("✅ Delivered successfully");
+alert("✅ Delivered");
 
+};
+
+// 🗺 OPEN GOOGLE MAP
+window.openMap = (lat,lng)=>{
+window.open(`https://www.google.com/maps?q=${lat},${lng}`);
 };
 
 </script>
