@@ -2,14 +2,10 @@
 <html>
 <head>
 
-<title>Active Orders</title>
+<title>Smart Orders</title>
 
 <style>
-body{
-font-family:Arial;
-background:#eef1f5;
-padding:20px;
-}
+body{font-family:Arial;background:#eef1f5;padding:20px;}
 
 .order{
 background:white;
@@ -43,50 +39,57 @@ border-radius:8px;
 display:none;
 }
 
-.item{
-margin:5px 0;
-}
+.item{margin:5px 0;}
 </style>
 
 </head>
 
 <body>
 
-<h2>📦 Active Orders</h2>
+<h2>📦 Smart Active Orders</h2>
 
 <div id="orders"></div>
-
-<div id="popup" class="popup">🔔 New Order</div>
+<div id="popup" class="popup"></div>
 
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
-collection, 
-onSnapshot, 
-doc, 
-updateDoc, 
-getDoc, 
-addDoc 
+collection, onSnapshot, doc, updateDoc, getDocs 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const popup = document.getElementById("popup");
 
+let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 let lastCount = 0;
+
+// 📏 DISTANCE FUNCTION
+function getDistance(lat1, lon1, lat2, lon2){
+
+const R = 6371;
+const dLat = (lat2-lat1)*Math.PI/180;
+const dLon = (lon2-lon1)*Math.PI/180;
+
+const a =
+Math.sin(dLat/2)*Math.sin(dLat/2) +
+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) *
+Math.sin(dLon/2)*Math.sin(dLon/2);
+
+const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+return R*c;
+}
 
 // 🔔 POPUP
 function showPopup(msg){
 popup.innerText = msg;
 popup.style.display = "block";
-
-setTimeout(()=>{
-popup.style.display = "none";
-},2000);
+setTimeout(()=> popup.style.display="none",2000);
 }
 
-onAuthStateChanged(auth,(user)=>{
+onAuthStateChanged(auth, async(user)=>{
 
 if(!user){
 alert("Login required");
@@ -96,45 +99,55 @@ return;
 
 const shopEmail = user.email;
 
-// 🔥 LIVE ORDERS
-onSnapshot(collection(db,"orders"),(snapshot)=>{
+// 📍 GET SHOP LOCATION
+let shopLat=0, shopLng=0;
 
-ordersDiv.innerHTML = "";
+const shopSnap = await getDocs(collection(db,"localshop-details"));
+shopSnap.forEach(s=>{
+if(s.data().email === shopEmail){
+shopLat = s.data().lat;
+shopLng = s.data().lng;
+}
+});
+
+// 🔥 LIVE ORDERS
+onSnapshot(collection(db,"orders"),async(snapshot)=>{
+
+ordersDiv.innerHTML="";
 let currentCount = 0;
 
-snapshot.forEach(docSnap=>{
+for(const docSnap of snapshot.docs){
 
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ✅ ONLY THIS SHOP
-if(order.shopEmail !== shopEmail) return;
+// ❌ REMOVE OLD
+if(order.deliveryStatus==="Delivered" || order.status==="Rejected") continue;
 
-// ❌ REMOVE OLD ORDERS (IMPORTANT FIX)
-if(
-order.deliveryStatus === "Delivered" ||
-order.status === "Delivered" ||
-order.status === "Rejected"
-){
-return;
-}
-
-// ⏱ AUTO REMOVE AFTER 30 MIN
+// ⏱ AUTO REMOVE 30 MIN
 if(order.time){
-let now = new Date();
-let orderTime = new Date(order.time.seconds * 1000);
-
-let diff = (now - orderTime) / (1000*60);
-
-if(diff > 30){
-return;
+let diff = (new Date() - new Date(order.time.seconds*1000))/(1000*60);
+if(diff>30) continue;
 }
+
+// 🧠 SMART MATCHING (ONLY NEAREST SHOP SEE ORDER)
+if(!order.shopEmail){
+
+let dist = getDistance(shopLat,shopLng,order.lat||0,order.lng||0);
+
+if(dist > 5) continue; // only within 5km
 }
+
+// 🏪 FILTER
+if(order.shopEmail && order.shopEmail !== shopEmail) continue;
 
 currentCount++;
 
-// ITEMS WITH CHECKBOX
-let itemsHTML = "";
+// 📍 DISTANCE SHOW
+let distance = getDistance(shopLat,shopLng,order.lat||0,order.lng||0).toFixed(2);
+
+// ITEMS
+let itemsHTML="";
 order.items.forEach((i,index)=>{
 itemsHTML += `
 <div class="item">
@@ -149,7 +162,8 @@ ordersDiv.innerHTML += `
 
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
-📍 ${order.address}<br><br>
+📍 ${order.address}<br>
+📏 Distance: ${distance} km<br><br>
 
 ${itemsHTML}
 
@@ -161,14 +175,13 @@ Status: ${order.status}<br>
 <button class="ready" onclick="ready('${id}')">Ready</button>
 <button class="reject" onclick="reject('${id}')">Reject</button>
 
-</div>
-`;
+</div>`;
+}
 
-});
-
-// 🔔 NOTIFICATION
+// 🔔 SOUND ONLY ON NEW ORDER
 if(currentCount > lastCount){
-showPopup("🆕 New Order Received!");
+audio.play();
+showPopup("🆕 New Order!");
 }
 
 lastCount = currentCount;
@@ -177,83 +190,86 @@ lastCount = currentCount;
 
 });
 
-// ✅ ACCEPT FULL
+// ✅ ACCEPT
 window.accept = id=>{
 updateDoc(doc(db,"orders",id),{
-status:"Accepted"
+status:"Accepted",
+shopEmail: auth.currentUser.email
 });
 };
 
-// ✅ READY
-window.ready = id=>{
-updateDoc(doc(db,"orders",id),{
-status:"Ready",
-deliveryStatus:"On the way"
+// 🚚 READY → AUTO ASSIGN DELIVERY
+window.ready = async id=>{
+
+// find delivery boy
+const snap = await getDocs(collection(db,"delivery"));
+
+let boy = null;
+
+snap.forEach(d=>{
+if(d.data().available && !boy){
+boy = d;
+}
 });
+
+if(boy){
+await updateDoc(doc(db,"orders",id),{
+status:"Ready",
+deliveryBoy: boy.data().email,
+deliveryStatus:"Assigned"
+});
+
+await updateDoc(doc(db,"delivery",boy.id),{
+available:false
+});
+}else{
+alert("No delivery boy available");
+}
+
 };
 
 // ❌ REJECT
 window.reject = id=>{
-updateDoc(doc(db,"orders",id),{
-status:"Rejected"
-});
+updateDoc(doc(db,"orders",id),{status:"Rejected"});
 };
 
-// 🔥 PARTIAL ACCEPT (IMPORTANT FEATURE)
+// 🔥 PARTIAL
 window.partialAccept = async function(id){
 
 const orderRef = doc(db,"orders",id);
-const snap = await getDoc(orderRef);
-const order = snap.data();
+const snap = await getDocs(collection(db,"orders"));
+
+let order;
+snap.forEach(d=>{
+if(d.id===id) order=d.data();
+});
 
 const checkboxes = document.querySelectorAll(`[id^="item_${id}_"]`);
 
-let selected = [];
-let remaining = [];
+let selected=[], remaining=[];
 
-checkboxes.forEach((cb,index)=>{
-if(cb.checked){
-selected.push(order.items[index]);
-}else{
-remaining.push(order.items[index]);
-}
+checkboxes.forEach((cb,i)=>{
+if(cb.checked) selected.push(order.items[i]);
+else remaining.push(order.items[i]);
 });
 
-if(selected.length === 0){
-alert("Select at least 1 item");
-return;
-}
-
-// ✅ UPDATE CURRENT ORDER
 await updateDoc(orderRef,{
-items: selected,
-status: "Accepted"
+items:selected,
+status:"Accepted"
 });
 
-// 🔥 SEND REMAINING TO OTHER SHOP
-if(remaining.length > 0){
+if(remaining.length>0){
 
 await addDoc(collection(db,"orders"),{
-
-name: order.name,
-phone: order.phone,
-address: order.address,
-
-items: remaining,
-total: remaining.reduce((t,i)=>t+i.price*i.qty,0),
-
+...order,
+items:remaining,
 status:"Pending",
-deliveryStatus:"Waiting",
-
-shopEmail: null, // NEW SHOP WILL TAKE
-
-time: new Date()
-
+shopEmail:null
 });
 
 }
 
-alert("✅ Partial accepted");
+alert("Partial done");
 
 };
 
