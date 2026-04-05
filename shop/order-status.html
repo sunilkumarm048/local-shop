@@ -34,12 +34,11 @@ top:20px;
 right:20px;
 background:#28a745;
 color:white;
-padding:12px 18px;
+padding:10px;
 border-radius:8px;
 display:none;
 }
 
-.item{margin:5px 0;}
 </style>
 
 </head>
@@ -55,9 +54,7 @@ display:none;
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { 
-collection, onSnapshot, doc, updateDoc, getDocs 
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, onSnapshot, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const popup = document.getElementById("popup");
@@ -65,17 +62,20 @@ const popup = document.getElementById("popup");
 let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 let lastCount = 0;
 
-// 📏 DISTANCE FUNCTION
+// 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
+
+if(!lat2 || !lon2) return 0;
 
 const R = 6371;
 const dLat = (lat2-lat1)*Math.PI/180;
 const dLon = (lon2-lon1)*Math.PI/180;
 
 const a =
-Math.sin(dLat/2)*Math.sin(dLat/2) +
-Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2)*Math.sin(dLon/2);
+Math.sin(dLat/2)**2 +
+Math.cos(lat1*Math.PI/180) *
+Math.cos(lat2*Math.PI/180) *
+Math.sin(dLon/2)**2;
 
 const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
@@ -100,18 +100,11 @@ return;
 const shopEmail = user.email;
 
 // 📍 GET SHOP LOCATION
-let shopLat=0, shopLng=0;
+let shopLat=20.2961;
+let shopLng=85.8245;
 
-const shopSnap = await getDocs(collection(db,"localshop-details"));
-shopSnap.forEach(s=>{
-if(s.data().email === shopEmail){
-shopLat = s.data().lat;
-shopLng = s.data().lng;
-}
-});
-
-// 🔥 LIVE ORDERS
-onSnapshot(collection(db,"orders"),async(snapshot)=>{
+// 🔥 ORDERS
+onSnapshot(collection(db,"orders"), async(snapshot)=>{
 
 ordersDiv.innerHTML="";
 let currentCount = 0;
@@ -122,39 +115,27 @@ const order = docSnap.data();
 const id = docSnap.id;
 
 // ❌ REMOVE OLD
-if(order.deliveryStatus==="Delivered" || order.status==="Rejected") continue;
+if(
+order.deliveryStatus==="Delivered" ||
+order.status==="Delivered" ||
+order.status==="Rejected"
+){
+continue;
+}
 
-// ⏱ AUTO REMOVE 30 MIN
+// ⏱ AUTO REMOVE
 if(order.time){
 let diff = (new Date() - new Date(order.time.seconds*1000))/(1000*60);
-if(diff>30) continue;
+if(diff > 30) continue;
 }
 
-// 🧠 SMART MATCHING (ONLY NEAREST SHOP SEE ORDER)
-if(!order.shopEmail){
-
-let dist = getDistance(shopLat,shopLng,order.lat||0,order.lng||0);
-
-if(dist > 5) continue; // only within 5km
-}
-
-// 🏪 FILTER
+// 🧠 MATCH
 if(order.shopEmail && order.shopEmail !== shopEmail) continue;
 
 currentCount++;
 
-// 📍 DISTANCE SHOW
-let distance = getDistance(shopLat,shopLng,order.lat||0,order.lng||0).toFixed(2);
-
-// ITEMS
-let itemsHTML="";
-order.items.forEach((i,index)=>{
-itemsHTML += `
-<div class="item">
-<input type="checkbox" id="item_${id}_${index}" checked>
-${i.name} x${i.qty}
-</div>`;
-});
+// 📍 DISTANCE
+let distance = getDistance(shopLat,shopLng,order.lat,order.lng).toFixed(2);
 
 // UI
 ordersDiv.innerHTML += `
@@ -163,25 +144,24 @@ ordersDiv.innerHTML += `
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br>
-📏 Distance: ${distance} km<br><br>
-
-${itemsHTML}
+📏 ${distance} km<br><br>
 
 Total: ₹${order.total}<br>
 Status: ${order.status}<br>
 
 <button class="accept" onclick="accept('${id}')">Accept</button>
-<button class="partial" onclick="partialAccept('${id}')">Partial</button>
 <button class="ready" onclick="ready('${id}')">Ready</button>
 <button class="reject" onclick="reject('${id}')">Reject</button>
 
-</div>`;
+</div>
+`;
+
 }
 
-// 🔔 SOUND ONLY ON NEW ORDER
+// 🔔 SOUND
 if(currentCount > lastCount){
 audio.play();
-showPopup("🆕 New Order!");
+showPopup("New Order!");
 }
 
 lastCount = currentCount;
@@ -198,79 +178,41 @@ shopEmail: auth.currentUser.email
 });
 };
 
-// 🚚 READY → AUTO ASSIGN DELIVERY
+// 🚚 READY → ASSIGN DELIVERY
 window.ready = async id=>{
 
-// find delivery boy
 const snap = await getDocs(collection(db,"delivery"));
 
 let boy = null;
 
 snap.forEach(d=>{
 if(d.data().available && !boy){
-boy = d;
+boy = {id:d.id, data:d.data()};
 }
 });
 
-if(boy){
+if(!boy){
+alert("No delivery boy available");
+return;
+}
+
 await updateDoc(doc(db,"orders",id),{
 status:"Ready",
-deliveryBoy: boy.data().email,
+deliveryBoy: boy.data.email,
 deliveryStatus:"Assigned"
 });
 
 await updateDoc(doc(db,"delivery",boy.id),{
 available:false
 });
-}else{
-alert("No delivery boy available");
-}
 
 };
 
 // ❌ REJECT
 window.reject = id=>{
-updateDoc(doc(db,"orders",id),{status:"Rejected"});
-};
-
-// 🔥 PARTIAL
-window.partialAccept = async function(id){
-
-const orderRef = doc(db,"orders",id);
-const snap = await getDocs(collection(db,"orders"));
-
-let order;
-snap.forEach(d=>{
-if(d.id===id) order=d.data();
+updateDoc(doc(db,"orders",id),{
+status:"Rejected"
 });
-
-const checkboxes = document.querySelectorAll(`[id^="item_${id}_"]`);
-
-let selected=[], remaining=[];
-
-checkboxes.forEach((cb,i)=>{
-if(cb.checked) selected.push(order.items[i]);
-else remaining.push(order.items[i]);
-});
-
-await updateDoc(orderRef,{
-items:selected,
-status:"Accepted"
-});
-
-if(remaining.length>0){
-
-await addDoc(collection(db,"orders"),{
-...order,
-items:remaining,
-status:"Pending",
-shopEmail:null
-});
-
-}
-
-alert("Partial done");
-
 };
 
 </script>
