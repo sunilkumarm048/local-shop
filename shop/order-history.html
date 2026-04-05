@@ -60,6 +60,7 @@ html += `
 <div class="card">
 <b>${o.name}</b><br>
 ₹${o.total}<br>
+🕒 ${new Date(o.time).toLocaleString()}<br>
 Status: Delivered
 </div>
 `;
