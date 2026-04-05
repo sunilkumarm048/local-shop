@@ -47,14 +47,17 @@ cursor:pointer;
 .accept{background:green;}
 .start{background:orange;}
 .complete{background:blue;}
-
-.mapBtn{
-background:black;
-}
+.mapBtn{background:black;}
 
 .status{
 font-weight:bold;
 margin-top:5px;
+}
+
+.distance{
+color:#555;
+font-size:14px;
+margin:5px 0;
 }
 
 </style>
@@ -63,11 +66,9 @@ margin-top:5px;
 
 <body>
 
-<div class="header">🚚 Delivery App</div>
+<div class="header">🚚 Delivery Dashboard</div>
 
 <div class="container" id="orders"></div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
@@ -77,40 +78,53 @@ import {
 collection, 
 onSnapshot, 
 doc, 
-updateDoc 
+updateDoc,
+getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 
-// 📍 LIVE LOCATION UPDATE
+let deliveryLat = null;
+let deliveryLng = null;
+let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+
+// 📏 DISTANCE CALCULATION (REAL)
+function getDistance(lat1, lon1, lat2, lon2) {
+const R = 6371;
+const dLat = (lat2-lat1) * Math.PI/180;
+const dLon = (lon2-lon1) * Math.PI/180;
+
+const a =
+Math.sin(dLat/2) * Math.sin(dLat/2) +
+Math.cos(lat1*Math.PI/180) *
+Math.cos(lat2*Math.PI/180) *
+Math.sin(dLon/2) * Math.sin(dLon/2);
+
+const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+return (R * c).toFixed(2);
+}
+
+// 📍 LIVE LOCATION
 function startLiveLocation(){
 
 navigator.geolocation.watchPosition(async(pos)=>{
 
-let lat = pos.coords.latitude;
-let lng = pos.coords.longitude;
+deliveryLat = pos.coords.latitude;
+deliveryLng = pos.coords.longitude;
 
 // 🔥 UPDATE DELIVERY LOCATION
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-lat,
-lng
+lat: deliveryLat,
+lng: deliveryLng
 });
 
-console.log("Live:",lat,lng);
-
-},
-(err)=>{
-console.log(err);
-},
-{
-enableHighAccuracy:true,
-maximumAge:0,
-timeout:5000
+},()=>{},{
+enableHighAccuracy:true
 });
 
 }
 
-// 🔥 AUTH
+// 🔐 AUTH
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
@@ -121,7 +135,7 @@ return;
 
 startLiveLocation();
 
-// 📦 ORDERS LIST
+// 📦 LISTEN ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML = "";
@@ -131,23 +145,42 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ONLY SHOW ASSIGNED ORDERS
-if(order.deliveryBoy === user.email){
-
-// ❌ REMOVE DELIVERED
+// ❌ REMOVE COMPLETED
 if(order.deliveryStatus === "Delivered") return;
+
+// 🔥 SHOW IF ASSIGNED OR AVAILABLE
+if(order.deliveryBoy === user.email || (!order.deliveryBoy && order.status==="Ready")){
+
+// 🔔 NEW ORDER SOUND
+if(!order.deliveryBoy){
+audio.play();
+}
 
 let items = "";
 order.items.forEach(i=>{
 items += `${i.name} x${i.qty}<br>`;
 });
 
+// 📍 DISTANCE
+let distance = "Calculating...";
+if(deliveryLat && order.customerLat){
+distance = getDistance(
+deliveryLat,
+deliveryLng,
+order.customerLat,
+order.customerLng
+) + " km";
+}
+
+// UI
 ordersDiv.innerHTML += `
 <div class="order">
 
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
-📍 ${order.address}<br><br>
+📍 ${order.address}<br>
+
+<div class="distance">📏 Distance: ${distance}</div>
 
 ${items}
 
@@ -158,7 +191,7 @@ ${items}
 <button class="accept" onclick="accept('${id}')">Accept</button>
 <button class="start" onclick="startDelivery('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
-<button class="mapBtn" onclick="openMap(${order.customerLat},${order.customerLng})">📍 Map</button>
+<button class="mapBtn" onclick="openMap(${order.customerLat},${order.customerLng})">📍 Navigate</button>
 
 </div>
 `;
@@ -171,18 +204,28 @@ ${items}
 
 });
 
-// ✅ ACCEPT DELIVERY
+// ✅ ACCEPT ORDER
 window.accept = async (id)=>{
+
 await updateDoc(doc(db,"orders",id),{
+deliveryBoy: auth.currentUser.email,
 deliveryStatus:"Accepted"
 });
+
+// 🔒 SET BUSY
+await updateDoc(doc(db,"delivery",auth.currentUser.email),{
+available:false
+});
+
 };
 
 // 🚚 START DELIVERY
 window.startDelivery = async (id)=>{
+
 await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"On the way"
 });
+
 };
 
 // ✅ COMPLETE DELIVERY
@@ -197,11 +240,11 @@ await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 available:true
 });
 
-alert("✅ Delivered");
+alert("✅ Delivery Completed");
 
 };
 
-// 🗺 OPEN GOOGLE MAP
+// 🗺 GOOGLE MAP
 window.openMap = (lat,lng)=>{
 window.open(`https://www.google.com/maps?q=${lat},${lng}`);
 };
