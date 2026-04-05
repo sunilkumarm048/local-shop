@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Analytics</title>
+
+<style>
+body{font-family:Arial;padding:20px;background:#eef1f5;}
+
+.box{
+background:white;
+padding:20px;
+margin-bottom:10px;
+border-radius:10px;
+font-size:18px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>📊 Analytics Dashboard</h2>
+
+<div class="box">🧾 Total Orders: <span id="orders">0</span></div>
+<div class="box">💰 Total Revenue: ₹<span id="revenue">0</span></div>
+<div class="box">📦 Delivered Orders: <span id="delivered">0</span></div>
+
+<script type="module">
+
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+onAuthStateChanged(auth, async(user)=>{
+
+if(!user){
+location.href="login.html";
+return;
+}
+
+const shopEmail = user.email;
+
+const snapshot = await getDocs(collection(db,"orders"));
+
+let totalOrders = 0;
+let totalRevenue = 0;
+let delivered = 0;
+
+snapshot.forEach(doc=>{
+
+let o = doc.data();
+
+if(o.shopEmail === shopEmail){
+
+totalOrders++;
+
+if(o.deliveryStatus === "Delivered"){
+delivered++;
+totalRevenue += o.total;
+}
+
+}
+
+});
+
+document.getElementById("orders").innerText = totalOrders;
+document.getElementById("revenue").innerText = totalRevenue;
+document.getElementById("delivered").innerText = delivered;
+
+});
+
+</script>
+
+</body>
+</html>
