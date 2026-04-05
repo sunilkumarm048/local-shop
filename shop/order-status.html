@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Order Status</title>
+<title>Active Orders</title>
 
 <style>
 body{
@@ -18,20 +18,33 @@ margin-bottom:15px;
 border-radius:10px;
 }
 
-select{
-padding:6px;
-margin-top:8px;
+button{
+margin:5px;
+padding:6px 10px;
+border:none;
+border-radius:5px;
+color:white;
+cursor:pointer;
 }
+
+.accept{background:green;}
+.ready{background:blue;}
+.reject{background:red;}
 
 .popup{
 position:fixed;
 top:20px;
 right:20px;
-background:green;
+background:#28a745;
 color:white;
-padding:12px;
+padding:12px 18px;
 border-radius:8px;
 display:none;
+box-shadow:0 4px 12px rgba(0,0,0,0.2);
+}
+
+.item{
+margin:5px 0;
 }
 </style>
 
@@ -39,24 +52,29 @@ display:none;
 
 <body>
 
-<h2>📊 Live Order Status</h2>
+<h2>📦 Active Orders</h2>
 
 <div id="orders"></div>
 
-<div id="popup" class="popup">🔔 New Order!</div>
+<div id="popup" class="popup">🔔 New Order</div>
 
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { 
+collection, 
+onSnapshot, 
+doc, 
+updateDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const popup = document.getElementById("popup");
 
-let lastOrderCount = 0;
+let lastCount = 0;
 
-// 🔔 POPUP FUNCTION
+// 🔔 POPUP
 function showPopup(msg){
 popup.innerText = msg;
 popup.style.display = "block";
@@ -76,11 +94,10 @@ return;
 
 const shopEmail = user.email;
 
-// 🔥 LIVE LISTENER
+// 🔥 REALTIME ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
-ordersDiv.innerHTML="";
-
+ordersDiv.innerHTML = "";
 let currentCount = 0;
 
 snapshot.forEach(docSnap=>{
@@ -88,15 +105,26 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ✅ SHOW ONLY THIS SHOP ORDERS
+// ✅ ONLY THIS SHOP ORDERS
 if(order.shopEmail === shopEmail){
 
-// ❌ HIDE DELIVERED ORDERS
+// ❌ REMOVE OLD / DELIVERED
 if(order.deliveryStatus === "Delivered"){
 return;
 }
 
+// ❌ REMOVE REJECTED
+if(order.status === "Rejected"){
+return;
+}
+
 currentCount++;
+
+// ITEMS
+let itemsHTML = "";
+order.items.forEach(i=>{
+itemsHTML += `<div class="item">✔ ${i.name} x${i.qty}</div>`;
+});
 
 // UI
 ordersDiv.innerHTML += `
@@ -104,26 +132,16 @@ ordersDiv.innerHTML += `
 
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
-📍 ${order.address}<br>
+📍 ${order.address}<br><br>
+
+${itemsHTML}
 
 Total: ₹${order.total}<br>
+Status: ${order.status}<br>
 
-Status:
-<select onchange="updateStatus('${id}', this.value)">
-<option ${order.status=="Pending"?"selected":""}>Pending</option>
-<option ${order.status=="Accepted"?"selected":""}>Accepted</option>
-<option ${order.status=="Preparing"?"selected":""}>Preparing</option>
-<option ${order.status=="Ready"?"selected":""}>Ready</option>
-</select>
-
-<br><br>
-
-Delivery:
-<select onchange="updateDelivery('${id}', this.value)">
-<option ${order.deliveryStatus=="Waiting"?"selected":""}>Waiting</option>
-<option ${order.deliveryStatus=="On the way"?"selected":""}>On the way</option>
-<option ${order.deliveryStatus=="Delivered"?"selected":""}>Delivered</option>
-</select>
+<button class="accept" onclick="accept('${id}')">Accept</button>
+<button class="ready" onclick="ready('${id}')">Ready</button>
+<button class="reject" onclick="reject('${id}')">Reject</button>
 
 </div>
 `;
@@ -132,28 +150,34 @@ Delivery:
 
 });
 
-// 🔔 NEW ORDER POPUP
-if(currentCount > lastOrderCount){
+// 🔔 NEW ORDER ALERT
+if(currentCount > lastCount){
 showPopup("🆕 New Order Received!");
 }
 
-lastOrderCount = currentCount;
+lastCount = currentCount;
 
 });
 
 });
 
-// ✅ UPDATE ORDER STATUS
-window.updateStatus = (id, value)=>{
+// ✅ ACTIONS
+window.accept = id=>{
 updateDoc(doc(db,"orders",id),{
-status:value
+status:"Accepted"
 });
 };
 
-// 🚚 UPDATE DELIVERY STATUS
-window.updateDelivery = (id, value)=>{
+window.ready = id=>{
 updateDoc(doc(db,"orders",id),{
-deliveryStatus:value
+status:"Ready",
+deliveryStatus:"On the way"
+});
+};
+
+window.reject = id=>{
+updateDoc(doc(db,"orders",id),{
+status:"Rejected"
 });
 };
 
