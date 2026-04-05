@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Order History</title>
+
+<style>
+body{font-family:Arial;background:#f5f5f5;padding:20px;}
+
+.card{
+background:white;
+padding:15px;
+margin-bottom:10px;
+border-radius:10px;
+}
+
+.total{
+font-weight:bold;
+color:green;
+}
+</style>
+
+</head>
+
+<body>
+
+<h2>📜 Order History</h2>
+
+<div id="history"></div>
+
+<script type="module">
+
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const historyDiv = document.getElementById("history");
+
+onAuthStateChanged(auth, async(user)=>{
+
+if(!user){
+location.href="login.html";
+return;
+}
+
+const shopEmail = user.email;
+
+const snapshot = await getDocs(collection(db,"orders"));
+
+let html = "";
+
+snapshot.forEach(doc=>{
+
+let o = doc.data();
+
+// ✅ SHOW ONLY COMPLETED ORDERS
+if(o.shopEmail === shopEmail && o.deliveryStatus === "Delivered"){
+
+html += `
+<div class="card">
+<b>${o.name}</b><br>
+₹${o.total}<br>
+Status: Delivered
+</div>
+`;
+
+}
+
+});
+
+historyDiv.innerHTML = html || "No history";
+
+});
+
+</script>
+
+</body>
+</html>
