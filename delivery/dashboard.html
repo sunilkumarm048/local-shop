@@ -7,133 +7,111 @@
 <style>
 body{
 font-family:Arial;
-padding:20px;
 background:#f5f5f5;
+padding:20px;
 }
 
 .order{
 background:white;
 padding:15px;
-margin-bottom:10px;
+margin-bottom:15px;
 border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
 }
 
 button{
+margin:5px;
 padding:8px 12px;
-background:green;
-color:white;
 border:none;
 border-radius:5px;
+color:white;
 cursor:pointer;
 }
 
-button:disabled{
-background:gray;
-cursor:not-allowed;
-}
+.accept{background:green;}
+.complete{background:blue;}
 
-.busy{
-color:red;
-font-weight:bold;
-margin-bottom:10px;
-}
 </style>
 
 </head>
 
 <body>
 
-<h2>📦 Available Orders</h2>
-
-<p id="busyStatus" class="busy"></p>
+<h2>🚚 Delivery Dashboard</h2>
 
 <div id="orders"></div>
 
 <script type="module">
 
-import { db } from "../js/firebase.js";
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { 
 collection, 
 onSnapshot, 
 doc, 
-updateDoc, 
-getDoc 
+updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const div = document.getElementById("orders");
-const busyStatus = document.getElementById("busyStatus");
+const ordersDiv = document.getElementById("orders");
 
-let activeOrder = null;
+// 📍 LIVE LOCATION UPDATE
+function startLocationUpdate(){
 
-// 🔥 CHECK ACTIVE DELIVERY (SMART CHECK)
-async function checkActiveOrder(){
+navigator.geolocation.watchPosition(async(pos)=>{
 
-let saved = localStorage.getItem("activeDeliveryOrder");
+let lat = pos.coords.latitude;
+let lng = pos.coords.longitude;
 
-if(!saved){
-activeOrder = null;
+await updateDoc(doc(db,"delivery",auth.currentUser.email),{
+lat,
+lng,
+available:false
+});
+
+});
+
+}
+
+// 🔥 AUTH
+onAuthStateChanged(auth,(user)=>{
+
+if(!user){
+alert("Login first");
+location.href="login.html";
 return;
 }
 
-try{
+startLocationUpdate();
 
-const snap = await getDoc(doc(db,"orders",saved));
-
-if(!snap.exists()){
-localStorage.removeItem("activeDeliveryOrder");
-activeOrder = null;
-return;
-}
-
-let data = snap.data();
-
-// ❌ REMOVE IF DELIVERED / COMPLETED
-if(data.status === "Delivered" || data.deliveryStatus === "Completed"){
-localStorage.removeItem("activeDeliveryOrder");
-activeOrder = null;
-return;
-}
-
-// ✅ VALID ACTIVE ORDER
-activeOrder = saved;
-busyStatus.innerHTML = "🚚 You already have an active delivery!";
-
-}catch(e){
-console.error("Check error:", e);
-activeOrder = null;
-}
-
-}
-
-// 🔥 LOAD ORDERS AFTER CHECK
-await checkActiveOrder();
-
+// 📦 ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
-div.innerHTML="";
+ordersDiv.innerHTML = "";
 
 snapshot.forEach(docSnap=>{
 
-let o = docSnap.data();
-let id = docSnap.id;
+const order = docSnap.data();
+const id = docSnap.id;
 
-// ONLY SHOW READY + NOT ASSIGNED
-if(o.status === "Ready" && !o.deliveryBoy){
+// SHOW ONLY ASSIGNED DELIVERY
+if(order.deliveryBoy === user.email){
 
-let disabled = activeOrder ? "disabled" : "";
+let items = "";
+order.items.forEach(i=>{
+items += `${i.name} x${i.qty}<br>`;
+});
 
-div.innerHTML += `
+ordersDiv.innerHTML += `
 <div class="order">
 
-<b>${o.name}</b><br>
-📞 ${o.phone}<br>
-📍 ${o.address}<br>
-💰 ₹${o.total}<br><br>
+<b>${order.name}</b><br>
+📞 ${order.phone}<br>
+📍 ${order.address}<br><br>
 
-<button ${disabled} onclick="acceptDelivery('${id}')">
-Accept Delivery
-</button>
+${items}
+
+Total: ₹${order.total}<br>
+
+<button class="complete" onclick="complete('${id}')">Delivered</button>
 
 </div>
 `;
@@ -144,36 +122,21 @@ Accept Delivery
 
 });
 
-// 🚀 ACCEPT DELIVERY
-window.acceptDelivery = async(id)=>{
-
-if(activeOrder){
-alert("⚠️ Finish current delivery first");
-return;
-}
-
-try{
-
-let deliveryName = "sonu"; // later dynamic
-
-await updateDoc(doc(db,"orders",id),{
-deliveryBoy: deliveryName,
-deliveryStatus: "Assigned",
-status: "Out for Delivery"
 });
 
-// 💾 SAVE ACTIVE ORDER
-localStorage.setItem("activeDeliveryOrder", id);
+// ✅ COMPLETE DELIVERY
+window.complete = async (id)=>{
 
-alert("🚚 Delivery Assigned!");
+await updateDoc(doc(db,"orders",id),{
+deliveryStatus:"Delivered"
+});
 
-// 🚀 GO TO TRACKING
-window.location.href = "delivery-tracking.html";
+// 🔓 MAKE DELIVERY BOY FREE AGAIN
+await updateDoc(doc(db,"delivery",auth.currentUser.email),{
+available:true
+});
 
-}catch(e){
-console.error(e);
-alert("Error assigning delivery");
-}
+alert("✅ Delivered successfully");
 
 };
 
