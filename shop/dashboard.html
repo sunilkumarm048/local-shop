@@ -2,20 +2,38 @@
 <html>
 <head>
 
-<title>Dashboard</title>
+<title>Shop Dashboard</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{font-family:Arial;background:#f5f5f5;padding:20px;text-align:center;}
+body{
+font-family:Arial;
+background:#f5f5f5;
+margin:0;
+padding:20px;
+text-align:center;
+}
+
+h2{
+margin-bottom:20px;
+}
+
 button{
 display:block;
-width:250px;
-margin:10px auto;
-padding:12px;
+width:260px;
+margin:12px auto;
+padding:14px;
 background:#ff5a5f;
 color:white;
 border:none;
-border-radius:8px;
+border-radius:10px;
 font-size:16px;
+cursor:pointer;
+}
+
+.logout{
+background:black;
 }
 </style>
 
@@ -25,9 +43,13 @@ font-size:16px;
 
 <h2>🏪 Shop Dashboard</h2>
 
-<button onclick="goOrders()">📦 View Orders</button>
+<button onclick="goStatus()">📦 Live Orders</button>
+<button onclick="goOrders()">📋 Orders (Manage)</button>
+<button onclick="goHistory()">📜 Order History</button>
+<button onclick="goAnalytics()">📊 Analytics</button>
 <button onclick="goAdd()">➕ Add Product</button>
-<button onclick="logout()">🚪 Logout</button>
+
+<button class="logout" onclick="logout()">🚪 Logout</button>
 
 <script>
 
@@ -36,8 +58,20 @@ alert("Login first");
 location.href="login.html";
 }
 
+function goStatus(){
+location.href="order-status.html";
+}
+
 function goOrders(){
 location.href="orders.html";
+}
+
+function goHistory(){
+location.href="order-history.html";
+}
+
+function goAnalytics(){
+location.href="analytics.html";
 }
 
 function goAdd(){
