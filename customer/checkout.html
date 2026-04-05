@@ -3,7 +3,6 @@
 <head>
 
 <title>Checkout</title>
-
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -97,7 +96,7 @@ let cartDiv = document.getElementById("cartItems");
 
 let total = 0;
 
-// DISPLAY CART
+// SHOW CART
 if(cart.length === 0){
 cartDiv.innerHTML = `<div class="empty">🛒 Cart is empty</div>`;
 }else{
@@ -119,16 +118,14 @@ document.getElementById("total").innerText = total;
 function getLocation(){
 return new Promise((resolve)=>{
 navigator.geolocation.getCurrentPosition(pos=>{
-console.log("GPS:", pos.coords);
 
 resolve({
 lat: pos.coords.latitude,
 lng: pos.coords.longitude
 });
 
-},(err)=>{
-console.error("GPS error:", err);
-resolve({lat:null,lng:null});
+},()=>{
+resolve(null);
 },{
 enableHighAccuracy:true,
 timeout:5000
@@ -136,15 +133,27 @@ timeout:5000
 });
 }
 
-// 📏 DISTANCE FUNCTION
-function getDistance(lat1,lng1,lat2,lng2){
-return Math.sqrt((lat1-lat2)**2 + (lng1-lng2)**2);
+// 📏 ACCURATE DISTANCE (KM)
+function getDistance(lat1, lon1, lat2, lon2){
+
+const R = 6371;
+
+const dLat = (lat2-lat1) * Math.PI/180;
+const dLon = (lon2-lon1) * Math.PI/180;
+
+const a =
+Math.sin(dLat/2)**2 +
+Math.cos(lat1*Math.PI/180) *
+Math.cos(lat2*Math.PI/180) *
+Math.sin(dLon/2)**2;
+
+const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+return R * c;
 }
 
 // 🚀 PLACE ORDER
 window.placeOrder = async function(){
-
-console.log("STEP 1: Start placing order");
 
 let name = document.getElementById("name").value.trim();
 let phone = document.getElementById("phone").value.trim();
@@ -160,20 +169,16 @@ alert("🛒 Cart is empty");
 return;
 }
 
-try{
-
-// 📍 LOCATION
+// 📍 GET LOCATION
 const location = await getLocation();
-console.log("STEP 2: Location:", location);
 
-if(!location.lat){
-alert("⚠️ Allow location permission");
+if(!location){
+alert("⚠️ Please allow location access");
 return;
 }
 
 // 🔥 GET SHOPS
 const snapshot = await getDocs(collection(db,"localshop-details"));
-console.log("STEP 3: Shops fetched");
 
 let nearestShop = null;
 let minDist = Infinity;
@@ -198,8 +203,6 @@ nearestShop = s;
 }
 });
 
-console.log("STEP 4: Nearest shop:", nearestShop);
-
 // ❌ NO SHOP
 if(!nearestShop){
 alert("❌ No nearby shop found");
@@ -207,44 +210,41 @@ return;
 }
 
 // 💾 SAVE ORDER
-console.log("STEP 5: Saving order...");
-
 const docRef = await addDoc(collection(db,"orders"),{
 
-// CUSTOMER
+// 👤 CUSTOMER
 name,
 phone,
 address,
 
-// LOCATION
-customerLat: location.lat,
-customerLng: location.lng,
+// 📍 LOCATION (IMPORTANT FIX)
+lat: location.lat,
+lng: location.lng,
 
-// SHOP AUTO
+// 🏪 SHOP
 shopEmail: nearestShop.email,
 shopName: nearestShop.shopName,
 shopLat: nearestShop.lat,
 shopLng: nearestShop.lng,
 
-// ORDER
+// 🛒 ORDER
 items: cart,
 total: total,
 
-// STATUS
-status: "Pending",
-deliveryStatus: "Waiting",
-deliveryBoy: null,
+// 📦 STATUS
+status:"Pending",
+deliveryStatus:"Waiting",
+deliveryBoy:null,
 
-// EARNINGS
+// 💰 EARNINGS
 shopEarning: total * 0.9,
 deliveryEarning: total * 0.1,
 platformFee: total * 0.05,
 
-time: new Date()
+// ⏱ TIME
+time:new Date()
 
 });
-
-console.log("STEP 6: Order saved:", docRef.id);
 
 // CLEAR CART
 localStorage.removeItem("cart");
@@ -256,13 +256,6 @@ alert("✅ Order placed successfully!");
 
 // REDIRECT
 window.location.href = "tracking.html?orderId=" + docRef.id;
-
-}catch(e){
-
-console.error("❌ FULL ERROR:", e);
-alert("Error: " + e.message);
-
-}
 
 };
 
