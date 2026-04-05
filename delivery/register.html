@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Delivery Registration</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+padding:20px;
+}
+
+.box{
+background:white;
+padding:20px;
+border-radius:12px;
+max-width:420px;
+margin:auto;
+box-shadow:0 6px 18px rgba(0,0,0,0.1);
+}
+
+input{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+background:#ff5a5f;
+color:white;
+border:none;
+border-radius:6px;
+font-size:16px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>🚚 Delivery Partner Registration</h2>
+
+<input id="name" placeholder="Full Name">
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Password">
+<input id="phone" placeholder="Phone Number">
+
+<input id="license" placeholder="Driving License Number">
+<input id="bikeNo" placeholder="Bike Number">
+
+<label>📸 Upload License Photo</label>
+<input type="file" id="licensePhoto">
+
+<label>🏍 Upload Bike Photo</label>
+<input type="file" id="bikePhoto">
+
+<button onclick="register()">Register</button>
+
+</div>
+
+<script type="module">
+
+import { auth, db, storage } from "../js/firebase.js";
+
+import { createUserWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { doc, setDoc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+import { ref, uploadBytes, getDownloadURL } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+// 📍 GET LOCATION
+function getLocation(){
+return new Promise((resolve)=>{
+navigator.geolocation.getCurrentPosition(pos=>{
+resolve({
+lat: pos.coords.latitude,
+lng: pos.coords.longitude
+});
+},()=>{
+resolve({lat:null,lng:null});
+});
+});
+}
+
+// 🚀 REGISTER
+window.register = async function(){
+
+let name = document.getElementById("name").value;
+let email = document.getElementById("email").value;
+let password = document.getElementById("password").value;
+let phone = document.getElementById("phone").value;
+let license = document.getElementById("license").value;
+let bikeNo = document.getElementById("bikeNo").value;
+
+let licenseFile = document.getElementById("licensePhoto").files[0];
+let bikeFile = document.getElementById("bikePhoto").files[0];
+
+if(!name || !email || !password || !phone || !license || !bikeNo){
+alert("⚠️ Fill all details");
+return;
+}
+
+try{
+
+// 🔐 CREATE USER
+const userCred = await createUserWithEmailAndPassword(auth,email,password);
+
+// 📍 LOCATION
+const location = await getLocation();
+
+// 📸 UPLOAD LICENSE PHOTO
+let licenseURL = "";
+if(licenseFile){
+let licenseRef = ref(storage,"licenses/"+email);
+await uploadBytes(licenseRef,licenseFile);
+licenseURL = await getDownloadURL(licenseRef);
+}
+
+// 📸 UPLOAD BIKE PHOTO
+let bikeURL = "";
+if(bikeFile){
+let bikeRef = ref(storage,"bikes/"+email);
+await uploadBytes(bikeRef,bikeFile);
+bikeURL = await getDownloadURL(bikeRef);
+}
+
+// 💾 SAVE DATA
+await setDoc(doc(db,"delivery",email),{
+
+name,
+email,
+phone,
+
+licenseNumber: license,
+bikeNumber: bikeNo,
+
+licensePhoto: licenseURL,
+bikePhoto: bikeURL,
+
+lat: location.lat,
+lng: location.lng,
+
+available: true,
+verified: false,
+
+createdAt: new Date()
+
+});
+
+alert("✅ Registered successfully! Wait for approval");
+
+location.href = "login.html";
+
+}catch(e){
+alert(e.message);
+}
+
+};
+
+</script>
+
+</body>
+</html>
