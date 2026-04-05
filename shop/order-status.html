@@ -1,17 +1,163 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Status</title></head>
+<head>
+
+<title>Order Status</title>
+
+<style>
+body{
+font-family:Arial;
+background:#eef1f5;
+padding:20px;
+}
+
+.order{
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+}
+
+select{
+padding:6px;
+margin-top:8px;
+}
+
+.popup{
+position:fixed;
+top:20px;
+right:20px;
+background:green;
+color:white;
+padding:12px;
+border-radius:8px;
+display:none;
+}
+</style>
+
+</head>
+
 <body>
 
-<h2>Update Order Status</h2>
+<h2>📊 Live Order Status</h2>
 
-<select>
-<option>Pending</option>
-<option>Accepted</option>
-<option>Preparing</option>
-<option>Ready</option>
+<div id="orders"></div>
+
+<div id="popup" class="popup">🔔 New Order!</div>
+
+<script type="module">
+
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const ordersDiv = document.getElementById("orders");
+const popup = document.getElementById("popup");
+
+let lastOrderCount = 0;
+
+// 🔔 POPUP FUNCTION
+function showPopup(msg){
+popup.innerText = msg;
+popup.style.display = "block";
+
+setTimeout(()=>{
+popup.style.display = "none";
+},2000);
+}
+
+onAuthStateChanged(auth,(user)=>{
+
+if(!user){
+alert("Login required");
+location.href="login.html";
+return;
+}
+
+const shopEmail = user.email;
+
+// 🔥 LIVE LISTENER
+onSnapshot(collection(db,"orders"),(snapshot)=>{
+
+ordersDiv.innerHTML="";
+
+let currentCount = 0;
+
+snapshot.forEach(docSnap=>{
+
+const order = docSnap.data();
+const id = docSnap.id;
+
+// ✅ SHOW ONLY THIS SHOP ORDERS
+if(order.shopEmail === shopEmail){
+
+// ❌ HIDE DELIVERED ORDERS
+if(order.deliveryStatus === "Delivered"){
+return;
+}
+
+currentCount++;
+
+// UI
+ordersDiv.innerHTML += `
+<div class="order">
+
+<b>${order.name}</b><br>
+📞 ${order.phone}<br>
+📍 ${order.address}<br>
+
+Total: ₹${order.total}<br>
+
+Status:
+<select onchange="updateStatus('${id}', this.value)">
+<option ${order.status=="Pending"?"selected":""}>Pending</option>
+<option ${order.status=="Accepted"?"selected":""}>Accepted</option>
+<option ${order.status=="Preparing"?"selected":""}>Preparing</option>
+<option ${order.status=="Ready"?"selected":""}>Ready</option>
 </select>
+
+<br><br>
+
+Delivery:
+<select onchange="updateDelivery('${id}', this.value)">
+<option ${order.deliveryStatus=="Waiting"?"selected":""}>Waiting</option>
+<option ${order.deliveryStatus=="On the way"?"selected":""}>On the way</option>
+<option ${order.deliveryStatus=="Delivered"?"selected":""}>Delivered</option>
+</select>
+
+</div>
+`;
+
+}
+
+});
+
+// 🔔 NEW ORDER POPUP
+if(currentCount > lastOrderCount){
+showPopup("🆕 New Order Received!");
+}
+
+lastOrderCount = currentCount;
+
+});
+
+});
+
+// ✅ UPDATE ORDER STATUS
+window.updateStatus = (id, value)=>{
+updateDoc(doc(db,"orders",id),{
+status:value
+});
+};
+
+// 🚚 UPDATE DELIVERY STATUS
+window.updateDelivery = (id, value)=>{
+updateDoc(doc(db,"orders",id),{
+deliveryStatus:value
+});
+};
+
+</script>
 
 </body>
 </html>
