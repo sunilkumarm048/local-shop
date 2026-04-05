@@ -30,6 +30,7 @@ cursor:pointer;
 .accept{background:green;}
 .ready{background:blue;}
 .reject{background:red;}
+.partial{background:orange;}
 
 .popup{
 position:fixed;
@@ -40,7 +41,6 @@ color:white;
 padding:12px 18px;
 border-radius:8px;
 display:none;
-box-shadow:0 4px 12px rgba(0,0,0,0.2);
 }
 
 .item{
@@ -66,7 +66,9 @@ import {
 collection, 
 onSnapshot, 
 doc, 
-updateDoc 
+updateDoc, 
+getDoc, 
+addDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
@@ -94,7 +96,7 @@ return;
 
 const shopEmail = user.email;
 
-// 🔥 REALTIME ORDERS
+// 🔥 LIVE ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML = "";
@@ -105,25 +107,40 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ✅ ONLY THIS SHOP ORDERS
-if(order.shopEmail === shopEmail){
+// ✅ ONLY THIS SHOP
+if(order.shopEmail !== shopEmail) return;
 
-// ❌ REMOVE OLD / DELIVERED
-if(order.deliveryStatus === "Delivered"){
+// ❌ REMOVE OLD ORDERS (IMPORTANT FIX)
+if(
+order.deliveryStatus === "Delivered" ||
+order.status === "Delivered" ||
+order.status === "Rejected"
+){
 return;
 }
 
-// ❌ REMOVE REJECTED
-if(order.status === "Rejected"){
+// ⏱ AUTO REMOVE AFTER 30 MIN
+if(order.time){
+let now = new Date();
+let orderTime = new Date(order.time.seconds * 1000);
+
+let diff = (now - orderTime) / (1000*60);
+
+if(diff > 30){
 return;
+}
 }
 
 currentCount++;
 
-// ITEMS
+// ITEMS WITH CHECKBOX
 let itemsHTML = "";
-order.items.forEach(i=>{
-itemsHTML += `<div class="item">✔ ${i.name} x${i.qty}</div>`;
+order.items.forEach((i,index)=>{
+itemsHTML += `
+<div class="item">
+<input type="checkbox" id="item_${id}_${index}" checked>
+${i.name} x${i.qty}
+</div>`;
 });
 
 // UI
@@ -140,17 +157,16 @@ Total: ₹${order.total}<br>
 Status: ${order.status}<br>
 
 <button class="accept" onclick="accept('${id}')">Accept</button>
+<button class="partial" onclick="partialAccept('${id}')">Partial</button>
 <button class="ready" onclick="ready('${id}')">Ready</button>
 <button class="reject" onclick="reject('${id}')">Reject</button>
 
 </div>
 `;
 
-}
-
 });
 
-// 🔔 NEW ORDER ALERT
+// 🔔 NOTIFICATION
 if(currentCount > lastCount){
 showPopup("🆕 New Order Received!");
 }
@@ -161,13 +177,14 @@ lastCount = currentCount;
 
 });
 
-// ✅ ACTIONS
+// ✅ ACCEPT FULL
 window.accept = id=>{
 updateDoc(doc(db,"orders",id),{
 status:"Accepted"
 });
 };
 
+// ✅ READY
 window.ready = id=>{
 updateDoc(doc(db,"orders",id),{
 status:"Ready",
@@ -175,10 +192,69 @@ deliveryStatus:"On the way"
 });
 };
 
+// ❌ REJECT
 window.reject = id=>{
 updateDoc(doc(db,"orders",id),{
 status:"Rejected"
 });
+};
+
+// 🔥 PARTIAL ACCEPT (IMPORTANT FEATURE)
+window.partialAccept = async function(id){
+
+const orderRef = doc(db,"orders",id);
+const snap = await getDoc(orderRef);
+const order = snap.data();
+
+const checkboxes = document.querySelectorAll(`[id^="item_${id}_"]`);
+
+let selected = [];
+let remaining = [];
+
+checkboxes.forEach((cb,index)=>{
+if(cb.checked){
+selected.push(order.items[index]);
+}else{
+remaining.push(order.items[index]);
+}
+});
+
+if(selected.length === 0){
+alert("Select at least 1 item");
+return;
+}
+
+// ✅ UPDATE CURRENT ORDER
+await updateDoc(orderRef,{
+items: selected,
+status: "Accepted"
+});
+
+// 🔥 SEND REMAINING TO OTHER SHOP
+if(remaining.length > 0){
+
+await addDoc(collection(db,"orders"),{
+
+name: order.name,
+phone: order.phone,
+address: order.address,
+
+items: remaining,
+total: remaining.reduce((t,i)=>t+i.price*i.qty,0),
+
+status:"Pending",
+deliveryStatus:"Waiting",
+
+shopEmail: null, // NEW SHOP WILL TAKE
+
+time: new Date()
+
+});
+
+}
+
+alert("✅ Partial accepted");
+
 };
 
 </script>
