@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Delivery App</title>
+<title>Delivery Dashboard</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -10,8 +10,13 @@
 
 <style>
 
-body{font-family:Arial;background:#f5f5f5;margin:0;}
+body{
+font-family:Arial;
+margin:0;
+background:#f5f5f5;
+}
 
+/* HEADER */
 .header{
 background:#ff5a5f;
 color:white;
@@ -21,27 +26,57 @@ font-size:18px;
 font-weight:bold;
 }
 
-.container{padding:10px;}
+/* SIDEBAR */
+#sidebar{
+position:fixed;
+left:-250px;
+top:0;
+width:250px;
+height:100%;
+background:#222;
+color:white;
+padding:20px;
+transition:0.3s;
+z-index:999;
+}
 
+#sidebar button{
+width:100%;
+margin:10px 0;
+padding:10px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* MENU BUTTON */
+.menuBtn{
+position:fixed;
+top:10px;
+left:10px;
+z-index:1000;
+}
+
+/* CONTAINER */
+.container{
+padding:15px;
+}
+
+/* ORDER CARD */
 .order{
 background:white;
-padding:12px;
+padding:15px;
 margin-bottom:15px;
 border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
-.map{
-height:200px;
-border-radius:10px;
-margin-top:10px;
-}
-
+/* BUTTONS */
 button{
 margin:5px;
-padding:8px;
+padding:8px 12px;
 border:none;
-border-radius:6px;
+border-radius:5px;
 color:white;
 cursor:pointer;
 }
@@ -51,7 +86,16 @@ cursor:pointer;
 .complete{background:blue;}
 .mapBtn{background:black;}
 
-.status{font-weight:bold;}
+.status{
+font-weight:bold;
+margin-top:5px;
+}
+
+.map{
+height:200px;
+margin-top:10px;
+border-radius:10px;
+}
 
 </style>
 
@@ -59,8 +103,28 @@ cursor:pointer;
 
 <body>
 
-<div class="header">🚚 Smart Delivery Dashboard</div>
+<!-- MENU BUTTON -->
+<div class="menuBtn">
+<button onclick="toggleMenu()">☰</button>
+</div>
 
+<!-- SIDEBAR -->
+<div id="sidebar">
+
+<h3>🚚 Delivery Panel</h3>
+
+<button onclick="goWallet()">💰 Wallet</button>
+<button onclick="goAnalytics()">📊 Analytics</button>
+<button onclick="logout()" style="background:red;">🚪 Logout</button>
+
+</div>
+
+<!-- HEADER -->
+<div class="header">
+🚚 Smart Delivery Dashboard
+</div>
+
+<!-- ORDERS -->
 <div class="container" id="orders"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -69,57 +133,87 @@ cursor:pointer;
 
 import { auth, db } from "../js/firebase.js";
 import { 
-onAuthStateChanged 
+onAuthStateChanged, 
+signOut 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { 
 collection, 
 onSnapshot, 
 doc, 
-updateDoc,
-getDoc 
+updateDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 
-let maps = {}; // store map instances
+/* SIDEBAR */
+window.toggleMenu = function(){
+let menu = document.getElementById("sidebar");
+menu.style.left = (menu.style.left === "0px") ? "-250px" : "0px";
+};
 
-// 🔐 AUTH
+window.goWallet = ()=>location.href="wallet.html";
+window.goAnalytics = ()=>location.href="analytics.html";
+
+window.logout = ()=>{
+signOut(auth);
+location.href="login.html";
+};
+
+/* LIVE LOCATION */
+function startLiveLocation(){
+
+navigator.geolocation.watchPosition(async(pos)=>{
+
+await updateDoc(doc(db,"delivery",auth.currentUser.email),{
+lat: pos.coords.latitude,
+lng: pos.coords.longitude
+});
+
+},{enableHighAccuracy:true});
+
+}
+
+/* AUTH */
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
+alert("Login required");
 location.href="login.html";
 return;
 }
 
-// 📦 ORDERS
+startLiveLocation();
+
+/* ORDERS */
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
-ordersDiv.innerHTML="";
+ordersDiv.innerHTML = "";
 
 snapshot.forEach(docSnap=>{
 
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ HIDE DONE
-if(order.deliveryStatus === "Completed") return;
+/* SHOW ONLY ASSIGNED */
+if(order.deliveryBoy === user.email){
 
-// SHOW AVAILABLE + ASSIGNED
-if(order.deliveryBoy === user.email || (!order.deliveryBoy && order.status==="Accepted")){
+/* REMOVE DELIVERED */
+if(order.deliveryStatus === "Delivered") return;
 
-let items="";
+/* ITEMS */
+let items = "";
 order.items.forEach(i=>{
 items += `${i.name} x${i.qty}<br>`;
 });
 
-// UI
+/* UI */
 ordersDiv.innerHTML += `
 <div class="order">
 
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
-📍 ${order.address}<br>
+📍 ${order.address}<br><br>
 
 ${items}
 
@@ -128,7 +222,7 @@ ${items}
 <div class="status">Status: ${order.deliveryStatus}</div>
 
 <button class="accept" onclick="accept('${id}')">Accept</button>
-<button class="start" onclick="startTracking('${id}')">Start</button>
+<button class="start" onclick="startDelivery('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
 
 <div id="map_${id}" class="map"></div>
@@ -136,7 +230,20 @@ ${items}
 </div>
 `;
 
-setTimeout(()=>initMap(id,order),100);
+/* LOAD MAP */
+setTimeout(()=>{
+let map = L.map(`map_${id}`).setView(
+[order.customerLat, order.customerLng], 13
+);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+.addTo(map);
+
+L.marker([order.customerLat, order.customerLng])
+.addTo(map)
+.bindPopup("Customer");
+
+},100);
 
 }
 
@@ -146,91 +253,30 @@ setTimeout(()=>initMap(id,order),100);
 
 });
 
-// 🗺 INIT MAP
-function initMap(id,order){
-
-if(maps[id]) return;
-
-let map = L.map(`map_${id}`).setView([20.2961,85.8245],13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-maps[id] = {
-map,
-deliveryMarker:null,
-shopMarker:null,
-customerMarker:null,
-route:null
-};
-
-// SHOP
-if(order.shopLat){
-maps[id].shopMarker = L.marker([order.shopLat,order.shopLng])
-.addTo(map).bindPopup("🏪 Shop");
-}
-
-// CUSTOMER
-if(order.customerLat){
-maps[id].customerMarker = L.marker([order.customerLat,order.customerLng])
-.addTo(map).bindPopup("👤 Customer");
-}
-
-}
-
-// ▶ START TRACKING
-window.startTracking = function(id){
-
-navigator.geolocation.watchPosition(async(pos)=>{
-
-let lat = pos.coords.latitude;
-let lng = pos.coords.longitude;
-
-let m = maps[id];
-
-if(!m) return;
-
-// DELIVERY MARKER
-if(!m.deliveryMarker){
-m.deliveryMarker = L.marker([lat,lng])
-.addTo(m.map).bindPopup("🚚 You");
-}else{
-m.deliveryMarker.setLatLng([lat,lng]);
-}
-
-m.map.panTo([lat,lng]);
-
-// 🔥 SAVE LOCATION
+/* ACTIONS */
+window.accept = async(id)=>{
 await updateDoc(doc(db,"orders",id),{
-deliveryLat: lat,
-deliveryLng: lng,
-deliveryStatus:"On the way"
-});
-
-},()=>{},{
-enableHighAccuracy:true
-});
-
-};
-
-// ✅ ACCEPT
-window.accept = async (id)=>{
-
-await updateDoc(doc(db,"orders",id),{
-deliveryBoy: auth.currentUser.email,
 deliveryStatus:"Accepted"
 });
-
 };
 
-// ✅ COMPLETE
-window.complete = async (id)=>{
+window.startDelivery = async(id)=>{
+await updateDoc(doc(db,"orders",id),{
+deliveryStatus:"On the way"
+});
+};
+
+window.complete = async(id)=>{
 
 await updateDoc(doc(db,"orders",id),{
-deliveryStatus:"Completed",
-status:"Delivered"
+deliveryStatus:"Delivered"
 });
 
-alert("🎉 Delivered");
+await updateDoc(doc(db,"delivery",auth.currentUser.email),{
+available:true
+});
+
+alert("✅ Delivered");
 
 };
 
