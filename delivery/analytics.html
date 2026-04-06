@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Analytics</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{font-family:Arial;background:#f5f5f5;padding:20px;}
+canvas{background:white;padding:10px;border-radius:10px;}
+</style>
+
+</head>
+
+<body>
+
+<h2>📊 Earnings Analytics</h2>
+
+<canvas id="chart"></canvas>
+
+<script type="module">
+
+import { auth, db } from "../js/firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+auth.onAuthStateChanged(async(user)=>{
+
+if(!user) return;
+
+const snapshot = await getDocs(collection(db,"orders"));
+
+let data = {};
+
+snapshot.forEach(doc=>{
+
+let o = doc.data();
+
+if(o.deliveryBoy === user.email && o.deliveryStatus === "Delivered"){
+
+let date = new Date(o.time.seconds * 1000).toLocaleDateString();
+
+data[date] = (data[date] || 0) + (o.deliveryEarning || 0);
+
+}
+
+});
+
+const labels = Object.keys(data);
+const values = Object.values(data);
+
+new Chart(document.getElementById("chart"),{
+type:"bar",
+data:{
+labels,
+datasets:[{
+label:"Daily Earnings",
+data:values
+}]
+}
+});
+
+});
+
+</script>
+
+</body>
+</html>
