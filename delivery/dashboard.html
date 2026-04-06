@@ -23,6 +23,23 @@ font-size:18px;
 font-weight:bold;
 }
 
+.topbar{
+display:flex;
+justify-content:space-around;
+padding:10px;
+background:white;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.topbar button{
+padding:8px 12px;
+border:none;
+border-radius:6px;
+background:#ff5a5f;
+color:white;
+cursor:pointer;
+}
+
 .container{
 padding:15px;
 }
@@ -68,18 +85,29 @@ margin:5px 0;
 
 <div class="header">🚚 Delivery Dashboard</div>
 
+<!-- TOP NAV -->
+<div class="topbar">
+<button onclick="goWallet()">💰 Wallet</button>
+<button onclick="goAnalytics()">📊 Analytics</button>
+<button onclick="logout()">🚪 Logout</button>
+</div>
+
 <div class="container" id="orders"></div>
 
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { 
+onAuthStateChanged, 
+signOut 
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 import { 
 collection, 
 onSnapshot, 
 doc, 
 updateDoc,
-getDoc
+getDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
@@ -88,20 +116,20 @@ let deliveryLat = null;
 let deliveryLng = null;
 let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 
-// 📏 DISTANCE CALCULATION (REAL)
-function getDistance(lat1, lon1, lat2, lon2) {
+// 📏 DISTANCE
+function getDistance(lat1, lon1, lat2, lon2){
 const R = 6371;
-const dLat = (lat2-lat1) * Math.PI/180;
-const dLon = (lon2-lon1) * Math.PI/180;
+const dLat = (lat2-lat1)*Math.PI/180;
+const dLon = (lon2-lon1)*Math.PI/180;
 
 const a =
-Math.sin(dLat/2) * Math.sin(dLat/2) +
+Math.sin(dLat/2)**2 +
 Math.cos(lat1*Math.PI/180) *
 Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2) * Math.sin(dLon/2);
+Math.sin(dLon/2)**2;
 
-const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-return (R * c).toFixed(2);
+const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+return (R*c).toFixed(2);
 }
 
 // 📍 LIVE LOCATION
@@ -112,13 +140,12 @@ navigator.geolocation.watchPosition(async(pos)=>{
 deliveryLat = pos.coords.latitude;
 deliveryLng = pos.coords.longitude;
 
-// 🔥 UPDATE DELIVERY LOCATION
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 lat: deliveryLat,
 lng: deliveryLng
 });
 
-},()=>{},{
+},{},{
 enableHighAccuracy:true
 });
 
@@ -128,14 +155,13 @@ enableHighAccuracy:true
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
-alert("Login required");
 location.href="login.html";
 return;
 }
 
 startLiveLocation();
 
-// 📦 LISTEN ORDERS
+// 📦 ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML = "";
@@ -145,13 +171,13 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ REMOVE COMPLETED
+// ❌ HIDE DELIVERED
 if(order.deliveryStatus === "Delivered") return;
 
-// 🔥 SHOW IF ASSIGNED OR AVAILABLE
+// SHOW AVAILABLE + ASSIGNED
 if(order.deliveryBoy === user.email || (!order.deliveryBoy && order.status==="Ready")){
 
-// 🔔 NEW ORDER SOUND
+// 🔔 SOUND
 if(!order.deliveryBoy){
 audio.play();
 }
@@ -163,13 +189,8 @@ items += `${i.name} x${i.qty}<br>`;
 
 // 📍 DISTANCE
 let distance = "Calculating...";
-if(deliveryLat && order.customerLat){
-distance = getDistance(
-deliveryLat,
-deliveryLng,
-order.customerLat,
-order.customerLng
-) + " km";
+if(deliveryLat && order.lat){
+distance = getDistance(deliveryLat,deliveryLng,order.lat,order.lng) + " km";
 }
 
 // UI
@@ -180,7 +201,7 @@ ordersDiv.innerHTML += `
 📞 ${order.phone}<br>
 📍 ${order.address}<br>
 
-<div class="distance">📏 Distance: ${distance}</div>
+<div class="distance">📏 ${distance}</div>
 
 ${items}
 
@@ -191,7 +212,7 @@ ${items}
 <button class="accept" onclick="accept('${id}')">Accept</button>
 <button class="start" onclick="startDelivery('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
-<button class="mapBtn" onclick="openMap(${order.customerLat},${order.customerLng})">📍 Navigate</button>
+<button class="mapBtn" onclick="openMap(${order.lat},${order.lng})">📍 Navigate</button>
 
 </div>
 `;
@@ -204,7 +225,7 @@ ${items}
 
 });
 
-// ✅ ACCEPT ORDER
+// ✅ ACCEPT
 window.accept = async (id)=>{
 
 await updateDoc(doc(db,"orders",id),{
@@ -212,41 +233,59 @@ deliveryBoy: auth.currentUser.email,
 deliveryStatus:"Accepted"
 });
 
-// 🔒 SET BUSY
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 available:false
 });
 
 };
 
-// 🚚 START DELIVERY
+// 🚚 START
 window.startDelivery = async (id)=>{
-
 await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"On the way"
 });
-
 };
 
-// ✅ COMPLETE DELIVERY
+// ✅ COMPLETE + EARNING
 window.complete = async (id)=>{
 
-await updateDoc(doc(db,"orders",id),{
+const ref = doc(db,"orders",id);
+const snap = await getDoc(ref);
+const order = snap.data();
+
+// COMPLETE
+await updateDoc(ref,{
 deliveryStatus:"Delivered"
 });
 
-// 🔓 FREE DELIVERY BOY
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
+// 💰 ADD EARNING
+const deliveryRef = doc(db,"delivery",auth.currentUser.email);
+const deliverySnap = await getDoc(deliveryRef);
+
+let current = deliverySnap.data().earnings || 0;
+
+await updateDoc(deliveryRef,{
+earnings: current + (order.deliveryEarning || 0),
 available:true
 });
 
-alert("✅ Delivery Completed");
+alert("✅ Delivered + Earnings Added");
 
 };
 
-// 🗺 GOOGLE MAP
+// 🗺 MAP
 window.openMap = (lat,lng)=>{
 window.open(`https://www.google.com/maps?q=${lat},${lng}`);
+};
+
+// 🔀 NAV
+window.goWallet = ()=> location.href="wallet.html";
+window.goAnalytics = ()=> location.href="analytics.html";
+
+// 🚪 LOGOUT
+window.logout = ()=>{
+signOut(auth);
+location.href="login.html";
 };
 
 </script>
