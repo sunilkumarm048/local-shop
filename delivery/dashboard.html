@@ -110,13 +110,10 @@ border-radius:10px;
 
 <!-- SIDEBAR -->
 <div id="sidebar">
-
 <h3>🚚 Delivery Panel</h3>
-
 <button onclick="goWallet()">💰 Wallet</button>
 <button onclick="goAnalytics()">📊 Analytics</button>
 <button onclick="logout()" style="background:red;">🚪 Logout</button>
-
 </div>
 
 <!-- HEADER -->
@@ -160,17 +157,22 @@ signOut(auth);
 location.href="login.html";
 };
 
-/* LIVE LOCATION */
+/* LIVE LOCATION UPDATE */
 function startLiveLocation(){
 
 navigator.geolocation.watchPosition(async(pos)=>{
 
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 lat: pos.coords.latitude,
-lng: pos.coords.longitude
+lng: pos.coords.longitude,
+available:true
 });
 
-},{enableHighAccuracy:true});
+},{
+enableHighAccuracy:true,
+maximumAge:0,
+timeout:5000
+});
 
 }
 
@@ -185,7 +187,7 @@ return;
 
 startLiveLocation();
 
-/* ORDERS */
+/* REALTIME ORDERS */
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML = "";
@@ -195,10 +197,10 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-/* SHOW ONLY ASSIGNED */
+/* SHOW ONLY ASSIGNED ORDERS */
 if(order.deliveryBoy === user.email){
 
-/* REMOVE DELIVERED */
+/* REMOVE COMPLETED */
 if(order.deliveryStatus === "Delivered") return;
 
 /* ITEMS */
@@ -224,6 +226,7 @@ ${items}
 <button class="accept" onclick="accept('${id}')">Accept</button>
 <button class="start" onclick="startDelivery('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
+<button class="mapBtn" onclick="openTracking('${id}')">🗺 Track</button>
 
 <div id="map_${id}" class="map"></div>
 
@@ -277,6 +280,14 @@ available:true
 });
 
 alert("✅ Delivered");
+
+};
+
+/* 🗺 OPEN TRACKING PAGE */
+window.openTracking = function(id){
+
+localStorage.setItem("activeDeliveryOrder", id);
+window.location.href = "tracking.html";
 
 };
 
