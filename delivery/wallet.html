@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Wallet</title>
+
+<style>
+body{font-family:Arial;background:#f5f5f5;padding:20px;text-align:center;}
+
+.box{
+background:white;
+padding:20px;
+border-radius:10px;
+max-width:400px;
+margin:auto;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+button{
+padding:10px;
+background:#ff5a5f;
+color:white;
+border:none;
+border-radius:6px;
+margin-top:10px;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>💰 Wallet</h2>
+
+<h3>Balance: ₹<span id="balance">0</span></h3>
+
+<button onclick="withdraw()">Withdraw</button>
+
+</div>
+
+<script type="module">
+
+import { auth, db } from "../js/firebase.js";
+import { doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const balanceEl = document.getElementById("balance");
+
+auth.onAuthStateChanged(async(user)=>{
+
+if(!user){
+location.href="login.html";
+return;
+}
+
+const ref = doc(db,"delivery",user.email);
+const snap = await getDoc(ref);
+
+if(snap.exists()){
+balanceEl.innerText = snap.data().earnings || 0;
+}
+
+});
+
+window.withdraw = async function(){
+
+let amount = prompt("Enter amount");
+
+if(!amount) return;
+
+await addDoc(collection(db,"withdrawRequests"),{
+email: auth.currentUser.email,
+amount: Number(amount),
+status:"Pending",
+time:new Date()
+});
+
+alert("✅ Withdraw request sent");
+
+};
+
+</script>
+
+</body>
+</html>
