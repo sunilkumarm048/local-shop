@@ -6,13 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
 <style>
 
-body{
-font-family:Arial;
-background:#f5f5f5;
-margin:0;
-}
+body{font-family:Arial;background:#f5f5f5;margin:0;}
 
 .header{
 background:#ff5a5f;
@@ -23,40 +21,27 @@ font-size:18px;
 font-weight:bold;
 }
 
-.topbar{
-display:flex;
-justify-content:space-around;
-padding:10px;
-background:white;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
-}
-
-.topbar button{
-padding:8px 12px;
-border:none;
-border-radius:6px;
-background:#ff5a5f;
-color:white;
-cursor:pointer;
-}
-
-.container{
-padding:15px;
-}
+.container{padding:10px;}
 
 .order{
 background:white;
-padding:15px;
+padding:12px;
 margin-bottom:15px;
 border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
+.map{
+height:200px;
+border-radius:10px;
+margin-top:10px;
+}
+
 button{
 margin:5px;
-padding:8px 12px;
+padding:8px;
 border:none;
-border-radius:5px;
+border-radius:6px;
 color:white;
 cursor:pointer;
 }
@@ -66,16 +51,7 @@ cursor:pointer;
 .complete{background:blue;}
 .mapBtn{background:black;}
 
-.status{
-font-weight:bold;
-margin-top:5px;
-}
-
-.distance{
-color:#555;
-font-size:14px;
-margin:5px 0;
-}
+.status{font-weight:bold;}
 
 </style>
 
@@ -83,23 +59,17 @@ margin:5px 0;
 
 <body>
 
-<div class="header">🚚 Delivery Dashboard</div>
-
-<!-- TOP NAV -->
-<div class="topbar">
-<button onclick="goWallet()">💰 Wallet</button>
-<button onclick="goAnalytics()">📊 Analytics</button>
-<button onclick="logout()">🚪 Logout</button>
-</div>
+<div class="header">🚚 Smart Delivery Dashboard</div>
 
 <div class="container" id="orders"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
 import { 
-onAuthStateChanged, 
-signOut 
+onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { 
@@ -112,44 +82,7 @@ getDoc
 
 const ordersDiv = document.getElementById("orders");
 
-let deliveryLat = null;
-let deliveryLng = null;
-let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
-
-// 📏 DISTANCE
-function getDistance(lat1, lon1, lat2, lon2){
-const R = 6371;
-const dLat = (lat2-lat1)*Math.PI/180;
-const dLon = (lon2-lon1)*Math.PI/180;
-
-const a =
-Math.sin(dLat/2)**2 +
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2)**2;
-
-const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-return (R*c).toFixed(2);
-}
-
-// 📍 LIVE LOCATION
-function startLiveLocation(){
-
-navigator.geolocation.watchPosition(async(pos)=>{
-
-deliveryLat = pos.coords.latitude;
-deliveryLng = pos.coords.longitude;
-
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-lat: deliveryLat,
-lng: deliveryLng
-});
-
-},{},{
-enableHighAccuracy:true
-});
-
-}
+let maps = {}; // store map instances
 
 // 🔐 AUTH
 onAuthStateChanged(auth,(user)=>{
@@ -159,39 +92,26 @@ location.href="login.html";
 return;
 }
 
-startLiveLocation();
-
 // 📦 ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
-ordersDiv.innerHTML = "";
+ordersDiv.innerHTML="";
 
 snapshot.forEach(docSnap=>{
 
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ HIDE DELIVERED
-if(order.deliveryStatus === "Delivered") return;
+// ❌ HIDE DONE
+if(order.deliveryStatus === "Completed") return;
 
 // SHOW AVAILABLE + ASSIGNED
-if(order.deliveryBoy === user.email || (!order.deliveryBoy && order.status==="Ready")){
+if(order.deliveryBoy === user.email || (!order.deliveryBoy && order.status==="Accepted")){
 
-// 🔔 SOUND
-if(!order.deliveryBoy){
-audio.play();
-}
-
-let items = "";
+let items="";
 order.items.forEach(i=>{
 items += `${i.name} x${i.qty}<br>`;
 });
-
-// 📍 DISTANCE
-let distance = "Calculating...";
-if(deliveryLat && order.lat){
-distance = getDistance(deliveryLat,deliveryLng,order.lat,order.lng) + " km";
-}
 
 // UI
 ordersDiv.innerHTML += `
@@ -201,8 +121,6 @@ ordersDiv.innerHTML += `
 📞 ${order.phone}<br>
 📍 ${order.address}<br>
 
-<div class="distance">📏 ${distance}</div>
-
 ${items}
 
 💰 ₹${order.total}<br>
@@ -210,12 +128,15 @@ ${items}
 <div class="status">Status: ${order.deliveryStatus}</div>
 
 <button class="accept" onclick="accept('${id}')">Accept</button>
-<button class="start" onclick="startDelivery('${id}')">Start</button>
+<button class="start" onclick="startTracking('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
-<button class="mapBtn" onclick="openMap(${order.lat},${order.lng})">📍 Navigate</button>
+
+<div id="map_${id}" class="map"></div>
 
 </div>
 `;
+
+setTimeout(()=>initMap(id,order),100);
 
 }
 
@@ -225,6 +146,72 @@ ${items}
 
 });
 
+// 🗺 INIT MAP
+function initMap(id,order){
+
+if(maps[id]) return;
+
+let map = L.map(`map_${id}`).setView([20.2961,85.8245],13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+maps[id] = {
+map,
+deliveryMarker:null,
+shopMarker:null,
+customerMarker:null,
+route:null
+};
+
+// SHOP
+if(order.shopLat){
+maps[id].shopMarker = L.marker([order.shopLat,order.shopLng])
+.addTo(map).bindPopup("🏪 Shop");
+}
+
+// CUSTOMER
+if(order.customerLat){
+maps[id].customerMarker = L.marker([order.customerLat,order.customerLng])
+.addTo(map).bindPopup("👤 Customer");
+}
+
+}
+
+// ▶ START TRACKING
+window.startTracking = function(id){
+
+navigator.geolocation.watchPosition(async(pos)=>{
+
+let lat = pos.coords.latitude;
+let lng = pos.coords.longitude;
+
+let m = maps[id];
+
+if(!m) return;
+
+// DELIVERY MARKER
+if(!m.deliveryMarker){
+m.deliveryMarker = L.marker([lat,lng])
+.addTo(m.map).bindPopup("🚚 You");
+}else{
+m.deliveryMarker.setLatLng([lat,lng]);
+}
+
+m.map.panTo([lat,lng]);
+
+// 🔥 SAVE LOCATION
+await updateDoc(doc(db,"orders",id),{
+deliveryLat: lat,
+deliveryLng: lng,
+deliveryStatus:"On the way"
+});
+
+},()=>{},{
+enableHighAccuracy:true
+});
+
+};
+
 // ✅ ACCEPT
 window.accept = async (id)=>{
 
@@ -233,59 +220,18 @@ deliveryBoy: auth.currentUser.email,
 deliveryStatus:"Accepted"
 });
 
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-available:false
-});
-
 };
 
-// 🚚 START
-window.startDelivery = async (id)=>{
-await updateDoc(doc(db,"orders",id),{
-deliveryStatus:"On the way"
-});
-};
-
-// ✅ COMPLETE + EARNING
+// ✅ COMPLETE
 window.complete = async (id)=>{
 
-const ref = doc(db,"orders",id);
-const snap = await getDoc(ref);
-const order = snap.data();
-
-// COMPLETE
-await updateDoc(ref,{
-deliveryStatus:"Delivered"
+await updateDoc(doc(db,"orders",id),{
+deliveryStatus:"Completed",
+status:"Delivered"
 });
 
-// 💰 ADD EARNING
-const deliveryRef = doc(db,"delivery",auth.currentUser.email);
-const deliverySnap = await getDoc(deliveryRef);
+alert("🎉 Delivered");
 
-let current = deliverySnap.data().earnings || 0;
-
-await updateDoc(deliveryRef,{
-earnings: current + (order.deliveryEarning || 0),
-available:true
-});
-
-alert("✅ Delivered + Earnings Added");
-
-};
-
-// 🗺 MAP
-window.openMap = (lat,lng)=>{
-window.open(`https://www.google.com/maps?q=${lat},${lng}`);
-};
-
-// 🔀 NAV
-window.goWallet = ()=> location.href="wallet.html";
-window.goAnalytics = ()=> location.href="analytics.html";
-
-// 🚪 LOGOUT
-window.logout = ()=>{
-signOut(auth);
-location.href="login.html";
 };
 
 </script>
