@@ -9,120 +9,167 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-body{font-family:Arial;margin:0;background:#f5f5f5;}
 
+body{
+font-family:Arial;
+margin:0;
+background:#f5f5f5;
+}
+
+/* HEADER */
 .header{
-background:#ff5a5f;color:white;padding:15px;text-align:center;
-font-size:18px;font-weight:bold;
+background:#ff5a5f;
+color:white;
+padding:15px;
+text-align:center;
+font-size:18px;
+font-weight:bold;
 }
 
-.container{padding:15px;}
+/* SIDEBAR */
+#sidebar{
+position:fixed;
+left:-250px;
+top:0;
+width:250px;
+height:100%;
+background:#222;
+color:white;
+padding:20px;
+transition:0.3s;
+z-index:999;
+}
 
+#sidebar button{
+width:100%;
+margin:10px 0;
+padding:10px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* MENU BUTTON */
+.menuBtn{
+position:fixed;
+top:10px;
+left:10px;
+z-index:1000;
+}
+
+/* CONTAINER */
+.container{
+padding:15px;
+}
+
+/* ORDER CARD */
 .order{
-background:white;padding:15px;margin-bottom:15px;
-border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);
+background:white;
+padding:15px;
+margin-bottom:15px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
+/* BUTTONS */
 button{
-margin:5px;padding:8px 12px;border:none;
-border-radius:5px;color:white;cursor:pointer;
+margin:5px;
+padding:8px 12px;
+border:none;
+border-radius:5px;
+color:white;
+cursor:pointer;
 }
 
 .accept{background:green;}
-.reject{background:red;}
 .start{background:orange;}
 .complete{background:blue;}
+.mapBtn{background:black;}
 
-.status{font-weight:bold;margin-top:5px;}
-
-.map{height:200px;margin-top:10px;border-radius:10px;}
-
-/* 🔔 POPUP */
-.popup{
-position:fixed;
-top:20px;
-right:20px;
-background:white;
-padding:15px;
-border-radius:10px;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-width:280px;
-z-index:9999;
+.status{
+font-weight:bold;
+margin-top:5px;
 }
+
+.map{
+height:220px;
+margin-top:10px;
+border-radius:10px;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<div class="header">🚚 Smart Delivery Dashboard</div>
+<!-- MENU BUTTON -->
+<div class="menuBtn">
+<button onclick="toggleMenu()">☰</button>
+</div>
 
+<!-- SIDEBAR -->
+<div id="sidebar">
+<h3>🚚 Delivery Panel</h3>
+<button onclick="goWallet()">💰 Wallet</button>
+<button onclick="goAnalytics()">📊 Analytics</button>
+<button onclick="logout()" style="background:red;">🚪 Logout</button>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+🚚 Smart Delivery Dashboard
+</div>
+
+<!-- ORDERS -->
 <div class="container" id="orders"></div>
-
-<div id="popupContainer"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 
-// 📍 DISTANCE FUNCTION
-function getDistance(lat1, lon1, lat2, lon2){
-let R = 6371;
-let dLat = (lat2-lat1)*Math.PI/180;
-let dLon = (lon2-lon1)*Math.PI/180;
+/* SIDEBAR */
+window.toggleMenu = function(){
+let menu = document.getElementById("sidebar");
+menu.style.left = (menu.style.left === "0px") ? "-250px" : "0px";
+};
 
-let a =
-Math.sin(dLat/2)*Math.sin(dLat/2)+
-Math.cos(lat1*Math.PI/180)*
-Math.cos(lat2*Math.PI/180)*
-Math.sin(dLon/2)*Math.sin(dLon/2);
+window.goWallet = ()=>location.href="wallet.html";
+window.goAnalytics = ()=>location.href="analytics.html";
 
-let c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-return (R*c).toFixed(2);
-}
+window.logout = ()=>{
+signOut(auth);
+location.href="login.html";
+};
 
-// 📍 LIVE LOCATION
+/* LIVE LOCATION UPDATE */
 function startLiveLocation(){
-navigator.geolocation.watchPosition((pos)=>{
-window.myLat = pos.coords.latitude;
-window.myLng = pos.coords.longitude;
+
+navigator.geolocation.watchPosition(async(pos)=>{
+
+let lat = pos.coords.latitude;
+let lng = pos.coords.longitude;
+
+await updateDoc(doc(db,"delivery",auth.currentUser.email),{
+lat,
+lng,
+available:true
+});
+
+window.myLat = lat;
+window.myLng = lng;
+
 },{enableHighAccuracy:true});
+
 }
 
-// 🔔 SHOW NOTIFICATION
-function showPopup(order,id){
-
-let shopDist = getDistance(window.myLat,window.myLng,order.shopLat,order.shopLng);
-let custDist = getDistance(order.shopLat,order.shopLng,order.customerLat,order.customerLng);
-let totalDist = (parseFloat(shopDist)+parseFloat(custDist)).toFixed(2);
-
-let popup = document.createElement("div");
-popup.className = "popup";
-
-popup.innerHTML = `
-<b>🆕 New Order</b><br><br>
-📍 Shop Distance: ${shopDist} km<br>
-📍 Customer Distance: ${custDist} km<br>
-📍 Total: ${totalDist} km<br><br>
-💰 Price: ₹${order.total}<br><br>
-
-<button class="accept" onclick="acceptOrder('${id}')">Accept</button>
-<button class="reject" onclick="rejectOrder('${id}')">Reject</button>
-`;
-
-document.getElementById("popupContainer").appendChild(popup);
-
-// auto remove after 10 sec
-setTimeout(()=>popup.remove(),10000);
-}
-
-// 🔐 AUTH
+/* AUTH */
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
@@ -133,7 +180,7 @@ return;
 
 startLiveLocation();
 
-// 🔄 ORDERS LISTENER
+/* REALTIME ORDERS */
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML = "";
@@ -143,16 +190,15 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// 🔔 SHOW POPUP ONLY NEW ASSIGNED
-if(order.deliveryBoy === user.email && order.deliveryStatus === "Assigned"){
-showPopup(order,id);
-}
-
-// SHOW CARD
+/* SHOW ONLY ASSIGNED */
 if(order.deliveryBoy === user.email){
 
-let shopDist = getDistance(window.myLat,window.myLng,order.shopLat,order.shopLng);
-let custDist = getDistance(order.shopLat,order.shopLng,order.customerLat,order.customerLng);
+if(order.deliveryStatus === "Delivered") return;
+
+let items = "";
+order.items.forEach(i=>{
+items += `${i.name} x${i.qty}<br>`;
+});
 
 ordersDiv.innerHTML += `
 <div class="order">
@@ -161,16 +207,16 @@ ordersDiv.innerHTML += `
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
+${items}
+
 💰 ₹${order.total}<br>
-📍 Shop: ${shopDist} km<br>
-📍 Customer: ${custDist} km<br>
 
 <div class="status">Status: ${order.deliveryStatus}</div>
 
-<button class="accept" onclick="acceptOrder('${id}')">Accept</button>
-<button class="reject" onclick="rejectOrder('${id}')">Reject</button>
+<button class="accept" onclick="accept('${id}')">Accept</button>
 <button class="start" onclick="startDelivery('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
+<button class="mapBtn" onclick="openTracking('${id}')">🗺 Track</button>
 
 <div id="map_${id}" class="map"></div>
 
@@ -178,15 +224,19 @@ ordersDiv.innerHTML += `
 `;
 
 setTimeout(()=>{
+
 let map = L.map(`map_${id}`).setView(
 [order.customerLat, order.customerLng], 13
 );
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-L.marker([order.customerLat, order.customerLng]).addTo(map);
+L.marker([order.customerLat, order.customerLng])
+.addTo(map).bindPopup("Customer");
+
 if(window.myLat){
-L.marker([window.myLat, window.myLng]).addTo(map);
+L.marker([window.myLat, window.myLng])
+.addTo(map).bindPopup("You");
 }
 
 },100);
@@ -199,17 +249,10 @@ L.marker([window.myLat, window.myLng]).addTo(map);
 
 });
 
-// ✅ ACTIONS
-window.acceptOrder = async(id)=>{
+/* ACTIONS */
+window.accept = async(id)=>{
 await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"Accepted"
-});
-};
-
-window.rejectOrder = async(id)=>{
-await updateDoc(doc(db,"orders",id),{
-deliveryBoy:null,
-deliveryStatus:"Pending"
 });
 };
 
@@ -220,10 +263,25 @@ deliveryStatus:"On the way"
 };
 
 window.complete = async(id)=>{
+
 await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"Delivered"
 });
+
+await updateDoc(doc(db,"delivery",auth.currentUser.email),{
+available:true
+});
+
 alert("✅ Delivered");
+
+};
+
+/* TRACK PAGE FIX */
+window.openTracking = function(id){
+
+localStorage.setItem("activeDeliveryOrder", id);
+window.location.href = "delivery-tracking.html";
+
 };
 
 </script>
