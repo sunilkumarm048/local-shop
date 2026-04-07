@@ -40,15 +40,6 @@ transition:0.3s;
 z-index:999;
 }
 
-#sidebar button{
-width:100%;
-margin:10px 0;
-padding:10px;
-border:none;
-border-radius:6px;
-cursor:pointer;
-}
-
 /* MENU BUTTON */
 .menuBtn{
 position:fixed;
@@ -57,9 +48,19 @@ left:10px;
 z-index:1000;
 }
 
-/* CONTAINER */
-.container{
+/* MAIN */
+.main{
+margin-left:60px;
 padding:15px;
+}
+
+/* NEW ORDER PANEL */
+#newOrder{
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+margin-bottom:20px;
 }
 
 /* ORDER CARD */
@@ -71,7 +72,6 @@ border-radius:10px;
 box-shadow:0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* BUTTONS */
 button{
 margin:5px;
 padding:8px 12px;
@@ -82,17 +82,12 @@ cursor:pointer;
 }
 
 .accept{background:green;}
+.reject{background:red;}
 .start{background:orange;}
 .complete{background:blue;}
-.mapBtn{background:black;}
-
-.status{
-font-weight:bold;
-margin-top:5px;
-}
 
 .map{
-height:220px;
+height:200px;
 margin-top:10px;
 border-radius:10px;
 }
@@ -103,17 +98,13 @@ border-radius:10px;
 
 <body>
 
-<!-- MENU BUTTON -->
+<!-- MENU -->
 <div class="menuBtn">
 <button onclick="toggleMenu()">☰</button>
 </div>
 
-<!-- SIDEBAR -->
 <div id="sidebar">
 <h3>🚚 Delivery Panel</h3>
-<button onclick="goWallet()">💰 Wallet</button>
-<button onclick="goAnalytics()">📊 Analytics</button>
-<button onclick="logout()" style="background:red;">🚪 Logout</button>
 </div>
 
 <!-- HEADER -->
@@ -121,55 +112,52 @@ border-radius:10px;
 🚚 Smart Delivery Dashboard
 </div>
 
-<!-- ORDERS -->
-<div class="container" id="orders"></div>
+<div class="main">
+
+<!-- 🔥 NEW ORDER AREA -->
+<div id="newOrder">No new order</div>
+
+<!-- OLD ORDERS -->
+<div id="orders"></div>
+
+</div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
+const newOrderDiv = document.getElementById("newOrder");
 
-/* SIDEBAR */
-window.toggleMenu = function(){
-let menu = document.getElementById("sidebar");
-menu.style.left = (menu.style.left === "0px") ? "-250px" : "0px";
-};
+// 📍 DISTANCE FUNCTION
+function getDistance(lat1, lon1, lat2, lon2){
+let R = 6371;
+let dLat = (lat2-lat1)*Math.PI/180;
+let dLon = (lon2-lon1)*Math.PI/180;
 
-window.goWallet = ()=>location.href="wallet.html";
-window.goAnalytics = ()=>location.href="analytics.html";
+let a =
+Math.sin(dLat/2)*Math.sin(dLat/2)+
+Math.cos(lat1*Math.PI/180)*
+Math.cos(lat2*Math.PI/180)*
+Math.sin(dLon/2)*Math.sin(dLon/2);
 
-window.logout = ()=>{
-signOut(auth);
-location.href="login.html";
-};
-
-/* LIVE LOCATION UPDATE */
-function startLiveLocation(){
-
-navigator.geolocation.watchPosition(async(pos)=>{
-
-let lat = pos.coords.latitude;
-let lng = pos.coords.longitude;
-
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-lat,
-lng,
-available:true
-});
-
-window.myLat = lat;
-window.myLng = lng;
-
-},{enableHighAccuracy:true});
-
+let c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+return (R*c).toFixed(2);
 }
 
-/* AUTH */
+// 📍 LIVE LOCATION
+function startLiveLocation(){
+navigator.geolocation.watchPosition((pos)=>{
+window.myLat = pos.coords.latitude;
+window.myLng = pos.coords.longitude;
+},{enableHighAccuracy:true});
+}
+
+// 🔐 AUTH
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
@@ -180,43 +168,56 @@ return;
 
 startLiveLocation();
 
-/* REALTIME ORDERS */
+// 🔄 ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML = "";
+let newOrderShown = false;
 
 snapshot.forEach(docSnap=>{
 
 const order = docSnap.data();
 const id = docSnap.id;
 
-/* SHOW ONLY ASSIGNED */
-if(order.deliveryBoy === user.email){
+// 🔥 NEW ORDER PANEL
+if(order.deliveryBoy === user.email && order.deliveryStatus === "Assigned" && !newOrderShown){
 
-if(order.deliveryStatus === "Delivered") return;
+let shopDist = getDistance(window.myLat,window.myLng,order.shopLat,order.shopLng);
+let custDist = getDistance(order.shopLat,order.shopLng,order.customerLat,order.customerLng);
+let totalDist = (parseFloat(shopDist)+parseFloat(custDist)).toFixed(2);
 
-let items = "";
-order.items.forEach(i=>{
-items += `${i.name} x${i.qty}<br>`;
-});
-
-ordersDiv.innerHTML += `
-<div class="order">
+newOrderDiv.innerHTML = `
+<h3>🆕 New Order</h3>
 
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
-${items}
+📍 You → Shop: ${shopDist} km<br>
+📍 Shop → Customer: ${custDist} km<br>
+📍 Total Distance: ${totalDist} km<br><br>
 
+💰 Price: ₹${order.total}<br><br>
+
+<button class="accept" onclick="acceptOrder('${id}')">Accept</button>
+<button class="reject" onclick="rejectOrder('${id}')">Reject</button>
+`;
+
+newOrderShown = true;
+}
+
+// 🔥 NORMAL ORDER LIST
+if(order.deliveryBoy === user.email){
+
+ordersDiv.innerHTML += `
+<div class="order">
+
+<b>${order.name}</b><br>
+📍 ${order.address}<br>
 💰 ₹${order.total}<br>
 
-<div class="status">Status: ${order.deliveryStatus}</div>
-
-<button class="accept" onclick="accept('${id}')">Accept</button>
 <button class="start" onclick="startDelivery('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
-<button class="mapBtn" onclick="openTracking('${id}')">🗺 Track</button>
 
 <div id="map_${id}" class="map"></div>
 
@@ -224,19 +225,16 @@ ${items}
 `;
 
 setTimeout(()=>{
-
 let map = L.map(`map_${id}`).setView(
 [order.customerLat, order.customerLng], 13
 );
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-L.marker([order.customerLat, order.customerLng])
-.addTo(map).bindPopup("Customer");
+L.marker([order.customerLat, order.customerLng]).addTo(map);
 
 if(window.myLat){
-L.marker([window.myLat, window.myLng])
-.addTo(map).bindPopup("You");
+L.marker([window.myLat, window.myLng]).addTo(map);
 }
 
 },100);
@@ -245,14 +243,26 @@ L.marker([window.myLat, window.myLng])
 
 });
 
-});
+// no new order
+if(!newOrderShown){
+newOrderDiv.innerHTML = "No new order";
+}
 
 });
 
-/* ACTIONS */
-window.accept = async(id)=>{
+});
+
+// ✅ ACTIONS
+window.acceptOrder = async(id)=>{
 await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"Accepted"
+});
+};
+
+window.rejectOrder = async(id)=>{
+await updateDoc(doc(db,"orders",id),{
+deliveryBoy:null,
+deliveryStatus:"Pending"
 });
 };
 
@@ -263,25 +273,10 @@ deliveryStatus:"On the way"
 };
 
 window.complete = async(id)=>{
-
 await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"Delivered"
 });
-
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-available:true
-});
-
 alert("✅ Delivered");
-
-};
-
-/* TRACK PAGE FIX */
-window.openTracking = function(id){
-
-localStorage.setItem("activeDeliveryOrder", id);
-window.location.href = "delivery-tracking.html";
-
 };
 
 </script>
