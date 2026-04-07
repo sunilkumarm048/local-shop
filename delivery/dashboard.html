@@ -40,6 +40,15 @@ transition:0.3s;
 z-index:999;
 }
 
+#sidebar button{
+width:100%;
+margin:10px 0;
+padding:10px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
 /* MENU BUTTON */
 .menuBtn{
 position:fixed;
@@ -98,13 +107,17 @@ border-radius:10px;
 
 <body>
 
-<!-- MENU -->
+<!-- MENU BUTTON -->
 <div class="menuBtn">
 <button onclick="toggleMenu()">☰</button>
 </div>
 
+<!-- SIDEBAR -->
 <div id="sidebar">
 <h3>🚚 Delivery Panel</h3>
+<button onclick="goWallet()">💰 Wallet</button>
+<button onclick="goAnalytics()">📊 Analytics</button>
+<button onclick="logout()" style="background:red;">🚪 Logout</button>
 </div>
 
 <!-- HEADER -->
@@ -114,10 +127,10 @@ border-radius:10px;
 
 <div class="main">
 
-<!-- 🔥 NEW ORDER AREA -->
+<!-- NEW ORDER -->
 <div id="newOrder">No new order</div>
 
-<!-- OLD ORDERS -->
+<!-- ORDERS -->
 <div id="orders"></div>
 
 </div>
@@ -127,13 +140,27 @@ border-radius:10px;
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const newOrderDiv = document.getElementById("newOrder");
 
-// 📍 DISTANCE FUNCTION
+// 🔥 SIDEBAR FUNCTIONS
+window.toggleMenu = function(){
+let menu = document.getElementById("sidebar");
+menu.style.left = (menu.style.left === "0px") ? "-250px" : "0px";
+};
+
+window.goWallet = ()=>location.href="wallet.html";
+window.goAnalytics = ()=>location.href="analytics.html";
+
+window.logout = ()=>{
+signOut(auth);
+location.href="login.html";
+};
+
+// 📍 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
 let R = 6371;
 let dLat = (lat2-lat1)*Math.PI/180;
@@ -149,12 +176,12 @@ let c = 2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 return (R*c).toFixed(2);
 }
 
-// 📍 LIVE LOCATION
+// 📍 LOCATION
 function startLiveLocation(){
 navigator.geolocation.watchPosition((pos)=>{
 window.myLat = pos.coords.latitude;
 window.myLng = pos.coords.longitude;
-},{enableHighAccuracy:true});
+});
 }
 
 // 🔐 AUTH
@@ -179,7 +206,7 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// 🔥 NEW ORDER PANEL
+// NEW ORDER
 if(order.deliveryBoy === user.email && order.deliveryStatus === "Assigned" && !newOrderShown){
 
 let shopDist = getDistance(window.myLat,window.myLng,order.shopLat,order.shopLng);
@@ -195,9 +222,9 @@ newOrderDiv.innerHTML = `
 
 📍 You → Shop: ${shopDist} km<br>
 📍 Shop → Customer: ${custDist} km<br>
-📍 Total Distance: ${totalDist} km<br><br>
+📍 Total: ${totalDist} km<br><br>
 
-💰 Price: ₹${order.total}<br><br>
+💰 ₹${order.total}<br><br>
 
 <button class="accept" onclick="acceptOrder('${id}')">Accept</button>
 <button class="reject" onclick="rejectOrder('${id}')">Reject</button>
@@ -206,7 +233,7 @@ newOrderDiv.innerHTML = `
 newOrderShown = true;
 }
 
-// 🔥 NORMAL ORDER LIST
+// NORMAL LIST
 if(order.deliveryBoy === user.email){
 
 ordersDiv.innerHTML += `
@@ -243,7 +270,6 @@ L.marker([window.myLat, window.myLng]).addTo(map);
 
 });
 
-// no new order
 if(!newOrderShown){
 newOrderDiv.innerHTML = "No new order";
 }
@@ -252,7 +278,7 @@ newOrderDiv.innerHTML = "No new order";
 
 });
 
-// ✅ ACTIONS
+// ACTIONS
 window.acceptOrder = async(id)=>{
 await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"Accepted"
