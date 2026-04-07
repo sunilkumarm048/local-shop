@@ -97,6 +97,13 @@ margin-top:10px;
 border-radius:10px;
 }
 
+/* 🔥 BIG LIVE MAP */
+#liveMap{
+height:400px;
+margin:10px;
+border-radius:10px;
+}
+
 </style>
 
 </head>
@@ -121,6 +128,9 @@ border-radius:10px;
 🚚 Smart Delivery Dashboard
 </div>
 
+<!-- 🔥 BIG TRACKING MAP -->
+<div id="liveMap"></div>
+
 <!-- ORDERS -->
 <div class="container" id="orders"></div>
 
@@ -133,6 +143,16 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
+
+/* 🔥 LIVE MAP INIT */
+let liveMap = L.map('liveMap').setView([20.2961, 85.8245], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+.addTo(liveMap);
+
+let liveDeliveryMarker = null;
+let liveCustomerMarker = null;
+let liveShopMarker = null;
 
 /* SIDEBAR */
 window.toggleMenu = function(){
@@ -148,7 +168,7 @@ signOut(auth);
 location.href="login.html";
 };
 
-/* LIVE LOCATION UPDATE */
+/* 📍 LIVE LOCATION UPDATE */
 function startLiveLocation(){
 
 navigator.geolocation.watchPosition(async(pos)=>{
@@ -165,11 +185,19 @@ available:true
 window.myLat = lat;
 window.myLng = lng;
 
+// 🔥 UPDATE DELIVERY MARKER
+if(liveDeliveryMarker){
+liveDeliveryMarker.setLatLng([lat,lng]);
+}else{
+liveDeliveryMarker = L.marker([lat,lng])
+.addTo(liveMap).bindPopup("🚚 You");
+}
+
 },{enableHighAccuracy:true});
 
 }
 
-/* AUTH */
+/* 🔐 AUTH */
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
@@ -180,7 +208,7 @@ return;
 
 startLiveLocation();
 
-/* REALTIME ORDERS */
+/* 🔄 REALTIME ORDERS */
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML = "";
@@ -194,6 +222,26 @@ const id = docSnap.id;
 if(order.deliveryBoy === user.email){
 
 if(order.deliveryStatus === "Delivered") return;
+
+/* 🔥 UPDATE BIG MAP */
+if(order.customerLat && order.customerLng){
+
+if(liveCustomerMarker) liveMap.removeLayer(liveCustomerMarker);
+if(liveShopMarker) liveMap.removeLayer(liveShopMarker);
+
+// customer
+liveCustomerMarker = L.marker([order.customerLat, order.customerLng])
+.addTo(liveMap).bindPopup("👤 Customer");
+
+// shop
+if(order.shopLat){
+liveShopMarker = L.marker([order.shopLat, order.shopLng])
+.addTo(liveMap).bindPopup("🏪 Shop");
+}
+
+// center map
+liveMap.setView([order.customerLat, order.customerLng], 13);
+}
 
 let items = "";
 order.items.forEach(i=>{
@@ -223,7 +271,7 @@ ${items}
 </div>
 `;
 
-/* LOAD MAP */
+/* SMALL MAP */
 setTimeout(()=>{
 
 let map = L.map(`map_${id}`).setView(
@@ -232,11 +280,9 @@ let map = L.map(`map_${id}`).setView(
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// customer
 L.marker([order.customerLat, order.customerLng])
 .addTo(map).bindPopup("Customer");
 
-// delivery live marker
 if(window.myLat){
 L.marker([window.myLat, window.myLng])
 .addTo(map).bindPopup("You");
@@ -276,17 +322,12 @@ available:true
 });
 
 alert("✅ Delivered");
-
 };
 
-/* TRACK PAGE FIX */
+/* TRACK PAGE */
 window.openTracking = function(id){
-
 localStorage.setItem("activeDeliveryOrder", id);
-
-// 🔥 FIXED NAME
 window.location.href = "delivery-tracking.html";
-
 };
 
 </script>
