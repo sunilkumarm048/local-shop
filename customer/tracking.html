@@ -71,10 +71,10 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
 let deliveredShown=false;
 
-// 🔥 YOUR API KEY (ADDED)
-const API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZiNTA0NmI1ZTc3ZDQwZjVhMjA0ZWEyZDg2ZTFlNjY4IiwiaCI6Im11cm11cjY0In0=";
+// 🔥 API KEY
+const API_KEY = "YOUR_API_KEY_HERE";
 
-// ROUTE FUNCTION
+// ROUTE FUNCTION (unchanged)
 async function drawRoute(start,end){
 
 if(routeLine){
@@ -98,10 +98,7 @@ coordinates:[
 
 let data = await res.json();
 
-if(!data.features){
-console.error("Route error:", data);
-return;
-}
+if(!data.features) return;
 
 let coords = data.features[0].geometry.coordinates;
 let latlngs = coords.map(c => [c[1],c[0]]);
@@ -112,7 +109,7 @@ weight:5
 }).addTo(map);
 
 }catch(e){
-console.error("Route fetch error:", e);
+console.error("Route error:", e);
 }
 }
 
@@ -126,11 +123,21 @@ return;
 
 let data = docSnap.data();
 
-// STATUS
+// ✅ STATUS
 document.getElementById("status").innerText = data.status;
-document.getElementById("boy").innerText = data.deliveryBoy || "Not assigned";
 
-// COLOR
+// ✅ DELIVERY BOY NAME (NEW + OLD SUPPORT)
+let boyName = "Not assigned";
+
+if(data.deliveryBoyName){
+boyName = data.deliveryBoyName; // ✅ NEW SYSTEM
+}else if(data.deliveryBoy){
+boyName = data.deliveryBoy; // ⚠️ OLD SYSTEM (fallback)
+}
+
+document.getElementById("boy").innerText = boyName;
+
+// 🎨 STATUS COLOR
 let statusEl = document.getElementById("status");
 statusEl.className="";
 
@@ -140,7 +147,7 @@ if(data.status==="Ready") statusEl.classList.add("ready");
 if(data.status==="Out for Delivery") statusEl.classList.add("out");
 if(data.status==="Delivered") statusEl.classList.add("delivered");
 
-// CUSTOMER
+// 👤 CUSTOMER
 if(data.customerLat && data.customerLng){
 let pos=[data.customerLat,data.customerLng];
 if(!customerMarker){
@@ -150,7 +157,7 @@ customerMarker.setLatLng(pos);
 }
 }
 
-// SHOP
+// 🏪 SHOP
 if(data.shopLat && data.shopLng){
 let pos=[data.shopLat,data.shopLng];
 if(!shopMarker){
@@ -160,7 +167,7 @@ shopMarker.setLatLng(pos);
 }
 }
 
-// DELIVERY
+// 🚚 DELIVERY
 if(data.deliveryLat && data.deliveryLng){
 
 let pos=[data.deliveryLat,data.deliveryLng];
@@ -189,7 +196,7 @@ drawRoute(
 
 }
 
-// DELIVERY ALERT
+// 🎉 DELIVERY ALERT
 if(data.status==="Delivered" && !deliveredShown){
 deliveredShown=true;
 alert("🎉 Order Delivered Successfully!");
