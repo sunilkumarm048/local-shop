@@ -96,10 +96,6 @@ return;
 
 const shopEmail = user.email;
 
-// 📍 SHOP LOCATION
-let shopLat=20.2961;
-let shopLng=85.8245;
-
 // 🔄 ORDERS
 onSnapshot(collection(db,"orders"), async(snapshot)=>{
 
@@ -113,26 +109,21 @@ const id = docSnap.id;
 
 // ❌ FILTER
 if(
-order.deliveryStatus==="Delivered" ||
 order.status==="Delivered" ||
 order.status==="Rejected"
 ){
 continue;
 }
 
-// ⏱ AUTO REMOVE
-if(order.time){
-let diff = (new Date() - new Date(order.time.seconds*1000))/(1000*60);
-if(diff > 30) continue;
+// ❌ HIDE IF ALREADY TAKEN BY OTHER SHOP
+if(order.assigned === true && order.shopEmail !== shopEmail){
+continue;
 }
-
-// 🧠 SHOP MATCH
-if(order.shopEmail && order.shopEmail !== shopEmail) continue;
 
 currentCount++;
 
 // 📍 DISTANCE
-let distance = getDistance(shopLat,shopLng,order.lat,order.lng).toFixed(2);
+let distance = getDistance(order.shopLat || 20.2961, order.shopLng || 85.8245, order.customerLat, order.customerLng).toFixed(2);
 
 // 🛒 ITEMS UI
 let itemsHTML = "";
@@ -181,11 +172,12 @@ lastCount = currentCount;
 
 });
 
-// ✅ ACCEPT
-window.accept = id=>{
-updateDoc(doc(db,"orders",id),{
+// ✅ ACCEPT (LOCK ORDER)
+window.accept = async id=>{
+await updateDoc(doc(db,"orders",id),{
 status:"Accepted",
-shopEmail: auth.currentUser.email
+shopEmail: auth.currentUser.email,
+assigned:true
 });
 };
 
@@ -258,7 +250,7 @@ await updateDoc(doc(db,"delivery",nearestBoy.id),{
 available:false
 });
 
-// 🔥 CREATE NEW ORDER FOR REMAINING
+// 🔥 CREATE NEW ORDER FOR REMAINING ITEMS
 if(remainingItems.length > 0){
 
 let remainingTotal = 0;
@@ -272,7 +264,7 @@ let minDist = 9999;
 shopsSnap.forEach(s=>{
 let shop = s.data();
 
-if(shop.email !== auth.currentUser.email && shop.lat){
+if(shop.email !== auth.currentUser.email && shop.lat && shop.lng){
 
 let dist = getDistance(
 shop.lat, shop.lng,
@@ -294,12 +286,19 @@ await addDoc(collection(db,"orders"),{
 name: order.name,
 phone: order.phone,
 address: order.address,
+
 customerLat: order.customerLat,
 customerLng: order.customerLng,
+
+shopLat: nearestShop.lat,
+shopLng: nearestShop.lng,
+
 items: remainingItems,
 total: remainingTotal,
+
 status:"Pending",
-shopEmail: nearestShop.email,
+assigned:false,
+
 time: new Date()
 });
 
