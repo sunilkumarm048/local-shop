@@ -52,7 +52,7 @@ display:none;
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, onSnapshot, doc, updateDoc, getDocs, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const popup = document.getElementById("popup");
@@ -134,6 +134,17 @@ currentCount++;
 // 📍 DISTANCE
 let distance = getDistance(shopLat,shopLng,order.lat,order.lng).toFixed(2);
 
+// 🛒 ITEMS UI
+let itemsHTML = "";
+if(order.items){
+itemsHTML = order.items.map((item,i)=>`
+<label>
+<input type="checkbox" id="item_${id}_${i}" checked>
+${item.name} ₹${item.price}
+</label><br>
+`).join("");
+}
+
 // UI
 ordersDiv.innerHTML += `
 <div class="order">
@@ -144,7 +155,10 @@ ordersDiv.innerHTML += `
 📏 ${distance} km<br><br>
 
 Total: ₹${order.total}<br>
-Status: ${order.status}<br>
+Status: ${order.status}<br><br>
+
+<b>🛒 Select Available Items:</b><br>
+${itemsHTML}<br>
 
 <button class="accept" onclick="accept('${id}')">Accept</button>
 <button class="ready" onclick="ready('${id}')">Ready</button>
@@ -175,38 +189,40 @@ shopEmail: auth.currentUser.email
 });
 };
 
-// 🚚 READY → ASSIGN DELIVERY (UPDATED)
+// 🚚 READY → SPLIT + ASSIGN
 window.ready = async id=>{
 
 const orderDoc = await getDoc(doc(db,"orders",id));
 const order = orderDoc.data();
 
+let availableItems = [];
+let remainingItems = [];
+let newTotal = 0;
+
+// 🧠 SPLIT ITEMS
+order.items.forEach((item,i)=>{
+
+let checkbox = document.getElementById(`item_${id}_${i}`);
+
+if(checkbox && checkbox.checked){
+availableItems.push(item);
+newTotal += item.price;
+}else{
+remainingItems.push(item);
+}
+
+});
+
+// 🚚 FIND DELIVERY BOY
 const snap = await getDocs(collection(db,"delivery"));
 
 let nearestBoy = null;
 let minDistance = 9999;
 
-// 📏 distance function
-function getDistance(lat1, lon1, lat2, lon2){
-const R = 6371;
-const dLat = (lat2-lat1)*Math.PI/180;
-const dLon = (lon2-lon1)*Math.PI/180;
-
-const a =
-Math.sin(dLat/2)**2 +
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2)**2;
-
-const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-return R*c;
-}
-
 snap.forEach(d=>{
-
 let data = d.data();
 
-if(data.available === true && data.lat && data.lng){
+if(data.available && data.lat && data.lng){
 
 let dist = getDistance(
 data.lat, data.lng,
@@ -227,9 +243,11 @@ alert("No delivery boy available");
 return;
 }
 
-// ✅ assign nearest
+// ✅ UPDATE CURRENT ORDER
 await updateDoc(doc(db,"orders",id),{
 status:"Ready",
+items: availableItems,
+total: newTotal,
 deliveryBoyId: nearestBoy.id,
 deliveryBoyName: nearestBoy.data.name,
 deliveryStatus:"Assigned"
@@ -240,7 +258,56 @@ await updateDoc(doc(db,"delivery",nearestBoy.id),{
 available:false
 });
 
-alert("🚚 Nearest delivery assigned");
+// 🔥 CREATE NEW ORDER FOR REMAINING
+if(remainingItems.length > 0){
+
+let remainingTotal = 0;
+remainingItems.forEach(i=> remainingTotal += i.price);
+
+const shopsSnap = await getDocs(collection(db,"shops"));
+
+let nearestShop = null;
+let minDist = 9999;
+
+shopsSnap.forEach(s=>{
+let shop = s.data();
+
+if(shop.email !== auth.currentUser.email && shop.lat){
+
+let dist = getDistance(
+shop.lat, shop.lng,
+order.customerLat, order.customerLng
+);
+
+if(dist < minDist){
+minDist = dist;
+nearestShop = shop;
+}
+
+}
+
+});
+
+if(nearestShop){
+
+await addDoc(collection(db,"orders"),{
+name: order.name,
+phone: order.phone,
+address: order.address,
+customerLat: order.customerLat,
+customerLng: order.customerLng,
+items: remainingItems,
+total: remainingTotal,
+status:"Pending",
+shopEmail: nearestShop.email,
+time: new Date()
+});
+
+}
+
+}
+
+alert("✅ Order processed & split");
 
 };
 
