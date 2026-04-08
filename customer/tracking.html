@@ -56,13 +56,13 @@ Delivery Boy: <span id="boy">Not assigned</span>
 import { db } from "../js/firebase.js";
 import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 ORDER ID
+// ORDER ID
 const urlParams = new URLSearchParams(window.location.search);
 const orderId = urlParams.get("orderId") || localStorage.getItem("lastOrderId");
 
 document.getElementById("orderId").innerText = orderId;
 
-// 🌍 MAP
+// MAP
 let map = L.map('map').setView([20.2961,85.8245], 13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -71,10 +71,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
 let deliveredShown=false;
 
-// 🔥 API KEY
-const API_KEY = "YOUR_API_KEY_HERE";
-
-// ROUTE FUNCTION (unchanged)
+// ROUTE FUNCTION
 async function drawRoute(start,end){
 
 if(routeLine){
@@ -85,7 +82,7 @@ try{
 let res = await fetch("https://api.openrouteservice.org/v2/directions/driving-car",{
 method:"POST",
 headers:{
-"Authorization": API_KEY,
+"Authorization":"YOUR_API_KEY_HERE",
 "Content-Type":"application/json"
 },
 body: JSON.stringify({
@@ -97,7 +94,6 @@ coordinates:[
 });
 
 let data = await res.json();
-
 if(!data.features) return;
 
 let coords = data.features[0].geometry.coordinates;
@@ -109,11 +105,11 @@ weight:5
 }).addTo(map);
 
 }catch(e){
-console.error("Route error:", e);
+console.error(e);
 }
 }
 
-// 🔴 LIVE DATA
+// LIVE DATA
 onSnapshot(doc(db,"orders",orderId),(docSnap)=>{
 
 if(!docSnap.exists()){
@@ -123,21 +119,14 @@ return;
 
 let data = docSnap.data();
 
-// ✅ STATUS
+// STATUS
 document.getElementById("status").innerText = data.status;
 
-// ✅ DELIVERY BOY NAME (NEW + OLD SUPPORT)
-let boyName = "Not assigned";
-
-if(data.deliveryBoyName){
-boyName = data.deliveryBoyName; // ✅ NEW SYSTEM
-}else if(data.deliveryBoy){
-boyName = data.deliveryBoy; // ⚠️ OLD SYSTEM (fallback)
-}
-
+// DELIVERY BOY NAME
+let boyName = data.deliveryBoyName || data.deliveryBoy || "Not assigned";
 document.getElementById("boy").innerText = boyName;
 
-// 🎨 STATUS COLOR
+// STATUS COLOR
 let statusEl = document.getElementById("status");
 statusEl.className="";
 
@@ -147,9 +136,10 @@ if(data.status==="Ready") statusEl.classList.add("ready");
 if(data.status==="Out for Delivery") statusEl.classList.add("out");
 if(data.status==="Delivered") statusEl.classList.add("delivered");
 
-// 👤 CUSTOMER
+// CUSTOMER MARKER
 if(data.customerLat && data.customerLng){
 let pos=[data.customerLat,data.customerLng];
+
 if(!customerMarker){
 customerMarker=L.marker(pos).addTo(map).bindPopup("👤 Customer");
 }else{
@@ -157,9 +147,10 @@ customerMarker.setLatLng(pos);
 }
 }
 
-// 🏪 SHOP
+// SHOP MARKER
 if(data.shopLat && data.shopLng){
 let pos=[data.shopLat,data.shopLng];
+
 if(!shopMarker){
 shopMarker=L.marker(pos).addTo(map).bindPopup("🏪 Shop");
 }else{
@@ -167,21 +158,29 @@ shopMarker.setLatLng(pos);
 }
 }
 
-// 🚚 DELIVERY
+// 🚚 DELIVERY LIVE MOVEMENT
 if(data.deliveryLat && data.deliveryLng){
 
 let pos=[data.deliveryLat,data.deliveryLng];
 
 if(!deliveryMarker){
-deliveryMarker=L.marker(pos).addTo(map).bindPopup("🚚 Delivery");
+deliveryMarker=L.marker(pos).addTo(map).bindPopup("🚚 Delivery Boy");
 }else{
+// smooth movement
 deliveryMarker.setLatLng(pos);
 }
 
-map.panTo(pos);
-map.setZoom(15);
+// AUTO FIT VIEW (BEST UX)
+let group = [];
+if(customerMarker) group.push(customerMarker.getLatLng());
+if(shopMarker) group.push(shopMarker.getLatLng());
+if(deliveryMarker) group.push(deliveryMarker.getLatLng());
 
-// 🔥 ROUTE SWITCH
+if(group.length > 1){
+map.fitBounds(group, {padding:[50,50]});
+}
+
+// ROUTE SWITCH
 if(data.status==="Out for Delivery"){
 drawRoute(
 {lat:data.deliveryLat,lng:data.deliveryLng},
@@ -196,18 +195,18 @@ drawRoute(
 
 }
 
-// 🎉 DELIVERY ALERT
+// DELIVERY COMPLETE → REDIRECT
 if(data.status==="Delivered" && !deliveredShown){
 deliveredShown = true;
 
 alert("🎉 Order Delivered Successfully!");
 
-// ⏳ small delay (better UX)
 setTimeout(()=>{
 window.location.href = "https://sunilkumarm048.github.io/local-shop/";
-}, 1500);
-
+},1500);
 }
+
+});
 
 </script>
 
