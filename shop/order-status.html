@@ -108,24 +108,17 @@ const order = docSnap.data();
 const id = docSnap.id;
 
 // ❌ FILTER
-if(
-order.status==="Delivered" ||
-order.status==="Rejected"
-){
-continue;
-}
+if(order.status==="Delivered" || order.status==="Rejected") continue;
 
-// ❌ HIDE IF ALREADY TAKEN BY OTHER SHOP
-if(order.assigned === true && order.shopEmail !== shopEmail){
-continue;
-}
+// ❌ HIDE if taken by other shop
+if(order.assigned === true && order.shopEmail !== shopEmail) continue;
 
 currentCount++;
 
 // 📍 DISTANCE
 let distance = getDistance(order.shopLat || 20.2961, order.shopLng || 85.8245, order.customerLat, order.customerLng).toFixed(2);
 
-// 🛒 ITEMS UI
+// 🛒 ITEMS
 let itemsHTML = "";
 if(order.items){
 itemsHTML = order.items.map((item,i)=>`
@@ -172,7 +165,7 @@ lastCount = currentCount;
 
 });
 
-// ✅ ACCEPT (LOCK ORDER)
+// ✅ ACCEPT
 window.accept = async id=>{
 await updateDoc(doc(db,"orders",id),{
 status:"Accepted",
@@ -181,7 +174,7 @@ assigned:true
 });
 };
 
-// 🚚 READY → SPLIT + ASSIGN
+// 🚚 READY (SINGLE DELIVERY + SPLIT)
 window.ready = async id=>{
 
 const orderDoc = await getDoc(doc(db,"orders",id));
@@ -191,9 +184,8 @@ let availableItems = [];
 let remainingItems = [];
 let newTotal = 0;
 
-// 🧠 SPLIT ITEMS
+// 🧠 SPLIT
 order.items.forEach((item,i)=>{
-
 let checkbox = document.getElementById(`item_${id}_${i}`);
 
 if(checkbox && checkbox.checked){
@@ -202,10 +194,9 @@ newTotal += item.price;
 }else{
 remainingItems.push(item);
 }
-
 });
 
-// 🚚 FIND DELIVERY BOY
+// 🚚 FIND ONE DELIVERY BOY (MAIN ORDER ONLY)
 const snap = await getDocs(collection(db,"delivery"));
 
 let nearestBoy = null;
@@ -216,10 +207,7 @@ let data = d.data();
 
 if(data.available && data.lat && data.lng){
 
-let dist = getDistance(
-data.lat, data.lng,
-order.shopLat, order.shopLng
-);
+let dist = getDistance(data.lat,data.lng,order.shopLat,order.shopLng);
 
 if(dist < minDistance){
 minDistance = dist;
@@ -235,22 +223,25 @@ alert("No delivery boy available");
 return;
 }
 
-// ✅ UPDATE CURRENT ORDER
+// ✅ UPDATE MAIN ORDER
 await updateDoc(doc(db,"orders",id),{
 status:"Ready",
 items: availableItems,
 total: newTotal,
+
 deliveryBoyId: nearestBoy.id,
 deliveryBoyName: nearestBoy.data.name,
-deliveryStatus:"Assigned"
+deliveryStatus:"Assigned",
+
+isMain:true
 });
 
-// mark busy
+// mark delivery busy
 await updateDoc(doc(db,"delivery",nearestBoy.id),{
 available:false
 });
 
-// 🔥 CREATE NEW ORDER FOR REMAINING ITEMS
+// 🔥 CREATE SPLIT ORDERS (NO DELIVERY ASSIGNED)
 if(remainingItems.length > 0){
 
 let remainingTotal = 0;
@@ -258,40 +249,23 @@ remainingItems.forEach(i=> remainingTotal += i.price);
 
 const shopsSnap = await getDocs(collection(db,"shops"));
 
-let nearestShop = null;
-let minDist = 9999;
+shopsSnap.forEach(async s=>{
 
-shopsSnap.forEach(s=>{
 let shop = s.data();
 
-if(shop.email !== auth.currentUser.email && shop.lat && shop.lng){
-
-let dist = getDistance(
-shop.lat, shop.lng,
-order.customerLat, order.customerLng
-);
-
-if(dist < minDist){
-minDist = dist;
-nearestShop = shop;
-}
-
-}
-
-});
-
-if(nearestShop){
+if(shop.email !== auth.currentUser.email){
 
 await addDoc(collection(db,"orders"),{
+
+parentOrderId: id,
+isMain:false,
+
 name: order.name,
 phone: order.phone,
 address: order.address,
 
 customerLat: order.customerLat,
 customerLng: order.customerLng,
-
-shopLat: nearestShop.lat,
-shopLng: nearestShop.lng,
 
 items: remainingItems,
 total: remainingTotal,
@@ -304,9 +278,11 @@ time: new Date()
 
 }
 
+});
+
 }
 
-alert("✅ Order processed & split");
+alert("✅ Single delivery + multi-shop split done");
 
 };
 
