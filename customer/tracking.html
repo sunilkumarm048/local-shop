@@ -198,11 +198,16 @@ drawRoute(
 
 // 🎉 DELIVERY ALERT
 if(data.status==="Delivered" && !deliveredShown){
-deliveredShown=true;
-alert("🎉 Order Delivered Successfully!");
-}
+deliveredShown = true;
 
-});
+alert("🎉 Order Delivered Successfully!");
+
+// ⏳ small delay (better UX)
+setTimeout(()=>{
+window.location.href = "https://sunilkumarm048.github.io/local-shop/";
+}, 1500);
+
+}
 
 </script>
 
