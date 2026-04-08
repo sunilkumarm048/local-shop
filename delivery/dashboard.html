@@ -284,12 +284,17 @@ window.complete = async(id)=>{
 
 await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"Delivered",
-status:"Delivered"   // 🔥 MUST ADD
+status:"Delivered"
 });
 
+// ✅ FREE DELIVERY BOY
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 available:true
 });
+
+// ✅ CLEAR UI IMMEDIATELY
+ordersDiv.innerHTML = "";
+newOrderDiv.innerHTML = "No new order";
 
 alert("✅ Delivered");
 
