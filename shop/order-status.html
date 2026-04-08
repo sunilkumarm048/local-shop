@@ -178,38 +178,69 @@ shopEmail: auth.currentUser.email
 // 🚚 READY → ASSIGN DELIVERY (UPDATED)
 window.ready = async id=>{
 
+const orderDoc = await getDoc(doc(db,"orders",id));
+const order = orderDoc.data();
+
 const snap = await getDocs(collection(db,"delivery"));
 
-let boy = null;
+let nearestBoy = null;
+let minDistance = 9999;
+
+// 📏 distance function
+function getDistance(lat1, lon1, lat2, lon2){
+const R = 6371;
+const dLat = (lat2-lat1)*Math.PI/180;
+const dLon = (lon2-lon1)*Math.PI/180;
+
+const a =
+Math.sin(dLat/2)**2 +
+Math.cos(lat1*Math.PI/180) *
+Math.cos(lat2*Math.PI/180) *
+Math.sin(dLon/2)**2;
+
+const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+return R*c;
+}
 
 snap.forEach(d=>{
+
 let data = d.data();
 
-// ✅ CHECK AVAILABLE + VALID
-if(data.available === true && data.email && !boy){
-boy = {id:d.id, data:data};
+if(data.available === true && data.lat && data.lng){
+
+let dist = getDistance(
+data.lat, data.lng,
+order.shopLat, order.shopLng
+);
+
+if(dist < minDistance){
+minDistance = dist;
+nearestBoy = {id:d.id, data:data};
 }
+
+}
+
 });
 
-if(!boy){
+if(!nearestBoy){
 alert("No delivery boy available");
 return;
 }
 
-// ✅ NEW STRUCTURE (IMPORTANT FIX)
+// ✅ assign nearest
 await updateDoc(doc(db,"orders",id),{
 status:"Ready",
-deliveryBoyId: boy.id,
-deliveryBoyName: boy.data.name,
+deliveryBoyId: nearestBoy.id,
+deliveryBoyName: nearestBoy.data.name,
 deliveryStatus:"Assigned"
 });
 
-// ✅ MARK BUSY
-await updateDoc(doc(db,"delivery",boy.id),{
+// mark busy
+await updateDoc(doc(db,"delivery",nearestBoy.id),{
 available:false
 });
 
-showPopup("🚚 Delivery assigned!");
+alert("🚚 Nearest delivery assigned");
 
 };
 
