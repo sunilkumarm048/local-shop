@@ -26,7 +26,6 @@ cursor:pointer;
 .accept{background:green;}
 .ready{background:blue;}
 .reject{background:red;}
-.partial{background:orange;}
 
 .popup{
 position:fixed;
@@ -38,7 +37,6 @@ padding:10px;
 border-radius:8px;
 display:none;
 }
-
 </style>
 
 </head>
@@ -64,7 +62,6 @@ let lastCount = 0;
 
 // 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
-
 if(!lat2 || !lon2) return 0;
 
 const R = 6371;
@@ -78,7 +75,6 @@ Math.cos(lat2*Math.PI/180) *
 Math.sin(dLon/2)**2;
 
 const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
 return R*c;
 }
 
@@ -89,6 +85,7 @@ popup.style.display = "block";
 setTimeout(()=> popup.style.display="none",2000);
 }
 
+// 🔐 AUTH
 onAuthStateChanged(auth, async(user)=>{
 
 if(!user){
@@ -99,11 +96,11 @@ return;
 
 const shopEmail = user.email;
 
-// 📍 GET SHOP LOCATION
+// 📍 SHOP LOCATION
 let shopLat=20.2961;
 let shopLng=85.8245;
 
-// 🔥 ORDERS
+// 🔄 ORDERS
 onSnapshot(collection(db,"orders"), async(snapshot)=>{
 
 ordersDiv.innerHTML="";
@@ -114,7 +111,7 @@ for(const docSnap of snapshot.docs){
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ REMOVE OLD
+// ❌ FILTER
 if(
 order.deliveryStatus==="Delivered" ||
 order.status==="Delivered" ||
@@ -129,7 +126,7 @@ let diff = (new Date() - new Date(order.time.seconds*1000))/(1000*60);
 if(diff > 30) continue;
 }
 
-// 🧠 MATCH
+// 🧠 SHOP MATCH
 if(order.shopEmail && order.shopEmail !== shopEmail) continue;
 
 currentCount++;
@@ -178,7 +175,7 @@ shopEmail: auth.currentUser.email
 });
 };
 
-// 🚚 READY → ASSIGN DELIVERY
+// 🚚 READY → ASSIGN DELIVERY (UPDATED)
 window.ready = async id=>{
 
 const snap = await getDocs(collection(db,"delivery"));
@@ -186,8 +183,11 @@ const snap = await getDocs(collection(db,"delivery"));
 let boy = null;
 
 snap.forEach(d=>{
-if(d.data().available && !boy){
-boy = {id:d.id, data:d.data()};
+let data = d.data();
+
+// ✅ CHECK AVAILABLE + VALID
+if(data.available === true && data.email && !boy){
+boy = {id:d.id, data:data};
 }
 });
 
@@ -196,15 +196,20 @@ alert("No delivery boy available");
 return;
 }
 
+// ✅ NEW STRUCTURE (IMPORTANT FIX)
 await updateDoc(doc(db,"orders",id),{
 status:"Ready",
-deliveryBoy: boy.data.email,
+deliveryBoyId: boy.id,
+deliveryBoyName: boy.data.name,
 deliveryStatus:"Assigned"
 });
 
+// ✅ MARK BUSY
 await updateDoc(doc(db,"delivery",boy.id),{
 available:false
 });
+
+showPopup("🚚 Delivery assigned!");
 
 };
 
