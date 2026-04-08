@@ -85,6 +85,10 @@ import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/
 const ordersDiv = document.getElementById("orders");
 const newOrderDiv = document.getElementById("newOrder");
 
+// 🔔 SOUND
+let notifySound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+let lastStatus = "";
+
 // SIDEBAR
 window.toggleMenu = ()=>{
 let menu=document.getElementById("sidebar");
@@ -95,7 +99,7 @@ window.goWallet=()=>location.href="wallet.html";
 window.goAnalytics=()=>location.href="analytics.html";
 window.logout=()=>{signOut(auth);location.href="login.html";};
 
-// DISTANCE
+// 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
 let R=6371;
 let dLat=(lat2-lat1)*Math.PI/180;
@@ -107,10 +111,16 @@ Math.cos(lat2*Math.PI/180)*
 Math.sin(dLon/2)**2;
 
 let c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-return (R*c).toFixed(2);
+return R*c;
 }
 
-// LOCATION
+// ⏱ ETA
+function calculateETA(distanceKm){
+let speed = 30; // km/h
+return Math.round((distanceKm / speed) * 60);
+}
+
+// 📍 LOCATION
 function startLiveLocation(){
 navigator.geolocation.watchPosition((pos)=>{
 window.myLat=pos.coords.latitude;
@@ -118,7 +128,15 @@ window.myLng=pos.coords.longitude;
 });
 }
 
-// AUTH
+// 🧭 GOOGLE NAVIGATION
+window.openNavigation = function(lat,lng){
+window.open(
+`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
+"_blank"
+);
+};
+
+// 🔐 AUTH
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
@@ -129,7 +147,7 @@ return;
 
 startLiveLocation();
 
-// ORDERS
+// 🔄 ORDERS
 onSnapshot(collection(db,"orders"),(snapshot)=>{
 
 ordersDiv.innerHTML="";
@@ -140,15 +158,31 @@ snapshot.forEach(docSnap=>{
 const order=docSnap.data();
 const id=docSnap.id;
 
-// ✅ MATCH USING deliveryBoyId
 if(order.deliveryBoyId===user.email){
 
-// NEW ORDER
+// 🔔 SOUND ON STATUS CHANGE
+if(order.deliveryStatus !== lastStatus){
+notifySound.play();
+lastStatus = order.deliveryStatus;
+}
+
+// 📏 DISTANCE + ETA
+let distToCustomer = 0;
+if(window.myLat){
+distToCustomer = getDistance(
+window.myLat, window.myLng,
+order.customerLat, order.customerLng
+);
+}
+
+let eta = calculateETA(distToCustomer);
+
+// 🆕 NEW ORDER PANEL
 if(order.deliveryStatus==="Assigned" && !newOrderShown){
 
 let shopDist=getDistance(window.myLat,window.myLng,order.shopLat,order.shopLng);
 let custDist=getDistance(order.shopLat,order.shopLng,order.customerLat,order.customerLng);
-let totalDist=(parseFloat(shopDist)+parseFloat(custDist)).toFixed(2);
+let totalDist=(shopDist+custDist).toFixed(2);
 
 newOrderDiv.innerHTML=`
 <h3>🆕 New Order</h3>
@@ -157,10 +191,10 @@ newOrderDiv.innerHTML=`
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
-🚚 Delivery Boy: ${order.deliveryBoyName || "Assigned"}<br><br>
+🚚 ${order.deliveryBoyName || ""}<br><br>
 
-📍 You → Shop: ${shopDist} km<br>
-📍 Shop → Customer: ${custDist} km<br>
+📍 You → Shop: ${shopDist.toFixed(2)} km<br>
+📍 Shop → Customer: ${custDist.toFixed(2)} km<br>
 📍 Total: ${totalDist} km<br><br>
 
 💰 ₹${order.total}<br><br>
@@ -172,7 +206,7 @@ newOrderDiv.innerHTML=`
 newOrderShown=true;
 }
 
-// LIST
+// 📦 ORDER LIST
 ordersDiv.innerHTML+=`
 <div class="order">
 
@@ -182,8 +216,14 @@ ordersDiv.innerHTML+=`
 
 🚚 ${order.deliveryBoyName || ""}<br>
 
+📏 ${distToCustomer.toFixed(2)} km | ⏱ ETA: ${eta} mins<br><br>
+
 <button class="start" onclick="startDelivery('${id}')">Start</button>
 <button class="complete" onclick="complete('${id}')">Delivered</button>
+
+<button onclick="openNavigation(${order.customerLat},${order.customerLng})">
+🧭 Navigate
+</button>
 
 <div id="map_${id}" class="map"></div>
 
@@ -242,7 +282,6 @@ await updateDoc(doc(db,"orders",id),{
 deliveryStatus:"Delivered"
 });
 
-// ✅ MAKE AVAILABLE AGAIN
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 available:true
 });
