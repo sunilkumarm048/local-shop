@@ -271,15 +271,20 @@ deliveryStatus:"Pending"
 });
 };
 
-window.startDelivery=async(id)=>{
+window.startDelivery = async(id)=>{
+
 await updateDoc(doc(db,"orders",id),{
-deliveryStatus:"On the way"
+deliveryStatus:"On the way",
+status:"Out for Delivery"   // 🔥 IMPORTANT
 });
+
 };
 
-window.complete=async(id)=>{
+window.complete = async(id)=>{
+
 await updateDoc(doc(db,"orders",id),{
-deliveryStatus:"Delivered"
+deliveryStatus:"Delivered",
+status:"Delivered"   // 🔥 MUST ADD
 });
 
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
@@ -287,6 +292,7 @@ available:true
 });
 
 alert("✅ Delivered");
+
 };
 
 </script>
