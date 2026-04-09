@@ -27,7 +27,7 @@ padding:15px;
 }
 
 .item{
-min-width:110px;
+min-width:120px;
 background:white;
 padding:10px;
 border-radius:10px;
@@ -65,8 +65,9 @@ border-radius:6px;
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
-<div class="location">📍 Deliver to Brahmapur</div>
+<div class="location" id="locationText">📍 Getting location...</div>
 <input id="search" placeholder="Search..." oninput="searchProducts()">
 </div>
 
@@ -91,6 +92,9 @@ let allShops = [];
 let allProducts = [];
 let selectedCategory = null;
 let selectedShop = null;
+let userLat = null;
+let userLng = null;
+
 
 // 🚀 INIT
 async function init(){
@@ -102,20 +106,103 @@ const productSnap = await getDocs(collection(db,"products"));
 allProducts = productSnap.docs.map(d=>d.data());
 
 loadCategories();
+startLiveLocation();
 
 }
 
 init();
 
 
-// 🔥 STEP 1: CATEGORIES
+// 🌍 GET ADDRESS NAME
+async function getAddress(lat, lng){
+
+try{
+
+let res = await fetch(
+`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+);
+
+let data = await res.json();
+
+if(data.address){
+return (
+data.address.city ||
+data.address.town ||
+data.address.village ||
+data.address.state ||
+"Your Area"
+);
+}
+
+return "Your Location";
+
+}catch(e){
+return "Location error";
+}
+
+}
+
+
+// 📍 LIVE LOCATION TRACKING
+function startLiveLocation(){
+
+navigator.geolocation.watchPosition(async pos=>{
+
+userLat = pos.coords.latitude;
+userLng = pos.coords.longitude;
+
+// 🔥 GET NAME
+let place = await getAddress(userLat, userLng);
+
+// 🎯 UPDATE UI
+document.getElementById("locationText").innerText =
+"📍 Deliver to " + place;
+
+// 🔄 reload shops
+if(selectedCategory){
+selectCategory(selectedCategory);
+}
+
+}, err=>{
+document.getElementById("locationText").innerText =
+"📍 Location permission denied";
+},{
+enableHighAccuracy:true,
+maximumAge:0,
+timeout:5000
+});
+
+}
+
+
+// 📏 DISTANCE
+function getDistance(lat1, lon1, lat2, lon2){
+
+const R = 6371;
+
+const dLat = (lat2-lat1)*Math.PI/180;
+const dLon = (lon2-lon1)*Math.PI/180;
+
+const a =
+Math.sin(dLat/2)**2 +
+Math.cos(lat1*Math.PI/180) *
+Math.cos(lat2*Math.PI/180) *
+Math.sin(dLon/2)**2;
+
+const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+return R*c;
+
+}
+
+
+// 🔥 LOAD CATEGORIES
 function loadCategories(){
 
 let container = document.getElementById("categories");
 
 let unique = {};
 
-// unique category
 allShops.forEach(s=>{
 unique[s.category] = s.icon || "🏪";
 });
@@ -123,37 +210,52 @@ unique[s.category] = s.icon || "🏪";
 container.innerHTML = "";
 
 Object.keys(unique).forEach(cat=>{
-
 container.innerHTML += `
 <div class="item" onclick="selectCategory('${cat}')">
 ${unique[cat]} ${cat}
 </div>
 `;
-
 });
 
 }
 
 
-// 🔥 STEP 2: SHOPS
+// 🏪 SELECT CATEGORY → SHOW NEAR SHOPS
 window.selectCategory = function(cat){
 
 selectedCategory = cat;
 selectedShop = null;
 
 let container = document.getElementById("shops");
+
+if(!userLat){
+container.innerHTML = "📍 Getting location...";
+return;
+}
+
+let shops = allShops
+.filter(s => s.category === cat)
+.map(s=>({
+...s,
+distance: getDistance(userLat,userLng,s.lat,s.lng)
+}))
+.filter(s => s.distance <= 5)
+.sort((a,b)=>a.distance-b.distance);
+
 container.innerHTML = "";
 
-let filteredShops = allShops.filter(s => s.category === cat);
+if(shops.length === 0){
+container.innerHTML = "❌ No nearby shops";
+return;
+}
 
-filteredShops.forEach(s=>{
-
+shops.forEach(s=>{
 container.innerHTML += `
 <div class="item" onclick="selectShop('${s.name}')">
-${s.icon || "🏪"} ${s.name}
+${s.icon || "🏪"} ${s.name}<br>
+<small>${s.distance.toFixed(2)} km</small>
 </div>
 `;
-
 });
 
 document.getElementById("products").innerHTML = "";
@@ -161,7 +263,7 @@ document.getElementById("products").innerHTML = "";
 }
 
 
-// 🔥 STEP 3: PRODUCTS
+// 🛍️ SELECT SHOP → PRODUCTS
 window.selectShop = function(shop){
 
 selectedShop = shop;
@@ -169,10 +271,9 @@ selectedShop = shop;
 let container = document.getElementById("products");
 container.innerHTML = "";
 
-let filteredProducts = allProducts.filter(p => p.shopName === shop);
+let filtered = allProducts.filter(p => p.shopName === shop);
 
-filteredProducts.forEach(p=>{
-
+filtered.forEach(p=>{
 container.innerHTML += `
 <div class="card">
 <h4>${p.name}</h4>
@@ -180,18 +281,17 @@ container.innerHTML += `
 <button onclick="addToCart('${p.name}',${p.price})">Add</button>
 </div>
 `;
-
 });
 
 }
 
 
-// 🔍 SEARCH (within selected shop)
+// 🔍 SEARCH
 window.searchProducts = function(){
 
 let text = document.getElementById("search").value.toLowerCase();
 
-let filtered = allProducts.filter(p => 
+let filtered = allProducts.filter(p =>
 (!selectedShop || p.shopName === selectedShop) &&
 p.name.toLowerCase().includes(text)
 );
@@ -200,7 +300,6 @@ let container = document.getElementById("products");
 container.innerHTML = "";
 
 filtered.forEach(p=>{
-
 container.innerHTML += `
 <div class="card">
 <h4>${p.name}</h4>
@@ -208,7 +307,6 @@ container.innerHTML += `
 <button onclick="addToCart('${p.name}',${p.price})">Add</button>
 </div>
 `;
-
 });
 
 }
