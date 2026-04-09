@@ -1,3 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{margin:0;font-family:Arial;background:#f8f8f8;}
+
+.header{background:#ffcc00;padding:12px;}
+.location{font-size:14px;font-weight:bold;}
+
+.search{margin-top:10px;}
+.search input{width:100%;padding:10px;border-radius:8px;border:none;}
+
+.categories{
+display:flex;
+overflow-x:auto;
+gap:12px;
+padding:15px;
+}
+
+.cat{
+min-width:90px;
+background:white;
+padding:10px;
+border-radius:10px;
+text-align:center;
+cursor:pointer;
+white-space:nowrap;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+.section{padding:10px;}
+
+.products{
+display:flex;
+overflow-x:auto;
+gap:15px;
+}
+
+.card{
+min-width:160px;
+background:white;
+border-radius:12px;
+padding:10px;
+}
+
+.card img{
+width:100%;
+height:100px;
+object-fit:cover;
+border-radius:8px;
+}
+
+.price{
+color:green;
+font-weight:bold;
+}
+
+button{
+background:#ff5a5f;
+color:white;
+border:none;
+padding:6px 10px;
+border-radius:6px;
+}
+
+.cartBtn{
+position:fixed;
+bottom:15px;
+left:10px;
+right:10px;
+background:black;
+color:white;
+padding:15px;
+text-align:center;
+border-radius:12px;
+font-weight:bold;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+<div class="location">📍 Deliver to Brahmapur</div>
+
+<div class="search">
+<input id="search" placeholder="Search for products..." oninput="searchProducts()">
+</div>
+</div>
+
+<!-- CATEGORIES -->
+<div id="categories" class="categories"></div>
+
+<!-- PRODUCTS -->
+<div class="section">
+<h3>Products</h3>
+<div id="products" class="products"></div>
+</div>
+
+<!-- CART -->
+<div class="cartBtn" onclick="openCart()">
+🛒 View Cart (₹<span id="total">0</span>)
+</div>
+
 <script type="module">
 
 import { db } from "/local-shop/js/firebase.js";
@@ -15,7 +125,8 @@ await loadProducts();
 }
 init();
 
-// 🔥 LOAD CATEGORIES WITH ICON + NAME
+
+// 🔥 LOAD CATEGORIES FROM SHOPS DB
 async function loadCategories(){
 
 const container = document.getElementById("categories");
@@ -24,8 +135,9 @@ const snap = await getDocs(collection(db,"shops"));
 
 let categoriesMap = {};
 
-// 🧠 collect unique category + icon + name
+// 🧠 UNIQUE CATEGORY + ICON + NAME
 snap.forEach(doc=>{
+
 let data = doc.data();
 
 if(data.category){
@@ -39,16 +151,17 @@ name: data.name || data.category
 
 });
 
+// UI RESET
 container.innerHTML = "";
 
-// ✅ ALL BUTTON
+// ✅ ALL
 container.innerHTML += `
 <div class="cat" onclick="filterCategory('All')">
 All
 </div>
 `;
 
-// ✅ DYNAMIC CATEGORY BUTTONS
+// ✅ DYNAMIC CATEGORY
 Object.keys(categoriesMap).forEach(cat=>{
 
 let c = categoriesMap[cat];
@@ -62,3 +175,116 @@ ${c.icon} ${c.name}
 });
 
 }
+
+
+// 🔥 LOAD PRODUCTS
+async function loadProducts(){
+
+const snapshot = await getDocs(collection(db,"products"));
+
+allProducts = snapshot.docs.map(doc => doc.data());
+
+filteredProducts = allProducts;
+
+renderProducts();
+updateCart();
+
+}
+
+
+// 🎨 RENDER PRODUCTS
+function renderProducts(){
+
+const container = document.getElementById("products");
+container.innerHTML = "";
+
+filteredProducts.forEach(p=>{
+
+container.innerHTML += `
+<div class="card">
+<img src="https://source.unsplash.com/200x150/?food">
+<h4>${p.name}</h4>
+<p class="price">₹${p.price}</p>
+<button onclick="addToCart('${p.name}',${p.price})">Add</button>
+</div>
+`;
+
+});
+
+}
+
+
+// 🔍 SEARCH
+window.searchProducts = function(){
+
+const text = document.getElementById("search").value.toLowerCase();
+
+filteredProducts = allProducts.filter(p =>
+p.name.toLowerCase().includes(text)
+);
+
+renderProducts();
+
+}
+
+
+// 🧠 FILTER BY CATEGORY
+window.filterCategory = function(cat){
+
+if(cat === "All"){
+filteredProducts = allProducts;
+}else{
+filteredProducts = allProducts.filter(p => p.category === cat);
+}
+
+renderProducts();
+
+}
+
+
+// 🛒 ADD TO CART
+window.addToCart = function(name,price){
+
+let found = cart.find(c=>c.name === name);
+
+if(found){
+found.qty++;
+}else{
+cart.push({name,price,qty:1});
+}
+
+saveCart();
+
+}
+
+
+// 💾 SAVE CART
+function saveCart(){
+localStorage.setItem("cart", JSON.stringify(cart));
+updateCart();
+}
+
+
+// 💰 UPDATE CART
+function updateCart(){
+
+total = 0;
+
+cart.forEach(c=>{
+total += c.price * c.qty;
+});
+
+document.getElementById("total").innerText = total;
+
+}
+
+
+// 🚀 OPEN CART
+window.openCart = function(){
+window.location.href = "customer/cart.html";
+}
+
+</script>
+
+</body>
+</html>
