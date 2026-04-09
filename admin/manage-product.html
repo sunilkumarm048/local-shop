@@ -7,44 +7,9 @@
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import {
-collection, addDoc, getDocs, deleteDoc, doc, updateDoc
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let editId = null;
-
-// 🚀 LOAD PRODUCTS
-async function loadProducts(){
-
-  const snap = await getDocs(collection(db,"products"));
-  const container = document.getElementById("list");
-
-  container.innerHTML = "";
-
-  snap.forEach(d=>{
-    const p = d.data();
-
-    container.innerHTML += `
-      <div class="item">
-        <img src="${p.images?.[0] || ''}">
-        <div>
-          <b>${p.name}</b><br>
-          ₹${p.price}<br>
-          ${p.category}
-        </div>
-        <div>
-          <button onclick="editProduct('${d.id}')">Edit</button>
-          <button onclick="deleteProduct('${d.id}')">Delete</button>
-        </div>
-      </div>
-    `;
-  });
-
-}
-
-loadProducts();
-
-// 🚀 ADD / UPDATE
+// 🚀 ADD PRODUCT
 window.saveProduct = async function(){
 
   const name = document.getElementById("name").value;
@@ -60,7 +25,6 @@ window.saveProduct = async function(){
 
   let imageUrls = [];
 
-  // 📸 Upload multiple images
   for(let file of files){
 
     const formData = new FormData();
@@ -76,107 +40,77 @@ window.saveProduct = async function(){
     imageUrls.push(data.secure_url);
   }
 
-  if(editId){
+  await addDoc(collection(db,"products"),{
+    name,
+    price:Number(price),
+    category,
+    shopName,
+    images:imageUrls,
+    createdAt:new Date()
+  });
 
-    // ✏️ UPDATE
-    await updateDoc(doc(db,"products",editId),{
-      name,
-      price:Number(price),
-      category,
-      shopName,
-      ...(imageUrls.length && {images:imageUrls})
-    });
-
-    editId = null;
-
-  }else{
-
-    // ➕ ADD
-    await addDoc(collection(db,"products"),{
-      name,
-      price:Number(price),
-      category,
-      shopName,
-      images:imageUrls,
-      createdAt:new Date()
-    });
-
-  }
-
-  alert("Saved!");
+  alert("✅ Product Added");
 
   document.getElementById("name").value="";
   document.getElementById("price").value="";
   document.getElementById("image").value="";
-
-  loadProducts();
 };
 
-// ✏️ EDIT
-window.editProduct = async function(id){
+// 🔍 SEARCH REDIRECT
+window.searchProduct = function(){
 
-  editId = id;
+  const text = document.getElementById("search").value;
 
-  const snap = await getDocs(collection(db,"products"));
-  const product = snap.docs.find(d=>d.id===id).data();
-
-  document.getElementById("name").value = product.name;
-  document.getElementById("price").value = product.price;
-  document.getElementById("category").value = product.category;
-  document.getElementById("shop").value = product.shopName;
-
-};
-
-// 🗑 DELETE
-window.deleteProduct = async function(id){
-
-  if(confirm("Delete product?")){
-    await deleteDoc(doc(db,"products",id));
-    loadProducts();
+  if(!text){
+    alert("Enter product name");
+    return;
   }
 
+  // redirect to another page (future edit page)
+  window.location.href = "edit-product.html?search=" + text;
 };
 
 </script>
 
 <style>
-body{font-family:Arial;background:#f5f5f5;margin:0;}
+body{
+font-family:Arial;
+background:#f5f5f5;
+margin:0;
+}
 
 .container{
-max-width:450px;
-margin:20px auto;
+max-width:400px;
+margin:40px auto;
 background:white;
 padding:20px;
 border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
 }
+
+h2{text-align:center;}
 
 input,select{
 width:100%;
 padding:10px;
-margin:8px 0;
+margin:10px 0;
+border-radius:8px;
+border:1px solid #ccc;
 }
 
 button{
-padding:8px 12px;
-margin:5px;
+width:100%;
+padding:12px;
+margin-top:10px;
 background:#ff5a5f;
 color:white;
 border:none;
-border-radius:6px;
+border-radius:8px;
+font-size:16px;
 }
 
-.item{
-display:flex;
-gap:10px;
-align-items:center;
-background:#fff;
-padding:10px;
-margin-top:10px;
-border-radius:10px;
-}
-
-.item img{
-width:60px;height:60px;object-fit:cover;
+.searchBox{
+margin-bottom:20px;
 }
 </style>
 
@@ -188,7 +122,19 @@ width:60px;height:60px;object-fit:cover;
 
 <h2>Manage Products</h2>
 
+<!-- 🔍 SEARCH -->
+
+<div class="searchBox">
+<input id="search" placeholder="Search product...">
+<button onclick="searchProduct()">Search</button>
+</div>
+
+<hr>
+
+<!-- ➕ ADD PRODUCT -->
+
 <input id="name" placeholder="Product Name">
+
 <input id="price" placeholder="Price">
 
 <select id="category">
@@ -204,8 +150,6 @@ width:60px;height:60px;object-fit:cover;
 <input type="file" id="image" multiple>
 
 <button onclick="saveProduct()">Save Product</button>
-
-<div id="list"></div>
 
 </div>
 
