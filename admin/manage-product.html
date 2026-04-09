@@ -6,129 +6,177 @@
 
 <script type="module">
 
-import { db } from "./js/firebase.js";
-import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { db } from "../js/firebase.js";
+import {
+collection, addDoc, getDocs, deleteDoc, doc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-let shops = [];
+let editId = null;
 
-// 🔥 Load shops for dropdown
-async function loadShops(){
-  const snap = await getDocs(collection(db,"localshop-details"));
-  shops = snap.docs.map(d=>d.data());
+// 🚀 LOAD PRODUCTS
+async function loadProducts(){
 
-  const select = document.getElementById("shop");
+  const snap = await getDocs(collection(db,"products"));
+  const container = document.getElementById("list");
 
-  shops.forEach(s=>{
-    select.innerHTML += `<option>${s.shopName}</option>`;
+  container.innerHTML = "";
+
+  snap.forEach(d=>{
+    const p = d.data();
+
+    container.innerHTML += `
+      <div class="item">
+        <img src="${p.images?.[0] || ''}">
+        <div>
+          <b>${p.name}</b><br>
+          ₹${p.price}<br>
+          ${p.category}
+        </div>
+        <div>
+          <button onclick="editProduct('${d.id}')">Edit</button>
+          <button onclick="deleteProduct('${d.id}')">Delete</button>
+        </div>
+      </div>
+    `;
   });
+
 }
 
-loadShops();
+loadProducts();
 
-// 🚀 Upload product
-window.uploadProduct = async function () {
+// 🚀 ADD / UPDATE
+window.saveProduct = async function(){
 
   const name = document.getElementById("name").value;
   const price = document.getElementById("price").value;
   const category = document.getElementById("category").value;
   const shopName = document.getElementById("shop").value;
-  const file = document.getElementById("image").files[0];
+  const files = document.getElementById("image").files;
 
-  if (!name || !price || !category || !shopName || !file) {
+  if(!name || !price || !category || !shopName){
     alert("Fill all fields");
     return;
   }
 
-  document.getElementById("status").innerText = "Uploading image...";
+  let imageUrls = [];
 
-  try {
+  // 📸 Upload multiple images
+  for(let file of files){
 
-    // ☁️ Cloudinary Upload
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "shop_upload");
 
     const res = await fetch("https://api.cloudinary.com/v1_1/dqcafnvpi/image/upload", {
-      method: "POST",
+      method:"POST",
       body: formData
     });
 
     const data = await res.json();
+    imageUrls.push(data.secure_url);
+  }
 
-    const imageUrl = data.secure_url;
+  if(editId){
 
-    document.getElementById("status").innerText = "Saving product...";
-
-    // 🔥 Firestore Save
-    await addDoc(collection(db, "products"), {
+    // ✏️ UPDATE
+    await updateDoc(doc(db,"products",editId),{
       name,
-      price: Number(price),
+      price:Number(price),
       category,
       shopName,
-      image: imageUrl,
-      createdAt: new Date()
+      ...(imageUrls.length && {images:imageUrls})
     });
 
-    document.getElementById("status").innerText = "✅ Product Added";
+    editId = null;
 
-    // Reset
-    document.getElementById("name").value="";
-    document.getElementById("price").value="";
-    document.getElementById("image").value="";
-    document.getElementById("preview").src="";
+  }else{
 
-  } catch (err) {
-    document.getElementById("status").innerText = "❌ Error";
-    console.error(err);
+    // ➕ ADD
+    await addDoc(collection(db,"products"),{
+      name,
+      price:Number(price),
+      category,
+      shopName,
+      images:imageUrls,
+      createdAt:new Date()
+    });
+
   }
+
+  alert("Saved!");
+
+  document.getElementById("name").value="";
+  document.getElementById("price").value="";
+  document.getElementById("image").value="";
+
+  loadProducts();
+};
+
+// ✏️ EDIT
+window.editProduct = async function(id){
+
+  editId = id;
+
+  const snap = await getDocs(collection(db,"products"));
+  const product = snap.docs.find(d=>d.id===id).data();
+
+  document.getElementById("name").value = product.name;
+  document.getElementById("price").value = product.price;
+  document.getElementById("category").value = product.category;
+  document.getElementById("shop").value = product.shopName;
+
+};
+
+// 🗑 DELETE
+window.deleteProduct = async function(id){
+
+  if(confirm("Delete product?")){
+    await deleteDoc(doc(db,"products",id));
+    loadProducts();
+  }
+
 };
 
 </script>
 
 <style>
-body{
-font-family:Arial;
-background:#f5f5f5;
-margin:0;
-}
+body{font-family:Arial;background:#f5f5f5;margin:0;}
 
 .container{
-max-width:400px;
-margin:40px auto;
+max-width:450px;
+margin:20px auto;
 background:white;
 padding:20px;
 border-radius:12px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
-}
-
-h2{
-text-align:center;
 }
 
 input,select{
 width:100%;
 padding:10px;
-margin:10px 0;
-border-radius:8px;
-border:1px solid #ccc;
+margin:8px 0;
 }
 
 button{
-width:100%;
-padding:12px;
+padding:8px 12px;
+margin:5px;
 background:#ff5a5f;
 color:white;
 border:none;
-border-radius:8px;
-font-size:16px;
+border-radius:6px;
 }
 
-#preview{
-width:100%;
-height:150px;
-object-fit:cover;
+.item{
+display:flex;
+gap:10px;
+align-items:center;
+background:#fff;
+padding:10px;
 margin-top:10px;
-border-radius:8px;
+border-radius:10px;
+}
+
+.item img{
+width:60px;height:60px;object-fit:cover;
 }
 </style>
 
@@ -138,42 +186,28 @@ border-radius:8px;
 
 <div class="container">
 
-<h2>Add Product</h2>
+<h2>Manage Products</h2>
 
 <input id="name" placeholder="Product Name">
-
-<input id="price" type="number" placeholder="Price">
+<input id="price" placeholder="Price">
 
 <select id="category">
-<option value="">Select Category</option>
 <option>Tea Shop</option>
 <option>Grocery Shop</option>
-<option>Bike Garage</option>
-<option>Laundry</option>
 </select>
 
 <select id="shop">
-<option value="">Select Shop</option>
+<option>Sunil Kumar</option>
+<option>Pintu Verity store</option>
 </select>
 
-<input type="file" id="image" onchange="preview(event)">
+<input type="file" id="image" multiple>
 
-<img id="preview">
+<button onclick="saveProduct()">Save Product</button>
 
-<button onclick="uploadProduct()">Add Product</button>
-
-<p id="status"></p>
+<div id="list"></div>
 
 </div>
-
-<script>
-function preview(e){
-const file = e.target.files[0];
-if(file){
-document.getElementById("preview").src = URL.createObjectURL(file);
-}
-}
-</script>
 
 </body>
 </html>
