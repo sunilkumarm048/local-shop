@@ -76,9 +76,62 @@ let filteredProducts = [];
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let total = 0;
 
-// SAVE SHOP
-localStorage.setItem("shop","Local Shop");
+// 🧠 STORE CATEGORY LIST
+let categoriesList = [];
 
+// 🚀 LOAD EVERYTHING
+async function init(){
+
+await loadCategories();
+await loadProducts();
+
+}
+
+init();
+
+
+// 🔥 LOAD CATEGORIES FROM SHOPS DB
+async function loadCategories(){
+
+const container = document.getElementById("categories");
+
+const snap = await getDocs(collection(db,"shops"));
+
+let categoriesSet = new Set();
+
+snap.forEach(doc=>{
+let data = doc.data();
+
+if(data.category){
+categoriesSet.add(data.category);
+}
+});
+
+categoriesList = Array.from(categoriesSet);
+
+// UI
+container.innerHTML = "";
+
+// ALL button
+container.innerHTML += `
+<div class="cat" onclick="filterCategory('All')">All</div>
+`;
+
+// dynamic categories
+categoriesList.forEach(cat=>{
+
+container.innerHTML += `
+<div class="cat" onclick="filterCategory('${cat}')">
+${cat}
+</div>
+`;
+
+});
+
+}
+
+
+// 🔥 LOAD PRODUCTS
 async function loadProducts(){
 
 const snapshot = await getDocs(collection(db,"products"));
@@ -92,8 +145,8 @@ updateCart();
 
 }
 
-loadProducts();
 
+// 🧾 RENDER PRODUCTS
 function renderProducts(){
 
 const container = document.getElementById("products");
@@ -114,6 +167,8 @@ container.innerHTML += `
 
 }
 
+
+// 🔍 SEARCH
 window.searchProducts = function(){
 
 const text = document.getElementById("search").value.toLowerCase();
@@ -126,6 +181,8 @@ renderProducts();
 
 }
 
+
+// 🧠 FILTER CATEGORY
 window.filterCategory = function(cat){
 
 if(cat === "All"){
@@ -138,6 +195,8 @@ renderProducts();
 
 }
 
+
+// 🛒 CART
 window.addToCart = function(name,price){
 
 let found = cart.find(c=>c.name === name);
@@ -169,12 +228,12 @@ document.getElementById("total").innerText = total;
 
 }
 
-// ✅ FIXED HERE
+
+// 🛒 OPEN CART
 window.openCart = function(){
 window.location.href = "customer/cart.html";
 }
 
 </script>
-
 </body>
 </html>
