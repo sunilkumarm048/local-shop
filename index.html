@@ -105,6 +105,7 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/
 
 let allProducts = [];
 let allShops = [];
+
 let selectedCategory = null;
 let selectedShop = null;
 
@@ -113,7 +114,7 @@ let userLng = null;
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// 📍 LIVE GPS (HIGH ACCURACY)
+// 📍 GPS LIVE
 function startLiveLocation(){
 
 navigator.geolocation.watchPosition(async (pos)=>{
@@ -125,12 +126,10 @@ let place = await getAddress(userLat, userLng);
 
 document.querySelector(".location").innerText = "📍 Deliver to " + place;
 
-// reload shops based on location
+// 🔄 reload shops when location updates
 renderShops();
 
-}, (err)=>{
-console.error(err);
-}, {
+}, ()=>{}, {
 enableHighAccuracy:true,
 timeout:15000,
 maximumAge:0
@@ -138,7 +137,7 @@ maximumAge:0
 
 }
 
-// 📍 ADDRESS
+// 📍 GET ADDRESS
 async function getAddress(lat,lng){
 
 try{
@@ -160,7 +159,7 @@ a.state ||
 "Your Area"
 );
 
-}catch(e){
+}catch{
 return "Your Area";
 }
 
@@ -192,8 +191,8 @@ async function loadData(){
 const prodSnap = await getDocs(collection(db,"products"));
 allProducts = prodSnap.docs.map(d=>d.data());
 
-// SHOPS
-const shopSnap = await getDocs(collection(db,"shops"));
+// ✅ LOCAL SHOPS (FIXED)
+const shopSnap = await getDocs(collection(db,"localshop-details"));
 allShops = shopSnap.docs.map(d=>d.data());
 
 renderCategories();
@@ -210,7 +209,6 @@ function renderCategories(){
 
 const container = document.getElementById("categories");
 
-// unique categories
 let categories = [...new Set(allShops.map(s=>s.category))];
 
 container.innerHTML = `<div class="cat" onclick="selectCategory('All')">All</div>`;
@@ -226,14 +224,16 @@ ${c}
 
 // 🎯 SELECT CATEGORY
 window.selectCategory = function(cat){
+
 selectedCategory = cat === "All" ? null : cat;
 selectedShop = null;
 
 renderShops();
 renderProducts();
+
 }
 
-// 🏪 SHOPS (LOCATION + CATEGORY FILTER)
+// 🏪 SHOPS (🔥 FIXED)
 function renderShops(){
 
 const container = document.getElementById("shops");
@@ -246,21 +246,27 @@ if(selectedCategory){
 filtered = filtered.filter(s => s.category === selectedCategory);
 }
 
-// sort by distance
+// 📍 nearest filter (within 5km)
 if(userLat && userLng){
-filtered = filtered.sort((a,b)=>{
-let d1 = getDistance(userLat,userLng,a.lat,a.lng);
-let d2 = getDistance(userLat,userLng,b.lat,b.lng);
-return d1-d2;
+filtered = filtered.filter(s => {
+return getDistance(userLat,userLng,s.lat,s.lng) < 5;
 });
 }
 
-// show nearest 10
-filtered.slice(0,10).forEach(s=>{
+// 📍 sort nearest
+if(userLat && userLng){
+filtered = filtered.sort((a,b)=>{
+return getDistance(userLat,userLng,a.lat,a.lng) -
+getDistance(userLat,userLng,b.lat,b.lng);
+});
+}
+
+// 🔥 limit
+filtered.slice(0,5).forEach(s=>{
 
 container.innerHTML += `
-<div class="shop" onclick="selectShop('${s.name}')">
-${s.icon || "🏪"}<br>${s.name}
+<div class="shop" onclick="selectShop('${s.shopName}')">
+${s.icon || "🏪"}<br>${s.shopName}
 </div>
 `;
 
@@ -270,8 +276,10 @@ ${s.icon || "🏪"}<br>${s.name}
 
 // 🎯 SELECT SHOP
 window.selectShop = function(name){
+
 selectedShop = name;
 renderProducts();
+
 }
 
 // 🛒 PRODUCTS
@@ -282,12 +290,12 @@ container.innerHTML = "";
 
 let filtered = allProducts;
 
-// filter by category
+// category filter
 if(selectedCategory){
 filtered = filtered.filter(p=>p.category === selectedCategory);
 }
 
-// filter by shop
+// shop filter
 if(selectedShop){
 filtered = filtered.filter(p=>p.shopName === selectedShop);
 }
