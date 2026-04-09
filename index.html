@@ -105,6 +105,7 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/
 
 let allProducts = [];
 let allShops = [];
+let allCategories = [];
 
 let selectedCategory = null;
 let selectedShop = null;
@@ -112,62 +113,45 @@ let selectedShop = null;
 let userLat = null;
 let userLng = null;
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
-// 📍 GPS LIVE
-function startLiveLocation(){
-
+// 📍 GPS
 navigator.geolocation.watchPosition(async (pos)=>{
 
 userLat = pos.coords.latitude;
 userLng = pos.coords.longitude;
 
 let place = await getAddress(userLat, userLng);
-
 document.querySelector(".location").innerText = "📍 Deliver to " + place;
 
-// 🔄 reload shops when location updates
 renderShops();
 
-}, ()=>{}, {
-enableHighAccuracy:true,
-timeout:15000,
-maximumAge:0
+},{
+enableHighAccuracy:true
 });
 
-}
-
-// 📍 GET ADDRESS
+// 📍 ADDRESS
 async function getAddress(lat,lng){
-
 try{
 let res = await fetch(
 `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
 );
-
 let data = await res.json();
 let a = data.address;
 
 return (
 a.suburb ||
-a.neighbourhood ||
 a.village ||
 a.town ||
 a.city ||
-a.county ||
 a.state ||
 "Your Area"
 );
-
 }catch{
 return "Your Area";
 }
-
 }
 
 // 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
-
 if(!lat2 || !lon2) return 999;
 
 const R = 6371;
@@ -180,20 +164,23 @@ Math.cos(lat1*Math.PI/180) *
 Math.cos(lat2*Math.PI/180) *
 Math.sin(dLon/2)**2;
 
-const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-return R*c;
+return 2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 // 🔥 LOAD DATA
 async function loadData(){
 
-// PRODUCTS
+// 🛒 PRODUCTS
 const prodSnap = await getDocs(collection(db,"products"));
 allProducts = prodSnap.docs.map(d=>d.data());
 
-// ✅ LOCAL SHOPS (FIXED)
+// 🏪 LOCAL SHOPS
 const shopSnap = await getDocs(collection(db,"localshop-details"));
 allShops = shopSnap.docs.map(d=>d.data());
+
+// 🧠 CATEGORIES FROM "shops" COLLECTION
+const catSnap = await getDocs(collection(db,"shops"));
+allCategories = catSnap.docs.map(d=>d.data());
 
 renderCategories();
 renderShops();
@@ -202,22 +189,27 @@ renderProducts();
 }
 
 loadData();
-startLiveLocation();
 
-// 🎯 CATEGORIES
+// 🎯 CATEGORIES (FROM shops collection)
 function renderCategories(){
 
 const container = document.getElementById("categories");
+container.innerHTML = "";
 
-let categories = [...new Set(allShops.map(s=>s.category))];
-
-container.innerHTML = `<div class="cat" onclick="selectCategory('All')">All</div>`;
-
-categories.forEach(c=>{
+// All button
 container.innerHTML += `
-<div class="cat" onclick="selectCategory('${c}')">
-${c}
-</div>`;
+<div class="cat" onclick="selectCategory('All')">All</div>
+`;
+
+// dynamic categories
+allCategories.forEach(c=>{
+
+container.innerHTML += `
+<div class="cat" onclick="selectCategory('${c.category}')">
+${c.icon || "🏷"} ${c.name}
+</div>
+`;
+
 });
 
 }
@@ -233,7 +225,7 @@ renderProducts();
 
 }
 
-// 🏪 SHOPS (🔥 FIXED)
+// 🏪 SHOPS (FROM localshop-details)
 function renderShops(){
 
 const container = document.getElementById("shops");
@@ -246,14 +238,7 @@ if(selectedCategory){
 filtered = filtered.filter(s => s.category === selectedCategory);
 }
 
-// 📍 nearest filter (within 5km)
-if(userLat && userLng){
-filtered = filtered.filter(s => {
-return getDistance(userLat,userLng,s.lat,s.lng) < 5;
-});
-}
-
-// 📍 sort nearest
+// sort nearest
 if(userLat && userLng){
 filtered = filtered.sort((a,b)=>{
 return getDistance(userLat,userLng,a.lat,a.lng) -
@@ -261,8 +246,13 @@ getDistance(userLat,userLng,b.lat,b.lng);
 });
 }
 
-// 🔥 limit
-filtered.slice(0,5).forEach(s=>{
+// fallback
+if(filtered.length === 0){
+filtered = allShops;
+}
+
+// show shops
+filtered.slice(0,6).forEach(s=>{
 
 container.innerHTML += `
 <div class="shop" onclick="selectShop('${s.shopName}')">
@@ -276,10 +266,8 @@ ${s.icon || "🏪"}<br>${s.shopName}
 
 // 🎯 SELECT SHOP
 window.selectShop = function(name){
-
 selectedShop = name;
 renderProducts();
-
 }
 
 // 🛒 PRODUCTS
@@ -315,65 +303,6 @@ container.innerHTML += `
 
 }
 
-// 🔍 SEARCH
-window.searchProducts = function(){
-
-const text = document.getElementById("search").value.toLowerCase();
-
-let filtered = allProducts.filter(p =>
-p.name.toLowerCase().includes(text)
-);
-
-document.getElementById("products").innerHTML = "";
-
-filtered.forEach(p=>{
-document.getElementById("products").innerHTML += `
-<div class="card">
-<h4>${p.name}</h4>
-<p class="price">₹${p.price}</p>
-<button onclick="addToCart('${p.name}',${p.price})">Add</button>
-</div>
-`;
-});
-
-}
-
-// 🛒 CART
-window.addToCart = function(name,price){
-
-let found = cart.find(c=>c.name === name);
-
-if(found){
-found.qty++;
-}else{
-cart.push({name,price,qty:1});
-}
-
-localStorage.setItem("cart", JSON.stringify(cart));
-updateCart();
-
-}
-
-function updateCart(){
-
-let total = 0;
-
-cart.forEach(c=>{
-total += c.price * c.qty;
-});
-
-document.getElementById("total").innerText = total;
-
-}
-
-updateCart();
-
-// 🛒 OPEN CART
-window.openCart = function(){
-window.location.href = "customer/cart.html";
-}
-
 </script>
-
 </body>
 </html>
