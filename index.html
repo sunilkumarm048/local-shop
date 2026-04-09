@@ -113,7 +113,9 @@ let selectedShop = null;
 let userLat = null;
 let userLng = null;
 
-// 📍 GPS
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
+
+// 📍 GPS LIVE
 navigator.geolocation.watchPosition(async (pos)=>{
 
 userLat = pos.coords.latitude;
@@ -124,8 +126,10 @@ document.querySelector(".location").innerText = "📍 Deliver to " + place;
 
 renderShops();
 
-},{
-enableHighAccuracy:true
+}, ()=>{}, {
+enableHighAccuracy:true,
+timeout:15000,
+maximumAge:0
 });
 
 // 📍 ADDRESS
@@ -139,12 +143,15 @@ let a = data.address;
 
 return (
 a.suburb ||
+a.neighbourhood ||
 a.village ||
 a.town ||
 a.city ||
+a.county ||
 a.state ||
 "Your Area"
 );
+
 }catch{
 return "Your Area";
 }
@@ -170,15 +177,15 @@ return 2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 // 🔥 LOAD DATA
 async function loadData(){
 
-// 🛒 PRODUCTS
+// PRODUCTS
 const prodSnap = await getDocs(collection(db,"products"));
 allProducts = prodSnap.docs.map(d=>d.data());
 
-// 🏪 LOCAL SHOPS
+// LOCAL SHOPS
 const shopSnap = await getDocs(collection(db,"localshop-details"));
 allShops = shopSnap.docs.map(d=>d.data());
 
-// 🧠 CATEGORIES FROM "shops" COLLECTION
+// CATEGORIES FROM shops
 const catSnap = await getDocs(collection(db,"shops"));
 allCategories = catSnap.docs.map(d=>d.data());
 
@@ -190,42 +197,38 @@ renderProducts();
 
 loadData();
 
-// 🎯 CATEGORIES (FROM shops collection)
+// 🎯 CATEGORIES
 function renderCategories(){
 
 const container = document.getElementById("categories");
 container.innerHTML = "";
 
-// All button
+// All
 container.innerHTML += `
 <div class="cat" onclick="selectCategory('All')">All</div>
 `;
 
-// dynamic categories
+// dynamic
 allCategories.forEach(c=>{
-
 container.innerHTML += `
 <div class="cat" onclick="selectCategory('${c.category}')">
 ${c.icon || "🏷"} ${c.name}
 </div>
 `;
-
 });
 
 }
 
 // 🎯 SELECT CATEGORY
 window.selectCategory = function(cat){
-
 selectedCategory = cat === "All" ? null : cat;
 selectedShop = null;
 
 renderShops();
 renderProducts();
-
 }
 
-// 🏪 SHOPS (FROM localshop-details)
+// 🏪 SHOPS
 function renderShops(){
 
 const container = document.getElementById("shops");
@@ -253,13 +256,11 @@ filtered = allShops;
 
 // show shops
 filtered.slice(0,6).forEach(s=>{
-
 container.innerHTML += `
 <div class="shop" onclick="selectShop('${s.shopName}')">
 ${s.icon || "🏪"}<br>${s.shopName}
 </div>
 `;
-
 });
 
 }
@@ -289,7 +290,6 @@ filtered = filtered.filter(p=>p.shopName === selectedShop);
 }
 
 filtered.forEach(p=>{
-
 container.innerHTML += `
 <div class="card">
 <img src="https://source.unsplash.com/200x150/?food">
@@ -298,11 +298,69 @@ container.innerHTML += `
 <button onclick="addToCart('${p.name}',${p.price})">Add</button>
 </div>
 `;
-
 });
 
 }
 
+// 🔍 SEARCH
+window.searchProducts = function(){
+
+const text = document.getElementById("search").value.toLowerCase();
+
+let filtered = allProducts.filter(p =>
+p.name.toLowerCase().includes(text)
+);
+
+document.getElementById("products").innerHTML = "";
+
+filtered.forEach(p=>{
+document.getElementById("products").innerHTML += `
+<div class="card">
+<h4>${p.name}</h4>
+<p class="price">₹${p.price}</p>
+<button onclick="addToCart('${p.name}',${p.price})">Add</button>
+</div>
+`;
+});
+
+}
+
+// 🛒 CART
+window.addToCart = function(name,price){
+
+let found = cart.find(c=>c.name === name);
+
+if(found){
+found.qty++;
+}else{
+cart.push({name,price,qty:1});
+}
+
+localStorage.setItem("cart", JSON.stringify(cart));
+updateCart();
+
+}
+
+function updateCart(){
+
+let total = 0;
+
+cart.forEach(c=>{
+total += c.price * c.qty;
+});
+
+document.getElementById("total").innerText = total;
+
+}
+
+updateCart();
+
+// 🛒 OPEN CART
+window.openCart = function(){
+window.location.href = "customer/cart.html";
+}
+
 </script>
+
 </body>
 </html>
