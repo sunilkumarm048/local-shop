@@ -60,11 +60,9 @@ font-weight:bold;
 <input id="email" placeholder="Email">
 <input id="password" type="password" placeholder="Password">
 
-<select id="category">
-<option value="Bakery">Bakery</option>
-<option value="Tea Shop">Tea Shop</option>
-<option value="Fast Food">Fast Food</option>
-<option value="Household">Household</option>
+<!-- 🔥 DYNAMIC SHOP DROPDOWN -->
+<select id="shopSelect">
+<option>Loading shops...</option>
 </select>
 
 <input id="location" placeholder="Location (Area name)">
@@ -79,12 +77,11 @@ font-weight:bold;
 
 import { auth, db } from "/local-shop/js/firebase.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 📍 GET GPS
+// 📍 GET LOCATION
 function getLocation(){
 return new Promise((resolve)=>{
-
 navigator.geolocation.getCurrentPosition(pos=>{
 resolve({
 lat: pos.coords.latitude,
@@ -93,10 +90,43 @@ lng: pos.coords.longitude
 },()=>{
 resolve({lat:0,lng:0});
 });
-
 });
 }
 
+// 🏪 LOAD SHOPS INTO DROPDOWN
+async function loadShops(){
+
+const select = document.getElementById("shopSelect");
+
+const snap = await getDocs(collection(db,"shops"));
+
+select.innerHTML = "";
+
+snap.forEach(doc=>{
+
+let data = doc.data();
+
+if(data.name){
+
+let option = document.createElement("option");
+
+option.value = data.name;       // store shop name
+option.innerText = data.name;   // show shop name
+
+select.appendChild(option);
+
+}
+
+});
+
+// fallback
+if(select.innerHTML === ""){
+select.innerHTML = "<option>No shops found</option>";
+}
+
+}
+
+// 🚀 REGISTER FUNCTION
 window.register = async function(){
 
 const msg = document.getElementById("msg");
@@ -104,7 +134,7 @@ const msg = document.getElementById("msg");
 const name = document.getElementById("name").value.trim();
 const email = document.getElementById("email").value.trim();
 const pass = document.getElementById("password").value.trim();
-const category = document.getElementById("category").value;
+const selectedShop = document.getElementById("shopSelect").value;
 const locationText = document.getElementById("location").value.trim();
 
 if(!name || !email || !pass || !locationText){
@@ -127,26 +157,22 @@ msg.innerText = "💾 Saving shop data...";
 
 // 🔥 SAVE TO localshop-details
 await addDoc(collection(db,"localshop-details"),{
+
 shopName: name,
 email: email,
-category: category,   // ✅ MAIN FIELD
+
+// 👉 using selected shop as category/type
+category: selectedShop,
+
 location: locationText,
+
 lat: loc.lat,
 lng: loc.lng,
+
 icon: "🏪",
 ownerUid: userCred.user.uid,
 createdAt: new Date()
-});
 
-// 🔥 OPTIONAL: ALSO SAVE TO shops (better structure)
-await addDoc(collection(db,"shops"),{
-name: name,
-email: email,
-category: category,
-lat: loc.lat,
-lng: loc.lng,
-location: locationText,
-createdAt: new Date()
 });
 
 msg.innerText = "✅ Registered Successfully";
@@ -154,7 +180,7 @@ msg.innerText = "✅ Registered Successfully";
 // SAVE LOCAL
 localStorage.setItem("shopName", name);
 localStorage.setItem("shopEmail", email);
-localStorage.setItem("shopCategory", category);
+localStorage.setItem("shopCategory", selectedShop);
 
 // REDIRECT
 setTimeout(()=>{
@@ -162,11 +188,16 @@ window.location.href="dashboard.html";
 },1200);
 
 }catch(e){
+
 msg.innerText = "❌ Error: " + e.message;
 alert(e.message);
+
 }
 
 };
+
+// 🔥 LOAD SHOPS ON PAGE LOAD
+loadShops();
 
 </script>
 
