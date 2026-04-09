@@ -61,10 +61,10 @@ font-weight:bold;
 <input id="password" type="password" placeholder="Password">
 
 <select id="category">
-<option>Bakery</option>
-<option>Tea Shop</option>
-<option>Fast Food</option>
-<option>Household</option>
+<option value="Bakery">Bakery</option>
+<option value="Tea Shop">Tea Shop</option>
+<option value="Fast Food">Fast Food</option>
+<option value="Household">Household</option>
 </select>
 
 <input id="location" placeholder="Location (Area name)">
@@ -81,22 +81,17 @@ import { auth, db } from "/local-shop/js/firebase.js";
 import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🌍 GET LOCATION
+// 📍 GET GPS
 function getLocation(){
 return new Promise((resolve)=>{
 
 navigator.geolocation.getCurrentPosition(pos=>{
-console.log("GPS success:", pos.coords);
 resolve({
 lat: pos.coords.latitude,
 lng: pos.coords.longitude
 });
-},(err)=>{
-console.error("GPS error:", err);
+},()=>{
 resolve({lat:0,lng:0});
-},{
-enableHighAccuracy:true,
-timeout:5000
 });
 
 });
@@ -120,48 +115,46 @@ return;
 try{
 
 msg.innerText = "📍 Getting location...";
-console.log("STEP 1: Getting location");
 
 const loc = await getLocation();
-
-console.log("STEP 2: Location:", loc);
 
 msg.innerText = "⏳ Creating account...";
 
 // 🔐 AUTH
 const userCred = await createUserWithEmailAndPassword(auth,email,pass);
 
-console.log("STEP 3: Auth success", userCred.user.uid);
-
 msg.innerText = "💾 Saving shop data...";
 
-// 🔥 FIRESTORE SAVE
-console.log("STEP 4: Before Firestore save");
-
+// 🔥 SAVE TO localshop-details
 await addDoc(collection(db,"localshop-details"),{
-
 shopName: name,
 email: email,
-category: category,
+category: category,   // ✅ MAIN FIELD
 location: locationText,
-
-// 📍 GPS
 lat: loc.lat,
 lng: loc.lng,
-
 icon: "🏪",
 ownerUid: userCred.user.uid,
 createdAt: new Date()
-
 });
 
-console.log("STEP 5: Firestore saved successfully");
+// 🔥 OPTIONAL: ALSO SAVE TO shops (better structure)
+await addDoc(collection(db,"shops"),{
+name: name,
+email: email,
+category: category,
+lat: loc.lat,
+lng: loc.lng,
+location: locationText,
+createdAt: new Date()
+});
 
 msg.innerText = "✅ Registered Successfully";
 
 // SAVE LOCAL
 localStorage.setItem("shopName", name);
 localStorage.setItem("shopEmail", email);
+localStorage.setItem("shopCategory", category);
 
 // REDIRECT
 setTimeout(()=>{
@@ -169,13 +162,8 @@ window.location.href="dashboard.html";
 },1200);
 
 }catch(e){
-
-console.error("❌ FULL ERROR:", e);
-
 msg.innerText = "❌ Error: " + e.message;
-
-alert("Error: " + e.message);
-
+alert(e.message);
 }
 
 };
