@@ -9,35 +9,38 @@
 body{margin:0;font-family:Arial;background:#f8f8f8;}
 
 .header{background:#ffcc00;padding:12px;}
-.location{font-size:14px;font-weight:bold;}
+.location{font-weight:bold;}
 
-.search{margin-top:10px;}
-.search input{width:100%;padding:10px;border-radius:8px;border:none;}
+.search input{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:none;
+margin-top:10px;
+}
 
-.categories{
+.row{
 display:flex;
 overflow-x:auto;
 gap:12px;
 padding:15px;
 }
 
-.cat{
-min-width:90px;
+.item{
+min-width:110px;
 background:white;
 padding:10px;
 border-radius:10px;
 text-align:center;
 cursor:pointer;
-white-space:nowrap;
 box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
-
-.section{padding:10px;}
 
 .products{
 display:flex;
 overflow-x:auto;
 gap:15px;
+padding:10px;
 }
 
 .card{
@@ -47,17 +50,7 @@ border-radius:12px;
 padding:10px;
 }
 
-.card img{
-width:100%;
-height:100px;
-object-fit:cover;
-border-radius:8px;
-}
-
-.price{
-color:green;
-font-weight:bold;
-}
+.price{color:green;font-weight:bold;}
 
 button{
 background:#ff5a5f;
@@ -66,109 +59,74 @@ border:none;
 padding:6px 10px;
 border-radius:6px;
 }
-
-.cartBtn{
-position:fixed;
-bottom:15px;
-left:10px;
-right:10px;
-background:black;
-color:white;
-padding:15px;
-text-align:center;
-border-radius:12px;
-font-weight:bold;
-}
 </style>
 
 </head>
 
 <body>
 
-<!-- HEADER -->
 <div class="header">
 <div class="location">📍 Deliver to Brahmapur</div>
-
-<div class="search">
-<input id="search" placeholder="Search for products..." oninput="searchProducts()">
-</div>
+<input id="search" placeholder="Search..." oninput="searchProducts()">
 </div>
 
 <!-- CATEGORIES -->
-<div id="categories" class="categories"></div>
+<h3 style="padding-left:10px;">Categories</h3>
+<div id="categories" class="row"></div>
+
+<!-- SHOPS -->
+<h3 style="padding-left:10px;">Shops</h3>
+<div id="shops" class="row"></div>
 
 <!-- PRODUCTS -->
-<div class="section">
-<h3>Products</h3>
+<h3 style="padding-left:10px;">Products</h3>
 <div id="products" class="products"></div>
-</div>
-
-<!-- CART -->
-<div class="cartBtn" onclick="openCart()">
-🛒 View Cart (₹<span id="total">0</span>)
-</div>
 
 <script type="module">
 
 import { db } from "/local-shop/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+let allShops = [];
 let allProducts = [];
-let filteredProducts = [];
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-let total = 0;
+let selectedCategory = null;
+let selectedShop = null;
 
 // 🚀 INIT
 async function init(){
-await loadCategories();
-await loadProducts();
+
+const shopSnap = await getDocs(collection(db,"shops"));
+allShops = shopSnap.docs.map(d=>d.data());
+
+const productSnap = await getDocs(collection(db,"products"));
+allProducts = productSnap.docs.map(d=>d.data());
+
+loadCategories();
+
 }
+
 init();
 
 
-// 🔥 LOAD CATEGORIES FROM SHOPS DB
-async function loadCategories(){
+// 🔥 STEP 1: CATEGORIES
+function loadCategories(){
 
-const container = document.getElementById("categories");
+let container = document.getElementById("categories");
 
-const snap = await getDocs(collection(db,"shops"));
+let unique = {};
 
-let categoriesMap = {};
-
-// 🧠 UNIQUE CATEGORY + ICON + NAME
-snap.forEach(doc=>{
-
-let data = doc.data();
-
-if(data.category){
-
-categoriesMap[data.category] = {
-icon: data.icon || "🏪",
-name: data.name || data.category
-};
-
-}
-
+// unique category
+allShops.forEach(s=>{
+unique[s.category] = s.icon || "🏪";
 });
 
-// UI RESET
 container.innerHTML = "";
 
-// ✅ ALL
-container.innerHTML += `
-<div class="cat" onclick="filterCategory('All')">
-All
-</div>
-`;
-
-// ✅ DYNAMIC CATEGORY
-Object.keys(categoriesMap).forEach(cat=>{
-
-let c = categoriesMap[cat];
+Object.keys(unique).forEach(cat=>{
 
 container.innerHTML += `
-<div class="cat" onclick="filterCategory('${cat}')">
-${c.icon} ${c.name}
+<div class="item" onclick="selectCategory('${cat}')">
+${unique[cat]} ${cat}
 </div>
 `;
 
@@ -177,32 +135,46 @@ ${c.icon} ${c.name}
 }
 
 
-// 🔥 LOAD PRODUCTS
-async function loadProducts(){
+// 🔥 STEP 2: SHOPS
+window.selectCategory = function(cat){
 
-const snapshot = await getDocs(collection(db,"products"));
+selectedCategory = cat;
+selectedShop = null;
 
-allProducts = snapshot.docs.map(doc => doc.data());
+let container = document.getElementById("shops");
+container.innerHTML = "";
 
-filteredProducts = allProducts;
+let filteredShops = allShops.filter(s => s.category === cat);
 
-renderProducts();
-updateCart();
+filteredShops.forEach(s=>{
+
+container.innerHTML += `
+<div class="item" onclick="selectShop('${s.name}')">
+${s.icon || "🏪"} ${s.name}
+</div>
+`;
+
+});
+
+document.getElementById("products").innerHTML = "";
 
 }
 
 
-// 🎨 RENDER PRODUCTS
-function renderProducts(){
+// 🔥 STEP 3: PRODUCTS
+window.selectShop = function(shop){
 
-const container = document.getElementById("products");
+selectedShop = shop;
+
+let container = document.getElementById("products");
 container.innerHTML = "";
+
+let filteredProducts = allProducts.filter(p => p.shopName === shop);
 
 filteredProducts.forEach(p=>{
 
 container.innerHTML += `
 <div class="card">
-<img src="https://source.unsplash.com/200x150/?food">
 <h4>${p.name}</h4>
 <p class="price">₹${p.price}</p>
 <button onclick="addToCart('${p.name}',${p.price})">Add</button>
@@ -214,74 +186,51 @@ container.innerHTML += `
 }
 
 
-// 🔍 SEARCH
+// 🔍 SEARCH (within selected shop)
 window.searchProducts = function(){
 
-const text = document.getElementById("search").value.toLowerCase();
+let text = document.getElementById("search").value.toLowerCase();
 
-filteredProducts = allProducts.filter(p =>
+let filtered = allProducts.filter(p => 
+(!selectedShop || p.shopName === selectedShop) &&
 p.name.toLowerCase().includes(text)
 );
 
-renderProducts();
+let container = document.getElementById("products");
+container.innerHTML = "";
+
+filtered.forEach(p=>{
+
+container.innerHTML += `
+<div class="card">
+<h4>${p.name}</h4>
+<p class="price">₹${p.price}</p>
+<button onclick="addToCart('${p.name}',${p.price})">Add</button>
+</div>
+`;
+
+});
 
 }
 
 
-// 🧠 FILTER BY CATEGORY
-window.filterCategory = function(cat){
+// 🛒 CART
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-if(cat === "All"){
-filteredProducts = allProducts;
-}else{
-filteredProducts = allProducts.filter(p => p.category === cat);
-}
-
-renderProducts();
-
-}
-
-
-// 🛒 ADD TO CART
 window.addToCart = function(name,price){
 
-let found = cart.find(c=>c.name === name);
+let item = cart.find(c=>c.name === name);
 
-if(found){
-found.qty++;
+if(item){
+item.qty++;
 }else{
 cart.push({name,price,qty:1});
 }
 
-saveCart();
+localStorage.setItem("cart",JSON.stringify(cart));
 
-}
+alert("Added to cart");
 
-
-// 💾 SAVE CART
-function saveCart(){
-localStorage.setItem("cart", JSON.stringify(cart));
-updateCart();
-}
-
-
-// 💰 UPDATE CART
-function updateCart(){
-
-total = 0;
-
-cart.forEach(c=>{
-total += c.price * c.qty;
-});
-
-document.getElementById("total").innerText = total;
-
-}
-
-
-// 🚀 OPEN CART
-window.openCart = function(){
-window.location.href = "customer/cart.html";
 }
 
 </script>
