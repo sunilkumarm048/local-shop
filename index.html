@@ -15,7 +15,15 @@ body{margin:0;font-family:Arial;background:#f8f8f8;}
 .search input{width:100%;padding:10px;border-radius:8px;border:none;}
 
 .categories{display:flex;overflow-x:auto;gap:12px;padding:15px;}
-.cat{min-width:80px;background:white;padding:10px;border-radius:10px;text-align:center;cursor:pointer;}
+.cat{
+min-width:80px;
+background:white;
+padding:10px;
+border-radius:10px;
+text-align:center;
+cursor:pointer;
+white-space:nowrap;
+}
 
 .section{padding:10px;}
 .products{display:flex;overflow-x:auto;gap:15px;}
@@ -47,13 +55,8 @@ border-radius:12px;font-weight:bold;
 </div>
 </div>
 
-<!-- CATEGORIES -->
-<div class="categories">
-<div class="cat" onclick="filterCategory('All')">All</div>
-<div class="cat" onclick="filterCategory('Bakery')">🍞 Bakery</div>
-<div class="cat" onclick="filterCategory('Tea Shop')">☕ Tea</div>
-<div class="cat" onclick="filterCategory('Fast Food')">🍔 Fast Food</div>
-</div>
+<!-- 🔥 DYNAMIC CATEGORIES -->
+<div id="categories" class="categories"></div>
 
 <!-- PRODUCTS -->
 <div class="section">
@@ -76,21 +79,14 @@ let filteredProducts = [];
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let total = 0;
 
-// 🧠 STORE CATEGORY LIST
-let categoriesList = [];
-
-// 🚀 LOAD EVERYTHING
+// 🚀 INIT
 async function init(){
-
 await loadCategories();
 await loadProducts();
-
 }
-
 init();
 
-
-// 🔥 LOAD CATEGORIES FROM SHOPS DB
+// 🔥 LOAD CATEGORIES FROM SHOPS
 async function loadCategories(){
 
 const container = document.getElementById("categories");
@@ -101,15 +97,11 @@ let categoriesSet = new Set();
 
 snap.forEach(doc=>{
 let data = doc.data();
-
 if(data.category){
 categoriesSet.add(data.category);
 }
 });
 
-categoriesList = Array.from(categoriesSet);
-
-// UI
 container.innerHTML = "";
 
 // ALL button
@@ -118,18 +110,15 @@ container.innerHTML += `
 `;
 
 // dynamic categories
-categoriesList.forEach(cat=>{
-
+categoriesSet.forEach(cat=>{
 container.innerHTML += `
 <div class="cat" onclick="filterCategory('${cat}')">
 ${cat}
 </div>
 `;
-
 });
 
 }
-
 
 // 🔥 LOAD PRODUCTS
 async function loadProducts(){
@@ -145,8 +134,7 @@ updateCart();
 
 }
 
-
-// 🧾 RENDER PRODUCTS
+// 🎯 RENDER PRODUCTS
 function renderProducts(){
 
 const container = document.getElementById("products");
@@ -167,7 +155,6 @@ container.innerHTML += `
 
 }
 
-
 // 🔍 SEARCH
 window.searchProducts = function(){
 
@@ -180,7 +167,6 @@ p.name.toLowerCase().includes(text)
 renderProducts();
 
 }
-
 
 // 🧠 FILTER CATEGORY
 window.filterCategory = function(cat){
@@ -195,8 +181,7 @@ renderProducts();
 
 }
 
-
-// 🛒 CART
+// 🛒 ADD TO CART
 window.addToCart = function(name,price){
 
 let found = cart.find(c=>c.name === name);
@@ -228,12 +213,12 @@ document.getElementById("total").innerText = total;
 
 }
 
-
 // 🛒 OPEN CART
 window.openCart = function(){
 window.location.href = "customer/cart.html";
 }
 
 </script>
+
 </body>
 </html>
