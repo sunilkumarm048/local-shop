@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <title>Manage Products</title>
@@ -66,7 +67,21 @@ width:auto;
 margin-right:5px;
 padding:5px 10px;
 }
+
+.preview{
+margin-top:10px;
+text-align:center;
+}
+
+.preview img{
+width:120px;
+height:120px;
+object-fit:contain;
+border-radius:8px;
+background:#fff;
+}
 </style>
+
 </head>
 
 <body>
@@ -80,14 +95,14 @@ padding:5px 10px;
 <button id="editBtn" onclick="showEdit()">Edit</button>
 </div>
 
-<!-- ADD SECTION -->
+<!-- ADD -->
+
 <div id="addSection">
 
 <input id="name" placeholder="Product Name">
 <input id="price" placeholder="Price">
 
-<select id="category"></select>
-<select id="shop"></select>
+<select id="category"></select> <select id="shop"></select>
 
 <input type="file" id="image" multiple>
 
@@ -95,7 +110,8 @@ padding:5px 10px;
 
 </div>
 
-<!-- EDIT SECTION -->
+<!-- EDIT -->
+
 <div id="editSection" style="display:none;">
 
 <input id="search" placeholder="Search product">
@@ -103,16 +119,16 @@ padding:5px 10px;
 
 <div id="results"></div>
 
-<!-- EDIT FORM -->
 <div id="editForm" style="display:none;">
 
 <input id="editName">
 <input id="editPrice">
 
-<select id="editCategory"></select>
-<select id="editShop"></select>
+<select id="editCategory"></select> <select id="editShop"></select>
 
 <input type="file" id="editImage" multiple>
+
+<div class="preview" id="preview"></div>
 
 <button onclick="updateProduct()">Update Product</button>
 
@@ -129,7 +145,6 @@ import {
 collection, addDoc, getDocs, deleteDoc, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🌐 Cloudinary
 const CLOUD_NAME = "dqcafnvpi";
 const UPLOAD_PRESET = "shop_upload";
 
@@ -138,20 +153,20 @@ let currentId = null;
 
 // TOGGLE
 window.showAdd = ()=>{
-document.getElementById("addSection").style.display="block";
-document.getElementById("editSection").style.display="none";
+addSection.style.display="block";
+editSection.style.display="none";
 addBtn.classList.add("active");
 editBtn.classList.remove("active");
 }
 
 window.showEdit = ()=>{
-document.getElementById("addSection").style.display="none";
-document.getElementById("editSection").style.display="block";
+addSection.style.display="none";
+editSection.style.display="block";
 editBtn.classList.add("active");
 addBtn.classList.remove("active");
 }
 
-// LOAD DATA
+// LOAD
 async function load(){
 
 const prodSnap = await getDocs(collection(db,"products"));
@@ -175,7 +190,7 @@ editShop.innerHTML += `<option>${d.data().shopName}</option>`;
 
 load();
 
-// 📤 UPLOAD IMAGE
+// UPLOAD
 async function uploadImages(files){
 
 let urls = [];
@@ -192,16 +207,23 @@ body:formData
 });
 
 const data = await res.json();
+
+if(data.secure_url){
 urls.push(data.secure_url);
+}
 }
 
 return urls;
 }
 
-// ➕ ADD PRODUCT
+// ADD
 window.addProduct = async ()=>{
 
-let images = await uploadImages(image.files);
+let images = [];
+
+if(image.files.length > 0){
+images = await uploadImages(image.files);
+}
 
 await addDoc(collection(db,"products"),{
 name: name.value,
@@ -211,11 +233,11 @@ shopName: shop.value,
 images
 });
 
-alert("Product Added");
+alert("✅ Product Added");
 location.reload();
 }
 
-// 🔍 SEARCH
+// SEARCH
 window.searchProduct = ()=>{
 
 let text = search.value.toLowerCase();
@@ -238,43 +260,65 @@ results.innerHTML += `
 });
 }
 
-// ✏️ EDIT LOAD
+// EDIT LOAD
 window.edit = (id)=>{
 
 let p = products.find(x=>x.id===id);
+if(!p) return;
 
 currentId = id;
-
 editForm.style.display="block";
 
 editName.value = p.name;
 editPrice.value = p.price;
 editCategory.value = p.category;
 editShop.value = p.shopName;
+
+// SHOW IMAGE
+preview.innerHTML = "";
+
+if(p.images && p.images.length){
+preview.innerHTML = `<img src="${p.images[0]}">`;
+}
 }
 
-// 🔄 UPDATE
+// UPDATE (FIXED)
 window.updateProduct = async ()=>{
 
-let newImages = [];
-
-if(editImage.files.length > 0){
-newImages = await uploadImages(editImage.files);
+if(!currentId){
+alert("Click Edit first");
+return;
 }
 
-await updateDoc(doc(db,"products",currentId),{
+let updateData = {
 name: editName.value,
 price: Number(editPrice.value),
 category: editCategory.value,
-shopName: editShop.value,
-images: newImages.length ? newImages : undefined
-});
+shopName: editShop.value
+};
 
-alert("Updated");
-location.reload();
+try{
+
+if(editImage.files.length > 0){
+let newImages = await uploadImages(editImage.files);
+updateData.images = newImages;
 }
 
-// ❌ DELETE
+await updateDoc(doc(db,"products",currentId), updateData);
+
+alert("✅ Updated");
+
+editForm.style.display="none";
+currentId = null;
+
+}catch(err){
+console.error(err);
+alert("❌ Update failed");
+}
+
+}
+
+// DELETE
 window.remove = async (id)=>{
 await deleteDoc(doc(db,"products",id));
 alert("Deleted");
