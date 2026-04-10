@@ -106,7 +106,7 @@ background:#fff;
 
 <input type="file" id="image" multiple>
 
-<button onclick="addProduct()">Save Product</button>
+<button id="saveBtn" onclick="addProduct()">Save Product</button>
 
 </div>
 
@@ -130,7 +130,7 @@ background:#fff;
 
 <div class="preview" id="preview"></div>
 
-<button onclick="updateProduct()">Update Product</button>
+<button id="updateBtn" onclick="updateProduct()">Update Product</button>
 
 </div>
 
@@ -166,7 +166,7 @@ editBtn.classList.add("active");
 addBtn.classList.remove("active");
 }
 
-// LOAD
+// LOAD DATA
 async function load(){
 
 const prodSnap = await getDocs(collection(db,"products"));
@@ -190,12 +190,14 @@ editShop.innerHTML += `<option>${d.data().shopName}</option>`;
 
 load();
 
-// UPLOAD
+// UPLOAD IMAGES (SAFE)
 async function uploadImages(files){
 
 let urls = [];
 
 for(let file of files){
+
+try{
 
 const formData = new FormData();
 formData.append("file", file);
@@ -210,14 +212,31 @@ const data = await res.json();
 
 if(data.secure_url){
 urls.push(data.secure_url);
+}else{
+console.log("Upload failed:", data);
 }
+
+}catch(err){
+console.log("Upload error:", err);
+}
+
 }
 
 return urls;
 }
 
-// ADD
+// ADD PRODUCT (FIXED)
 window.addProduct = async ()=>{
+
+if(!name.value || !price.value){
+alert("Enter name & price");
+return;
+}
+
+saveBtn.innerText = "Uploading...";
+saveBtn.disabled = true;
+
+try{
 
 let images = [];
 
@@ -230,11 +249,23 @@ name: name.value,
 price: Number(price.value),
 category: category.value,
 shopName: shop.value,
-images
+images: images || []
 });
 
 alert("✅ Product Added");
-location.reload();
+
+// reset form
+name.value = "";
+price.value = "";
+image.value = "";
+
+}catch(err){
+console.error(err);
+alert("❌ Error: " + err.message);
+}
+
+saveBtn.innerText = "Save Product";
+saveBtn.disabled = false;
 }
 
 // SEARCH
@@ -274,15 +305,10 @@ editPrice.value = p.price;
 editCategory.value = p.category;
 editShop.value = p.shopName;
 
-// SHOW IMAGE
-preview.innerHTML = "";
-
-if(p.images && p.images.length){
-preview.innerHTML = `<img src="${p.images[0]}">`;
-}
+preview.innerHTML = p.images?.[0] ? `<img src="${p.images[0]}">` : "";
 }
 
-// UPDATE (FIXED)
+// UPDATE PRODUCT (FIXED)
 window.updateProduct = async ()=>{
 
 if(!currentId){
@@ -290,14 +316,17 @@ alert("Click Edit first");
 return;
 }
 
+updateBtn.innerText = "Updating...";
+updateBtn.disabled = true;
+
+try{
+
 let updateData = {
 name: editName.value,
 price: Number(editPrice.value),
 category: editCategory.value,
 shopName: editShop.value
 };
-
-try{
 
 if(editImage.files.length > 0){
 let newImages = await uploadImages(editImage.files);
@@ -316,6 +345,8 @@ console.error(err);
 alert("❌ Update failed");
 }
 
+updateBtn.innerText = "Update Product";
+updateBtn.disabled = false;
 }
 
 // DELETE
