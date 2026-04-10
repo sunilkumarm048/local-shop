@@ -1,1 +1,205 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Edit Product</title>
+
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import {
+collection, getDocs, doc, updateDoc, deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+let allProducts = [];
+let editId = null;
+
+// 🔥 LOAD ALL PRODUCTS
+async function loadProducts(){
+  const snap = await getDocs(collection(db,"products"));
+  allProducts = snap.docs.map(d => ({id:d.id, ...d.data()}));
+}
+loadProducts();
+
+// 🔍 SEARCH
+window.searchProduct = function(){
+
+  const text = document.getElementById("search").value.toLowerCase();
+  const container = document.getElementById("results");
+
+  container.innerHTML = "";
+
+  const filtered = allProducts.filter(p =>
+    p.name.toLowerCase().includes(text)
+  );
+
+  if(filtered.length === 0){
+    container.innerHTML = "No product found";
+    return;
+  }
+
+  filtered.forEach(p=>{
+    container.innerHTML += `
+      <div class="item">
+        <b>${p.name}</b> - ₹${p.price}<br>
+        ${p.category} | ${p.shopName}<br>
+        <button onclick="editProduct('${p.id}')">Edit</button>
+        <button onclick="deleteProduct('${p.id}')">Delete</button>
+      </div>
+    `;
+  });
+
+};
+
+// ✏️ EDIT
+window.editProduct = function(id){
+
+  const product = allProducts.find(p => p.id === id);
+  editId = id;
+
+  document.getElementById("name").value = product.name;
+  document.getElementById("price").value = product.price;
+  document.getElementById("category").value = product.category;
+  document.getElementById("shop").value = product.shopName;
+
+};
+
+// 🔄 UPDATE
+window.updateProduct = async function(){
+
+  if(!editId){
+    alert("Select product first");
+    return;
+  }
+
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
+  const category = document.getElementById("category").value;
+  const shopName = document.getElementById("shop").value;
+  const files = document.getElementById("image").files;
+
+  let imageUrls = [];
+
+  // upload new images (optional)
+  if(files.length > 0){
+
+    for(let file of files){
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "shop_upload");
+
+      const res = await fetch("https://api.cloudinary.com/v1_1/dqcafnvpi/image/upload", {
+        method:"POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      imageUrls.push(data.secure_url);
+    }
+  }
+
+  await updateDoc(doc(db,"products",editId),{
+    name,
+    price:Number(price),
+    category,
+    shopName,
+    ...(imageUrls.length && {images:imageUrls})
+  });
+
+  alert("✅ Updated");
+
+};
+
+// 🗑 DELETE
+window.deleteProduct = async function(id){
+
+  if(confirm("Delete product?")){
+    await deleteDoc(doc(db,"products",id));
+    alert("Deleted");
+    searchProduct();
+  }
+
+};
+
+</script>
+
+<style>
+body{
+font-family:Arial;
+background:#f5f5f5;
+margin:0;
+}
+
+.container{
+max-width:450px;
+margin:30px auto;
+background:white;
+padding:20px;
+border-radius:12px;
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:10px 0;
+}
+
+button{
+padding:8px 12px;
+margin:5px;
+background:#ff5a5f;
+color:white;
+border:none;
+border-radius:6px;
+}
+
+.item{
+background:#eee;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Edit Product</h2>
+
+<!-- 🔍 SEARCH -->
+
+<input id="search" placeholder="Search product...">
+<button onclick="searchProduct()">Search</button>
+
+<div id="results"></div>
+
+<hr>
+
+<!-- ✏️ EDIT FORM -->
+
+<input id="name" placeholder="Product Name">
+<input id="price" placeholder="Price">
+
+<select id="category">
+<option>Tea Shop</option>
+<option>Grocery Shop</option>
+</select>
+
+<select id="shop">
+<option>Sunil Kumar</option>
+<option>Pintu Verity store</option>
+</select>
+
+<input type="file" id="image" multiple>
+
+<button onclick="updateProduct()">Update Product</button>
+
+</div>
+
+</body>
+</html>
 
