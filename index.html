@@ -29,10 +29,14 @@ cursor:pointer;
 box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
+.cat.active{
+background:#ff5a5f;
+color:white;
+}
+
 .section{padding:10px;}
 .products{display:flex;overflow-x:auto;gap:15px;}
 
-/* CARD */
 .card{
 min-width:170px;
 background:white;
@@ -81,7 +85,7 @@ border-radius:12px;font-weight:bold;
 <body>
 
 <div class="header">
-<div class="location">📍 Getting location...</div>
+<div class="location" id="location">📍 Getting location...</div>
 
 <div class="search">
 <input id="search" placeholder="Search..." oninput="searchProducts()">
@@ -112,20 +116,129 @@ border-radius:12px;font-weight:bold;
 import { db } from "/local-shop/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// GLOBAL STATE
 let allProducts = [];
+let allCategories = [];
+let allShops = [];
+
 let selectedCategory = null;
 let selectedShop = null;
+
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// LOAD DATA
+// 📍 LOCATION FIX
+function getLocation(){
+
+if(!navigator.geolocation){
+document.getElementById("location").innerText = "📍 Location not supported";
+return;
+}
+
+navigator.geolocation.getCurrentPosition(async (pos)=>{
+
+let lat = pos.coords.latitude;
+let lon = pos.coords.longitude;
+
+try{
+
+let res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+let data = await res.json();
+
+let area =
+data.address.suburb ||
+data.address.village ||
+data.address.town ||
+data.address.city ||
+data.address.state;
+
+document.getElementById("location").innerText = "📍 Deliver to " + area;
+
+}catch{
+document.getElementById("location").innerText = "📍 Your Area";
+}
+
+},()=>{
+document.getElementById("location").innerText = "📍 Location permission denied";
+});
+
+}
+
+getLocation();
+
+// 🔥 LOAD DATA
 async function loadData(){
-const snap = await getDocs(collection(db,"products"));
-allProducts = snap.docs.map(d=>d.data());
+
+const prodSnap = await getDocs(collection(db,"products"));
+allProducts = prodSnap.docs.map(d=>d.data());
+
+const catSnap = await getDocs(collection(db,"shops"));
+allCategories = catSnap.docs.map(d=>d.data());
+
+const shopSnap = await getDocs(collection(db,"localshop-details"));
+allShops = shopSnap.docs.map(d=>d.data());
+
+renderCategories();
+renderShops();
 renderProducts();
 }
+
 loadData();
 
-// PRODUCTS
+// 🎯 CATEGORIES
+function renderCategories(){
+
+const container = document.getElementById("categories");
+container.innerHTML = "";
+
+// ALL
+container.innerHTML += `<div class="cat ${!selectedCategory?'active':''}" onclick="selectCategory(null)">All</div>`;
+
+allCategories.forEach(c=>{
+container.innerHTML += `
+<div class="cat ${selectedCategory===c.category?'active':''}" 
+onclick="selectCategory('${c.category}')">
+${c.category}
+</div>
+`;
+});
+}
+
+window.selectCategory = (cat)=>{
+selectedCategory = cat;
+selectedShop = null;
+
+renderCategories();
+renderShops();
+renderProducts();
+}
+
+// 🏪 SHOPS
+function renderShops(){
+
+const container = document.getElementById("shops");
+container.innerHTML = "";
+
+let filtered = allShops;
+
+if(selectedCategory){
+filtered = filtered.filter(s=>s.category === selectedCategory);
+}
+
+filtered.forEach(s=>{
+container.innerHTML += `
+<div class="shop" onclick="selectShop('${s.shopName}')">
+${s.shopName}
+</div>
+`;
+});
+}
+
+window.selectShop = (shop)=>{
+selectedShop = shop;
+renderProducts();
+}
+
+// 🛒 PRODUCTS
 function renderProducts(){
 
 const container = document.getElementById("products");
@@ -143,14 +256,11 @@ filtered = filtered.filter(p=>p.shopName === selectedShop);
 
 filtered.forEach(p=>{
 
-// 📸 MULTIPLE IMAGES
 let imagesHTML = "";
 
 if(p.images && p.images.length){
 p.images.forEach(img=>{
-imagesHTML += `
-<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">
-`;
+imagesHTML += `<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">`;
 });
 }else{
 imagesHTML = `<img src="https://via.placeholder.com/150">`;
@@ -173,16 +283,16 @@ ${imagesHTML}
 });
 }
 
-// SEARCH
+// 🔍 SEARCH
 window.searchProducts = function(){
+
 const text = document.getElementById("search").value.toLowerCase();
 
-const filtered = allProducts.filter(p =>
+let filtered = allProducts.filter(p =>
 p.name.toLowerCase().includes(text)
 );
 
-const container = document.getElementById("products");
-container.innerHTML = "";
+document.getElementById("products").innerHTML = "";
 
 filtered.forEach(p=>{
 
@@ -190,15 +300,13 @@ let imagesHTML = "";
 
 if(p.images && p.images.length){
 p.images.forEach(img=>{
-imagesHTML += `
-<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">
-`;
+imagesHTML += `<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">`;
 });
 }else{
 imagesHTML = `<img src="https://via.placeholder.com/150">`;
 }
 
-container.innerHTML += `
+document.getElementById("products").innerHTML += `
 <div class="card">
 
 <div class="imgSlider">
@@ -215,7 +323,7 @@ ${imagesHTML}
 });
 }
 
-// CART
+// 🛒 CART
 window.addToCart = function(name,price){
 
 let found = cart.find(c=>c.name === name);
