@@ -177,10 +177,9 @@ import { db } from "/local-shop/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let allProducts = [];
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-
 let selectedCategory = null;
 let selectedShop = null;
+let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 // LOAD DATA
 async function loadData(){
@@ -189,78 +188,88 @@ const snap = await getDocs(collection(db,"products"));
 
 allProducts = snap.docs.map(d=>d.data());
 
-renderCategories();
-renderShops();
+renderCategories();   // ✅ added
+renderShops();        // ✅ added
 renderProducts();
+
 }
 
 loadData();
 
 
-// ✅ CATEGORIES
+// ==========================
+// ✅ CATEGORIES FIX
+// ==========================
 function renderCategories(){
 
 const container = document.getElementById("categories");
 
-const categories = [...new Set(allProducts.map(p=>p.category))];
+// get unique categories
+const categories = [...new Set(allProducts.map(p=>p.category).filter(Boolean))];
 
 container.innerHTML = "";
 
 categories.forEach(cat=>{
 container.innerHTML += `
-<div class="cat" onclick="selectCategory('${cat}',this)">
+<div class="cat" onclick="selectCategory('${cat}')">
 ${cat}
 </div>
 `;
 });
 }
 
-window.selectCategory = function(cat,el){
+window.selectCategory = function(cat){
 
-selectedCategory = (selectedCategory === cat) ? null : cat;
-
-// UI highlight
-document.querySelectorAll(".cat").forEach(c=>c.classList.remove("active"));
-if(selectedCategory) el.classList.add("active");
+if(selectedCategory === cat){
+selectedCategory = null;
+}else{
+selectedCategory = cat;
+}
 
 renderProducts();
 }
 
 
-// ✅ SHOPS
+// ==========================
+// ✅ SHOPS FIX
+// ==========================
 function renderShops(){
 
 const container = document.getElementById("shops");
 
-const shops = [...new Set(allProducts.map(p=>p.shopName))];
+// get unique shop names
+const shops = [...new Set(allProducts.map(p=>p.shopName).filter(Boolean))];
 
 container.innerHTML = "";
 
 shops.forEach(shop=>{
 container.innerHTML += `
-<div class="shop" onclick="selectShop('${shop}',this)">
+<div class="shop" onclick="selectShop('${shop}')">
 ${shop}
 </div>
 `;
 });
 }
 
-window.selectShop = function(shop,el){
+window.selectShop = function(shop){
 
-selectedShop = (selectedShop === shop) ? null : shop;
-
-// UI highlight
-document.querySelectorAll(".shop").forEach(s=>s.classList.remove("active"));
-if(selectedShop) el.classList.add("active");
+if(selectedShop === shop){
+selectedShop = null;
+}else{
+selectedShop = shop;
+}
 
 renderProducts();
 }
 
 
-// ✅ PRODUCTS
+// ==========================
+// PRODUCTS (same as yours)
+// ==========================
 function renderProducts(){
 
 const container = document.getElementById("products");
+container.innerHTML = "";
 
 let filtered = allProducts;
 
@@ -272,6 +281,48 @@ if(selectedShop){
 filtered = filtered.filter(p=>p.shopName === selectedShop);
 }
 
+filtered.forEach(p=>{
+
+let imagesHTML = "";
+
+if(p.images && p.images.length){
+p.images.forEach(img=>{
+imagesHTML += `<img src="${img}">`;
+});
+}else{
+imagesHTML = `<img src="https://via.placeholder.com/150">`;
+}
+
+container.innerHTML += `
+<div class="card">
+
+<div class="imgSlider">
+${imagesHTML}
+</div>
+
+<h4>${p.name}</h4>
+<p class="price">₹${p.price}</p>
+
+<button onclick="addToCart('${p.name}',${p.price})">Add</button>
+
+</div>
+`;
+});
+}
+
+
+// ==========================
+// SEARCH (same)
+// ==========================
+window.searchProducts = function(){
+
+const text = document.getElementById("search").value.toLowerCase();
+
+const filtered = allProducts.filter(p =>
+p.name.toLowerCase().includes(text)
+);
+
+const container = document.getElementById("products");
 container.innerHTML = "";
 
 filtered.forEach(p=>{
@@ -304,36 +355,9 @@ ${imagesHTML}
 }
 
 
-// SEARCH
-window.searchProducts = function(){
-
-const text = document.getElementById("search").value.toLowerCase();
-
-const filtered = allProducts.filter(p =>
-p.name.toLowerCase().includes(text)
-);
-
-renderFiltered(filtered);
-}
-
-function renderFiltered(list){
-
-const container = document.getElementById("products");
-container.innerHTML = "";
-
-list.forEach(p=>{
-container.innerHTML += `
-<div class="card">
-<h4>${p.name}</h4>
-<p class="price">₹${p.price}</p>
-<button onclick="addToCart('${p.name}',${p.price})">Add</button>
-</div>
-`;
-});
-}
-
-
-// CART
+// ==========================
+// CART (same)
+// ==========================
 window.addToCart = function(name,price){
 
 let found = cart.find(c=>c.name === name);
