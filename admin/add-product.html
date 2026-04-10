@@ -2,12 +2,37 @@
 
 <html>
 <head>
-<title>Manage Products</title>
+<title>Add Product</title>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 🔥 LOAD SHOPS
+async function loadShops(){
+  const snap = await getDocs(collection(db,"localshop-details"));
+  const select = document.getElementById("shop");
+
+  snap.forEach(d=>{
+    const s = d.data();
+    select.innerHTML += `<option>${s.shopName}</option>`;
+  });
+}
+
+// 🔥 LOAD CATEGORIES
+async function loadCategories(){
+  const snap = await getDocs(collection(db,"shops"));
+  const select = document.getElementById("category");
+
+  snap.forEach(d=>{
+    const c = d.data();
+    select.innerHTML += `<option>${c.category}</option>`;
+  });
+}
+
+loadShops();
+loadCategories();
 
 // 🚀 ADD PRODUCT
 window.saveProduct = async function(){
@@ -18,56 +43,62 @@ window.saveProduct = async function(){
   const shopName = document.getElementById("shop").value;
   const files = document.getElementById("image").files;
 
-  if(!name || !price || !category || !shopName){
+  if(!name || !price || !category || !shopName || files.length === 0){
     alert("Fill all fields");
     return;
   }
 
+  document.getElementById("status").innerText = "Uploading images...";
+
   let imageUrls = [];
 
-  for(let file of files){
+  try{
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "shop_upload");
+    // 📸 Upload multiple images
+    for(let file of files){
 
-    const res = await fetch("https://api.cloudinary.com/v1_1/dqcafnvpi/image/upload", {
-      method:"POST",
-      body: formData
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "shop_upload");
+
+      const res = await fetch("https://api.cloudinary.com/v1_1/dqcafnvpi/image/upload", {
+        method:"POST",
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if(!data.secure_url){
+        throw new Error("Upload failed");
+      }
+
+      imageUrls.push(data.secure_url);
+    }
+
+    document.getElementById("status").innerText = "Saving product...";
+
+    // 🔥 Save to Firestore
+    await addDoc(collection(db,"products"),{
+      name,
+      price:Number(price),
+      category,
+      shopName,
+      images:imageUrls,
+      createdAt:new Date()
     });
 
-    const data = await res.json();
-    imageUrls.push(data.secure_url);
+    document.getElementById("status").innerText = "✅ Product Added";
+
+    // Reset form
+    document.getElementById("name").value="";
+    document.getElementById("price").value="";
+    document.getElementById("image").value="";
+
+  }catch(err){
+    console.error(err);
+    document.getElementById("status").innerText = "❌ Error uploading";
   }
 
-  await addDoc(collection(db,"products"),{
-    name,
-    price:Number(price),
-    category,
-    shopName,
-    images:imageUrls,
-    createdAt:new Date()
-  });
-
-  alert("✅ Product Added");
-
-  document.getElementById("name").value="";
-  document.getElementById("price").value="";
-  document.getElementById("image").value="";
-};
-
-// 🔍 SEARCH REDIRECT
-window.searchProduct = function(){
-
-  const text = document.getElementById("search").value;
-
-  if(!text){
-    alert("Enter product name");
-    return;
-  }
-
-  // redirect to another page (future edit page)
-  window.location.href = "edit-product.html?search=" + text;
 };
 
 </script>
@@ -88,7 +119,9 @@ border-radius:12px;
 box-shadow:0 4px 12px rgba(0,0,0,0.1);
 }
 
-h2{text-align:center;}
+h2{
+text-align:center;
+}
 
 input,select{
 width:100%;
@@ -101,7 +134,6 @@ border:1px solid #ccc;
 button{
 width:100%;
 padding:12px;
-margin-top:10px;
 background:#ff5a5f;
 color:white;
 border:none;
@@ -109,8 +141,19 @@ border-radius:8px;
 font-size:16px;
 }
 
-.searchBox{
-margin-bottom:20px;
+#preview{
+width:100%;
+margin-top:10px;
+display:flex;
+gap:5px;
+overflow-x:auto;
+}
+
+#preview img{
+width:80px;
+height:80px;
+object-fit:cover;
+border-radius:6px;
 }
 </style>
 
@@ -120,38 +163,44 @@ margin-bottom:20px;
 
 <div class="container">
 
-<h2>Manage Products</h2>
-
-<!-- 🔍 SEARCH -->
-
-<div class="searchBox">
-<input id="search" placeholder="Search product...">
-<button onclick="searchProduct()">Search</button>
-</div>
-
-<hr>
-
-<!-- ➕ ADD PRODUCT -->
+<h2>Add Product</h2>
 
 <input id="name" placeholder="Product Name">
 
-<input id="price" placeholder="Price">
+<input id="price" type="number" placeholder="Price">
 
 <select id="category">
-<option>Tea Shop</option>
-<option>Grocery Shop</option>
+<option value="">Select Category</option>
 </select>
 
 <select id="shop">
-<option>Sunil Kumar</option>
-<option>Pintu Verity store</option>
+<option value="">Select Shop</option>
 </select>
 
-<input type="file" id="image" multiple>
+<input type="file" id="image" multiple onchange="previewImages(event)">
+
+<div id="preview"></div>
 
 <button onclick="saveProduct()">Save Product</button>
 
+<p id="status"></p>
+
 </div>
+
+<script>
+// 📸 PREVIEW MULTIPLE IMAGES
+function previewImages(e){
+  const files = e.target.files;
+  const preview = document.getElementById("preview");
+  preview.innerHTML = "";
+
+  for(let file of files){
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    preview.appendChild(img);
+  }
+}
+</script>
 
 </body>
 </html>
