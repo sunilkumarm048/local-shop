@@ -195,9 +195,8 @@ container.innerHTML += `<div class="cat ${!selectedCategory?'active':''}" onclic
 
 allCategories.forEach(c=>{
 container.innerHTML += `
-<div class="cat ${selectedCategory===c.category?'active':''}" 
-onclick="selectCategory('${c.category}')">
-${c.category}
+<div class="cat" onclick="selectCategory('${c.name}')">
+${c.icon || ''} ${c.name}
 </div>
 `;
 });
