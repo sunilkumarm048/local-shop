@@ -1,91 +1,19 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <title>Manage Products</title>
-
-<script type="module">
-
-import { db } from "../js/firebase.js";
-import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-// 🚀 ADD PRODUCT
-window.saveProduct = async function(){
-
-  const name = document.getElementById("name").value;
-  const price = document.getElementById("price").value;
-  const category = document.getElementById("category").value;
-  const shopName = document.getElementById("shop").value;
-  const files = document.getElementById("image").files;
-
-  if(!name || !price || !category || !shopName){
-    alert("Fill all fields");
-    return;
-  }
-
-  let imageUrls = [];
-
-  for(let file of files){
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", "shop_upload");
-
-    const res = await fetch("https://api.cloudinary.com/v1_1/dqcafnvpi/image/upload", {
-      method:"POST",
-      body: formData
-    });
-
-    const data = await res.json();
-    imageUrls.push(data.secure_url);
-  }
-
-  await addDoc(collection(db,"products"),{
-    name,
-    price:Number(price),
-    category,
-    shopName,
-    images:imageUrls,
-    createdAt:new Date()
-  });
-
-  alert("✅ Product Added");
-
-  document.getElementById("name").value="";
-  document.getElementById("price").value="";
-  document.getElementById("image").value="";
-};
-
-// 🔍 SEARCH REDIRECT
-window.searchProduct = function(){
-
-  const text = document.getElementById("search").value;
-
-  if(!text){
-    alert("Enter product name");
-    return;
-  }
-
-  // redirect to another page (future edit page)
-  window.location.href = "edit-product.html?search=" + text;
-};
-
-</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{
-font-family:Arial;
-background:#f5f5f5;
-margin:0;
-}
+body{font-family:Arial;background:#f5f5f5;margin:0;padding:20px;}
 
 .container{
 max-width:400px;
-margin:40px auto;
+margin:auto;
 background:white;
 padding:20px;
 border-radius:12px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
 }
 
 h2{text-align:center;}
@@ -93,27 +21,52 @@ h2{text-align:center;}
 input,select{
 width:100%;
 padding:10px;
-margin:10px 0;
+margin-top:10px;
 border-radius:8px;
 border:1px solid #ccc;
 }
 
 button{
 width:100%;
-padding:12px;
-margin-top:10px;
-background:#ff5a5f;
-color:white;
+margin-top:12px;
+padding:10px;
 border:none;
 border-radius:8px;
-font-size:16px;
+background:#ff5a5f;
+color:white;
+cursor:pointer;
 }
 
-.searchBox{
-margin-bottom:20px;
+.toggle{
+display:flex;
+gap:10px;
+margin-bottom:15px;
+}
+
+.toggle button{
+flex:1;
+background:#ddd;
+color:black;
+}
+
+.toggle button.active{
+background:#ff5a5f;
+color:white;
+}
+
+.result{
+background:#eee;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+}
+
+.actions button{
+width:auto;
+margin-right:5px;
+padding:5px 10px;
 }
 </style>
-
 </head>
 
 <body>
@@ -122,36 +75,213 @@ margin-bottom:20px;
 
 <h2>Manage Products</h2>
 
-<!-- 🔍 SEARCH -->
-
-<div class="searchBox">
-<input id="search" placeholder="Search product...">
-<button onclick="searchProduct()">Search</button>
+<div class="toggle">
+<button id="addBtn" class="active" onclick="showAdd()">Add</button>
+<button id="editBtn" onclick="showEdit()">Edit</button>
 </div>
 
-<hr>
-
-<!-- ➕ ADD PRODUCT -->
+<!-- ADD SECTION -->
+<div id="addSection">
 
 <input id="name" placeholder="Product Name">
-
 <input id="price" placeholder="Price">
 
-<select id="category">
-<option>Tea Shop</option>
-<option>Grocery Shop</option>
-</select>
-
-<select id="shop">
-<option>Sunil Kumar</option>
-<option>Pintu Verity store</option>
-</select>
+<select id="category"></select>
+<select id="shop"></select>
 
 <input type="file" id="image" multiple>
 
-<button onclick="saveProduct()">Save Product</button>
+<button onclick="addProduct()">Save Product</button>
 
 </div>
+
+<!-- EDIT SECTION -->
+<div id="editSection" style="display:none;">
+
+<input id="search" placeholder="Search product">
+<button onclick="searchProduct()">Search</button>
+
+<div id="results"></div>
+
+<!-- EDIT FORM -->
+<div id="editForm" style="display:none;">
+
+<input id="editName">
+<input id="editPrice">
+
+<select id="editCategory"></select>
+<select id="editShop"></select>
+
+<input type="file" id="editImage" multiple>
+
+<button onclick="updateProduct()">Update Product</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import {
+collection, addDoc, getDocs, deleteDoc, doc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 🌐 Cloudinary
+const CLOUD_NAME = "dqcafnvpi";
+const UPLOAD_PRESET = "shop_upload";
+
+let products = [];
+let currentId = null;
+
+// TOGGLE
+window.showAdd = ()=>{
+document.getElementById("addSection").style.display="block";
+document.getElementById("editSection").style.display="none";
+addBtn.classList.add("active");
+editBtn.classList.remove("active");
+}
+
+window.showEdit = ()=>{
+document.getElementById("addSection").style.display="none";
+document.getElementById("editSection").style.display="block";
+editBtn.classList.add("active");
+addBtn.classList.remove("active");
+}
+
+// LOAD DATA
+async function load(){
+
+const prodSnap = await getDocs(collection(db,"products"));
+products = prodSnap.docs.map(d=>({...d.data(), id:d.id}));
+
+// categories
+const catSnap = await getDocs(collection(db,"shops"));
+catSnap.forEach(d=>{
+category.innerHTML += `<option>${d.data().category}</option>`;
+editCategory.innerHTML += `<option>${d.data().category}</option>`;
+});
+
+// shops
+const shopSnap = await getDocs(collection(db,"localshop-details"));
+shopSnap.forEach(d=>{
+shop.innerHTML += `<option>${d.data().shopName}</option>`;
+editShop.innerHTML += `<option>${d.data().shopName}</option>`;
+});
+
+}
+
+load();
+
+// 📤 UPLOAD IMAGE
+async function uploadImages(files){
+
+let urls = [];
+
+for(let file of files){
+
+const formData = new FormData();
+formData.append("file", file);
+formData.append("upload_preset", UPLOAD_PRESET);
+
+const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,{
+method:"POST",
+body:formData
+});
+
+const data = await res.json();
+urls.push(data.secure_url);
+}
+
+return urls;
+}
+
+// ➕ ADD PRODUCT
+window.addProduct = async ()=>{
+
+let images = await uploadImages(image.files);
+
+await addDoc(collection(db,"products"),{
+name: name.value,
+price: Number(price.value),
+category: category.value,
+shopName: shop.value,
+images
+});
+
+alert("Product Added");
+location.reload();
+}
+
+// 🔍 SEARCH
+window.searchProduct = ()=>{
+
+let text = search.value.toLowerCase();
+results.innerHTML="";
+
+products
+.filter(p=>p.name.toLowerCase().includes(text))
+.forEach(p=>{
+
+results.innerHTML += `
+<div class="result">
+<b>${p.name}</b> - ₹${p.price}
+<div class="actions">
+<button onclick="edit('${p.id}')">Edit</button>
+<button onclick="remove('${p.id}')">Delete</button>
+</div>
+</div>
+`;
+
+});
+}
+
+// ✏️ EDIT LOAD
+window.edit = (id)=>{
+
+let p = products.find(x=>x.id===id);
+
+currentId = id;
+
+editForm.style.display="block";
+
+editName.value = p.name;
+editPrice.value = p.price;
+editCategory.value = p.category;
+editShop.value = p.shopName;
+}
+
+// 🔄 UPDATE
+window.updateProduct = async ()=>{
+
+let newImages = [];
+
+if(editImage.files.length > 0){
+newImages = await uploadImages(editImage.files);
+}
+
+await updateDoc(doc(db,"products",currentId),{
+name: editName.value,
+price: Number(editPrice.value),
+category: editCategory.value,
+shopName: editShop.value,
+images: newImages.length ? newImages : undefined
+});
+
+alert("Updated");
+location.reload();
+}
+
+// ❌ DELETE
+window.remove = async (id)=>{
+await deleteDoc(doc(db,"products",id));
+alert("Deleted");
+location.reload();
+}
+
+</script>
 
 </body>
 </html>
