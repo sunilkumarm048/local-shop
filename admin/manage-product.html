@@ -50,7 +50,7 @@ background:#ddd;
 color:black;
 }
 
-.toggle button.active{
+.toggle .active{
 background:#ff5a5f;
 color:white;
 }
@@ -68,17 +68,11 @@ margin-right:5px;
 padding:5px 10px;
 }
 
-.preview{
-margin-top:10px;
-text-align:center;
-}
-
 .preview img{
 width:120px;
 height:120px;
 object-fit:contain;
-border-radius:8px;
-background:#fff;
+margin-top:10px;
 }
 </style>
 
@@ -91,8 +85,8 @@ background:#fff;
 <h2>Manage Products</h2>
 
 <div class="toggle">
-<button id="addBtn" class="active" onclick="showAdd()">Add</button>
-<button id="editBtn" onclick="showEdit()">Edit</button>
+<button id="addBtn" class="active">Add</button>
+<button id="editBtn">Edit</button>
 </div>
 
 <!-- ADD -->
@@ -106,7 +100,7 @@ background:#fff;
 
 <input type="file" id="image" multiple>
 
-<button id="saveBtn" onclick="addProduct()">Save Product</button>
+<button id="saveBtn">Save Product</button>
 
 </div>
 
@@ -115,7 +109,7 @@ background:#fff;
 <div id="editSection" style="display:none;">
 
 <input id="search" placeholder="Search product">
-<button onclick="searchProduct()">Search</button>
+<button id="searchBtn">Search</button>
 
 <div id="results"></div>
 
@@ -128,9 +122,9 @@ background:#fff;
 
 <input type="file" id="editImage" multiple>
 
-<div class="preview" id="preview"></div>
+<div id="preview"></div>
 
-<button id="updateBtn" onclick="updateProduct()">Update Product</button>
+<button id="updateBtn">Update Product</button>
 
 </div>
 
@@ -148,49 +142,76 @@ collection, addDoc, getDocs, deleteDoc, doc, updateDoc
 const CLOUD_NAME = "dqcafnvpi";
 const UPLOAD_PRESET = "shop_upload";
 
+// ✅ DOM (clean structure)
+const DOM = {
+name: document.getElementById("name"),
+price: document.getElementById("price"),
+category: document.getElementById("category"),
+shop: document.getElementById("shop"),
+image: document.getElementById("image"),
+saveBtn: document.getElementById("saveBtn"),
+
+search: document.getElementById("search"),
+searchBtn: document.getElementById("searchBtn"),
+results: document.getElementById("results"),
+
+editName: document.getElementById("editName"),
+editPrice: document.getElementById("editPrice"),
+editCategory: document.getElementById("editCategory"),
+editShop: document.getElementById("editShop"),
+editImage: document.getElementById("editImage"),
+updateBtn: document.getElementById("updateBtn"),
+preview: document.getElementById("preview"),
+
+addSection: document.getElementById("addSection"),
+editSection: document.getElementById("editSection"),
+editForm: document.getElementById("editForm"),
+
+addBtn: document.getElementById("addBtn"),
+editBtn: document.getElementById("editBtn")
+};
+
 let products = [];
 let currentId = null;
 
-// TOGGLE
-window.showAdd = ()=>{
-addSection.style.display="block";
-editSection.style.display="none";
-addBtn.classList.add("active");
-editBtn.classList.remove("active");
-}
+// 🔁 TOGGLE
+DOM.addBtn.onclick = ()=>{
+DOM.addSection.style.display="block";
+DOM.editSection.style.display="none";
+DOM.addBtn.classList.add("active");
+DOM.editBtn.classList.remove("active");
+};
 
-window.showEdit = ()=>{
-addSection.style.display="none";
-editSection.style.display="block";
-editBtn.classList.add("active");
-addBtn.classList.remove("active");
-}
+DOM.editBtn.onclick = ()=>{
+DOM.addSection.style.display="none";
+DOM.editSection.style.display="block";
+DOM.editBtn.classList.add("active");
+DOM.addBtn.classList.remove("active");
+};
 
-// LOAD DATA
+// 📥 LOAD DATA
 async function load(){
 
 const prodSnap = await getDocs(collection(db,"products"));
 products = prodSnap.docs.map(d=>({...d.data(), id:d.id}));
 
-// categories
 const catSnap = await getDocs(collection(db,"shops"));
 catSnap.forEach(d=>{
-category.innerHTML += `<option>${d.data().category}</option>`;
-editCategory.innerHTML += `<option>${d.data().category}</option>`;
+DOM.category.innerHTML += `<option>${d.data().category}</option>`;
+DOM.editCategory.innerHTML += `<option>${d.data().category}</option>`;
 });
 
-// shops
 const shopSnap = await getDocs(collection(db,"localshop-details"));
 shopSnap.forEach(d=>{
-shop.innerHTML += `<option>${d.data().shopName}</option>`;
-editShop.innerHTML += `<option>${d.data().shopName}</option>`;
+DOM.shop.innerHTML += `<option>${d.data().shopName}</option>`;
+DOM.editShop.innerHTML += `<option>${d.data().shopName}</option>`;
 });
 
 }
 
 load();
 
-// UPLOAD IMAGES (SAFE)
+// 📤 UPLOAD
 async function uploadImages(files){
 
 let urls = [];
@@ -198,87 +219,77 @@ let urls = [];
 for(let file of files){
 
 try{
-
-const formData = new FormData();
-formData.append("file", file);
-formData.append("upload_preset", UPLOAD_PRESET);
+const fd = new FormData();
+fd.append("file", file);
+fd.append("upload_preset", UPLOAD_PRESET);
 
 const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,{
 method:"POST",
-body:formData
+body:fd
 });
 
 const data = await res.json();
-
-if(data.secure_url){
-urls.push(data.secure_url);
-}else{
-console.log("Upload failed:", data);
-}
+if(data.secure_url) urls.push(data.secure_url);
 
 }catch(err){
-console.log("Upload error:", err);
+console.log(err);
 }
-
 }
 
 return urls;
 }
 
-// ADD PRODUCT (FIXED)
-window.addProduct = async ()=>{
+// ➕ ADD
+DOM.saveBtn.onclick = async ()=>{
 
-if(!name.value || !price.value){
+if(!DOM.name.value || !DOM.price.value){
 alert("Enter name & price");
 return;
 }
 
-saveBtn.innerText = "Uploading...";
-saveBtn.disabled = true;
+DOM.saveBtn.disabled = true;
+DOM.saveBtn.innerText = "Saving...";
 
 try{
 
 let images = [];
 
-if(image.files.length > 0){
-images = await uploadImages(image.files);
+if(DOM.image.files.length){
+images = await uploadImages(DOM.image.files);
 }
 
 await addDoc(collection(db,"products"),{
-name: name.value,
-price: Number(price.value),
-category: category.value,
-shopName: shop.value,
-images: images || []
+name: DOM.name.value,
+price: Number(DOM.price.value),
+category: DOM.category.value,
+shopName: DOM.shop.value,
+images
 });
 
-alert("✅ Product Added");
+alert("✅ Added");
 
-// reset form
-name.value = "";
-price.value = "";
-image.value = "";
+DOM.name.value="";
+DOM.price.value="";
+DOM.image.value="";
 
 }catch(err){
-console.error(err);
-alert("❌ Error: " + err.message);
+alert("Error: "+err.message);
 }
 
-saveBtn.innerText = "Save Product";
-saveBtn.disabled = false;
-}
+DOM.saveBtn.disabled = false;
+DOM.saveBtn.innerText = "Save Product";
+};
 
-// SEARCH
-window.searchProduct = ()=>{
+// 🔍 SEARCH
+DOM.searchBtn.onclick = ()=>{
 
-let text = search.value.toLowerCase();
-results.innerHTML="";
+let text = DOM.search.value.toLowerCase();
+DOM.results.innerHTML="";
 
 products
 .filter(p=>p.name.toLowerCase().includes(text))
 .forEach(p=>{
-
-results.innerHTML += `
+DOM.results.innerHTML += `
 <div class="result">
 <b>${p.name}</b> - ₹${p.price}
 <div class="actions">
@@ -287,74 +298,71 @@ results.innerHTML += `
 </div>
 </div>
 `;
-
 });
-}
+};
 
-// EDIT LOAD
+// ✏️ EDIT LOAD
 window.edit = (id)=>{
 
 let p = products.find(x=>x.id===id);
 if(!p) return;
 
 currentId = id;
-editForm.style.display="block";
+DOM.editForm.style.display="block";
 
-editName.value = p.name;
-editPrice.value = p.price;
-editCategory.value = p.category;
-editShop.value = p.shopName;
+DOM.editName.value = p.name;
+DOM.editPrice.value = p.price;
+DOM.editCategory.value = p.category;
+DOM.editShop.value = p.shopName;
 
-preview.innerHTML = p.images?.[0] ? `<img src="${p.images[0]}">` : "";
-}
+DOM.preview.innerHTML = p.images?.[0] ? `<img src="${p.images[0]}">` : "";
+};
 
-// UPDATE PRODUCT (FIXED)
-window.updateProduct = async ()=>{
+// 🔄 UPDATE
+DOM.updateBtn.onclick = async ()=>{
 
 if(!currentId){
-alert("Click Edit first");
+alert("Select product first");
 return;
 }
 
-updateBtn.innerText = "Updating...";
-updateBtn.disabled = true;
+DOM.updateBtn.disabled = true;
+DOM.updateBtn.innerText = "Updating...";
 
 try{
 
 let updateData = {
-name: editName.value,
-price: Number(editPrice.value),
-category: editCategory.value,
-shopName: editShop.value
+name: DOM.editName.value,
+price: Number(DOM.editPrice.value),
+category: DOM.editCategory.value,
+shopName: DOM.editShop.value
 };
 
-if(editImage.files.length > 0){
-let newImages = await uploadImages(editImage.files);
-updateData.images = newImages;
+if(DOM.editImage.files.length){
+updateData.images = await uploadImages(DOM.editImage.files);
 }
 
 await updateDoc(doc(db,"products",currentId), updateData);
 
 alert("✅ Updated");
 
-editForm.style.display="none";
-currentId = null;
+DOM.editForm.style.display="none";
+currentId=null;
 
 }catch(err){
-console.error(err);
-alert("❌ Update failed");
+alert("Error: "+err.message);
 }
 
-updateBtn.innerText = "Update Product";
-updateBtn.disabled = false;
-}
+DOM.updateBtn.disabled = false;
+DOM.updateBtn.innerText = "Update Product";
+};
 
-// DELETE
+// ❌ DELETE
 window.remove = async (id)=>{
 await deleteDoc(doc(db,"products",id));
 alert("Deleted");
 location.reload();
-}
+};
 
 </script>
 
