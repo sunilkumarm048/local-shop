@@ -196,10 +196,24 @@ const prodSnap = await getDocs(collection(db,"products"));
 products = prodSnap.docs.map(d=>({...d.data(), id:d.id}));
 
 const catSnap = await getDocs(collection(db,"shops"));
+
+DOM.category.innerHTML = "<option>Select Category</option>";
+DOM.editCategory.innerHTML = "<option>Select Category</option>";
+
 catSnap.forEach(d=>{
-DOM.category.innerHTML += `<option>${d.data().category}</option>`;
-DOM.editCategory.innerHTML += `<option>${d.data().category}</option>`;
+const data = d.data();
+
+DOM.category.innerHTML += `<option value="${data.name}">
+${data.icon || ''} ${data.name}
+
+</option>`;
+
+DOM.editCategory.innerHTML += `<option value="${data.name}">
+${data.icon || ''} ${data.name}
+
+</option>`;
 });
+
 
 const shopSnap = await getDocs(collection(db,"localshop-details"));
 shopSnap.forEach(d=>{
