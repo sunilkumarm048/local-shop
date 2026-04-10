@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 
@@ -6,92 +7,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#f5f5f5;
+body{margin:0;font-family:Arial;background:#f8f8f8;}
+
+.header{background:#ffcc00;padding:12px;}
+.location{font-size:14px;font-weight:bold;}
+
+.search{margin-top:10px;}
+.search input{width:100%;padding:10px;border-radius:8px;border:none;}
+
+.categories, .shops{
+display:flex;overflow-x:auto;gap:12px;padding:15px;
 }
 
-/* HEADER */
-.header{
-background:#ffcc00;
-padding:12px;
-position:sticky;
-top:0;
-z-index:10;
-}
-
-.location{
-font-size:13px;
-font-weight:bold;
-}
-
-.search input{
-width:100%;
-padding:10px;
-border-radius:10px;
-border:none;
-margin-top:8px;
-}
-
-/* SECTION */
-.section{
-padding:10px;
-}
-
-.section h3{
-margin:5px 0;
-}
-
-/* SCROLL LIST */
-.scroll{
-display:flex;
-overflow-x:auto;
-gap:10px;
-padding:5px 0;
-}
-
-/* CATEGORY */
-.cat{
-min-width:90px;
-background:white;
-padding:10px;
-border-radius:10px;
-text-align:center;
-font-size:13px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
-cursor:pointer;
-}
-
-/* SHOP */
-.shop{
+.cat, .shop{
 min-width:120px;
 background:white;
 padding:10px;
 border-radius:10px;
 text-align:center;
-font-size:13px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
 cursor:pointer;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
 }
 
-/* PRODUCTS GRID */
-.products{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:10px;
-}
+.section{padding:10px;}
+.products{display:flex;overflow-x:auto;gap:15px;}
 
 /* CARD */
 .card{
+min-width:170px;
 background:white;
 border-radius:12px;
-padding:8px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
+padding:10px;
 }
 
 /* IMAGE SLIDER */
 .imgSlider{
+width:100%;
+height:130px;
 display:flex;
 overflow-x:auto;
 gap:5px;
@@ -100,43 +52,27 @@ scroll-snap-type:x mandatory;
 
 .imgSlider img{
 min-width:100%;
-height:120px;
+height:130px;
 object-fit:contain;
+background:#fff;
+border-radius:8px;
 scroll-snap-align:start;
 }
 
-.price{
-color:green;
-font-weight:bold;
-font-size:14px;
-}
+.price{color:green;font-weight:bold;}
 
-/* BUTTON */
 button{
 background:#ff5a5f;
 color:white;
 border:none;
 padding:6px 10px;
 border-radius:6px;
-font-size:12px;
 }
 
-/* CART */
 .cartBtn{
-position:fixed;
-bottom:10px;
-left:10px;
-right:10px;
-background:black;
-color:white;
-padding:15px;
-text-align:center;
-border-radius:12px;
-font-weight:bold;
-}
-
-.active{
-border:2px solid #ff5a5f;
+position:fixed;bottom:15px;left:10px;right:10px;
+background:black;color:white;padding:15px;text-align:center;
+border-radius:12px;font-weight:bold;
 }
 </style>
 
@@ -154,12 +90,12 @@ border:2px solid #ff5a5f;
 
 <div class="section">
 <h3>Categories</h3>
-<div id="categories" class="scroll"></div>
+<div id="categories" class="categories"></div>
 </div>
 
 <div class="section">
 <h3>Shops</h3>
-<div id="shops" class="scroll"></div>
+<div id="shops" class="shops"></div>
 </div>
 
 <div class="section">
@@ -183,89 +119,13 @@ let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
 // LOAD DATA
 async function loadData(){
-
 const snap = await getDocs(collection(db,"products"));
-
 allProducts = snap.docs.map(d=>d.data());
-
-renderCategories();   // ✅ added
-renderShops();        // ✅ added
 renderProducts();
-
 }
-
 loadData();
 
-
-// ==========================
-// ✅ CATEGORIES FIX
-// ==========================
-function renderCategories(){
-
-const container = document.getElementById("categories");
-
-// get unique categories
-const categories = [...new Set(allProducts.map(p=>p.category).filter(Boolean))];
-
-container.innerHTML = "";
-
-categories.forEach(cat=>{
-container.innerHTML += `
-<div class="cat" onclick="selectCategory('${cat}')">
-${cat}
-</div>
-`;
-});
-}
-
-window.selectCategory = function(cat){
-
-if(selectedCategory === cat){
-selectedCategory = null;
-}else{
-selectedCategory = cat;
-}
-
-renderProducts();
-}
-
-
-// ==========================
-// ✅ SHOPS FIX
-// ==========================
-function renderShops(){
-
-const container = document.getElementById("shops");
-
-// get unique shop names
-const shops = [...new Set(allProducts.map(p=>p.shopName).filter(Boolean))];
-
-container.innerHTML = "";
-
-shops.forEach(shop=>{
-container.innerHTML += `
-<div class="shop" onclick="selectShop('${shop}')">
-${shop}
-</div>
-`;
-});
-}
-
-window.selectShop = function(shop){
-
-if(selectedShop === shop){
-selectedShop = null;
-}else{
-selectedShop = shop;
-}
-
-renderProducts();
-}
-
-
-// ==========================
-// PRODUCTS (same as yours)
-// ==========================
+// PRODUCTS
 function renderProducts(){
 
 const container = document.getElementById("products");
@@ -283,11 +143,14 @@ filtered = filtered.filter(p=>p.shopName === selectedShop);
 
 filtered.forEach(p=>{
 
+// 📸 MULTIPLE IMAGES
 let imagesHTML = "";
 
 if(p.images && p.images.length){
 p.images.forEach(img=>{
-imagesHTML += `<img src="${img}">`;
+imagesHTML += `
+<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">
+`;
 });
 }else{
 imagesHTML = `<img src="https://via.placeholder.com/150">`;
@@ -310,12 +173,8 @@ ${imagesHTML}
 });
 }
 
-
-// ==========================
-// SEARCH (same)
-// ==========================
+// SEARCH
 window.searchProducts = function(){
-
 const text = document.getElementById("search").value.toLowerCase();
 
 const filtered = allProducts.filter(p =>
@@ -331,7 +190,9 @@ let imagesHTML = "";
 
 if(p.images && p.images.length){
 p.images.forEach(img=>{
-imagesHTML += `<img src="${img}">`;
+imagesHTML += `
+<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">
+`;
 });
 }else{
 imagesHTML = `<img src="https://via.placeholder.com/150">`;
@@ -354,10 +215,7 @@ ${imagesHTML}
 });
 }
 
-
-// ==========================
-// CART (same)
-// ==========================
+// CART
 window.addToCart = function(name,price){
 
 let found = cart.find(c=>c.name === name);
