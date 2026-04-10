@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 
@@ -31,18 +32,31 @@ box-shadow:0 2px 6px rgba(0,0,0,0.1);
 .section{padding:10px;}
 .products{display:flex;overflow-x:auto;gap:15px;}
 
+/* CARD */
 .card{
-min-width:160px;
+min-width:170px;
 background:white;
 border-radius:12px;
 padding:10px;
 }
 
-.card img{
+/* IMAGE SLIDER */
+.imgSlider{
 width:100%;
-height:100px;
-object-fit:cover;
+height:130px;
+display:flex;
+overflow-x:auto;
+gap:5px;
+scroll-snap-type:x mandatory;
+}
+
+.imgSlider img{
+min-width:100%;
+height:130px;
+object-fit:contain;
+background:#fff;
 border-radius:8px;
+scroll-snap-align:start;
 }
 
 .price{color:green;font-weight:bold;}
@@ -99,121 +113,19 @@ import { db } from "/local-shop/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 let allProducts = [];
-let allShops = [];
-let allCategories = [];
-
 let selectedCategory = null;
 let selectedShop = null;
-
-let userLat = null;
-let userLng = null;
-
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// 📍 GPS
-navigator.geolocation.watchPosition(async (pos)=>{
-userLat = pos.coords.latitude;
-userLng = pos.coords.longitude;
-
-let place = await getAddress(userLat, userLng);
-document.querySelector(".location").innerText = "📍 Deliver to " + place;
-
-renderShops();
-
-}, ()=>{}, {
-enableHighAccuracy:true,
-timeout:15000,
-maximumAge:0
-});
-
-// 📍 ADDRESS
-async function getAddress(lat,lng){
-try{
-let res = await fetch(
-`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
-);
-let data = await res.json();
-let a = data.address;
-
-return (
-a.suburb || a.village || a.town || a.city || a.state || "Your Area"
-);
-
-}catch{
-return "Your Area";
-}
-}
-
-// 🔥 LOAD DATA
+// LOAD DATA
 async function loadData(){
-
-const prodSnap = await getDocs(collection(db,"products"));
-allProducts = prodSnap.docs.map(d=>d.data());
-
-const shopSnap = await getDocs(collection(db,"localshop-details"));
-allShops = shopSnap.docs.map(d=>d.data());
-
-const catSnap = await getDocs(collection(db,"shops"));
-allCategories = catSnap.docs.map(d=>d.data());
-
-renderCategories();
-renderShops();
+const snap = await getDocs(collection(db,"products"));
+allProducts = snap.docs.map(d=>d.data());
 renderProducts();
 }
-
 loadData();
 
-// 🎯 CATEGORIES
-function renderCategories(){
-
-const container = document.getElementById("categories");
-container.innerHTML = "";
-
-container.innerHTML += `<div class="cat" onclick="selectCategory('All')">All</div>`;
-
-allCategories.forEach(c=>{
-container.innerHTML += `
-<div class="cat" onclick="selectCategory('${c.category}')">
-${c.icon || "🏷"} ${c.name}
-</div>
-`;
-});
-}
-
-window.selectCategory = function(cat){
-selectedCategory = cat === "All" ? null : cat;
-selectedShop = null;
-renderShops();
-renderProducts();
-}
-
-// 🏪 SHOPS
-function renderShops(){
-
-const container = document.getElementById("shops");
-container.innerHTML = "";
-
-let filtered = allShops;
-
-if(selectedCategory){
-filtered = filtered.filter(s => s.category === selectedCategory);
-}
-
-filtered.slice(0,6).forEach(s=>{
-container.innerHTML += `
-<div class="shop" onclick="selectShop('${s.shopName}')">
-🏪<br>${s.shopName}
-</div>
-`;
-});
-}
-
-window.selectShop = function(name){
-selectedShop = name;
-renderProducts();
-}
-
-// 🛒 PRODUCTS
+// PRODUCTS
 function renderProducts(){
 
 const container = document.getElementById("products");
@@ -230,12 +142,26 @@ filtered = filtered.filter(p=>p.shopName === selectedShop);
 }
 
 filtered.forEach(p=>{
+
+// 📸 MULTIPLE IMAGES
+let imagesHTML = "";
+
+if(p.images && p.images.length){
+p.images.forEach(img=>{
+imagesHTML += `
+<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">
+`;
+});
+}else{
+imagesHTML = `<img src="https://via.placeholder.com/150">`;
+}
+
 container.innerHTML += `
 <div class="card">
 
-<img src="${p.images?.[0] 
-  ? p.images[0].replace('/upload/', '/upload/f_auto,q_auto,w_300/') 
-  : 'https://via.placeholder.com/150'}">
+<div class="imgSlider">
+${imagesHTML}
+</div>
 
 <h4>${p.name}</h4>
 <p class="price">₹${p.price}</p>
@@ -247,24 +173,37 @@ container.innerHTML += `
 });
 }
 
-// 🔍 SEARCH
+// SEARCH
 window.searchProducts = function(){
-
 const text = document.getElementById("search").value.toLowerCase();
 
-let filtered = allProducts.filter(p =>
+const filtered = allProducts.filter(p =>
 p.name.toLowerCase().includes(text)
 );
 
-document.getElementById("products").innerHTML = "";
+const container = document.getElementById("products");
+container.innerHTML = "";
 
 filtered.forEach(p=>{
-document.getElementById("products").innerHTML += `
+
+let imagesHTML = "";
+
+if(p.images && p.images.length){
+p.images.forEach(img=>{
+imagesHTML += `
+<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">
+`;
+});
+}else{
+imagesHTML = `<img src="https://via.placeholder.com/150">`;
+}
+
+container.innerHTML += `
 <div class="card">
 
-<img src="${p.images?.[0] 
-  ? p.images[0].replace('/upload/', '/upload/f_auto,q_auto,w_300/') 
-  : 'https://via.placeholder.com/150'}">
+<div class="imgSlider">
+${imagesHTML}
+</div>
 
 <h4>${p.name}</h4>
 <p class="price">₹${p.price}</p>
@@ -276,7 +215,7 @@ document.getElementById("products").innerHTML += `
 });
 }
 
-// 🛒 CART
+// CART
 window.addToCart = function(name,price){
 
 let found = cart.find(c=>c.name === name);
@@ -292,13 +231,8 @@ updateCart();
 }
 
 function updateCart(){
-
 let total = 0;
-
-cart.forEach(c=>{
-total += c.price * c.qty;
-});
-
+cart.forEach(c=> total += c.price * c.qty);
 document.getElementById("total").innerText = total;
 }
 
