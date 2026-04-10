@@ -1,1 +1,157 @@
+<!DOCTYPE html>
 
+<html>
+<head>
+<title>Manage Products</title>
+
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 🚀 ADD PRODUCT
+window.saveProduct = async function(){
+
+  const name = document.getElementById("name").value;
+  const price = document.getElementById("price").value;
+  const category = document.getElementById("category").value;
+  const shopName = document.getElementById("shop").value;
+  const files = document.getElementById("image").files;
+
+  if(!name || !price || !category || !shopName){
+    alert("Fill all fields");
+    return;
+  }
+
+  let imageUrls = [];
+
+  for(let file of files){
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "shop_upload");
+
+    const res = await fetch("https://api.cloudinary.com/v1_1/dqcafnvpi/image/upload", {
+      method:"POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    imageUrls.push(data.secure_url);
+  }
+
+  await addDoc(collection(db,"products"),{
+    name,
+    price:Number(price),
+    category,
+    shopName,
+    images:imageUrls,
+    createdAt:new Date()
+  });
+
+  alert("✅ Product Added");
+
+  document.getElementById("name").value="";
+  document.getElementById("price").value="";
+  document.getElementById("image").value="";
+};
+
+// 🔍 SEARCH REDIRECT
+window.searchProduct = function(){
+
+  const text = document.getElementById("search").value;
+
+  if(!text){
+    alert("Enter product name");
+    return;
+  }
+
+  // redirect to another page (future edit page)
+  window.location.href = "edit-product.html?search=" + text;
+};
+
+</script>
+
+<style>
+body{
+font-family:Arial;
+background:#f5f5f5;
+margin:0;
+}
+
+.container{
+max-width:400px;
+margin:40px auto;
+background:white;
+padding:20px;
+border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);
+}
+
+h2{text-align:center;}
+
+input,select{
+width:100%;
+padding:10px;
+margin:10px 0;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+background:#ff5a5f;
+color:white;
+border:none;
+border-radius:8px;
+font-size:16px;
+}
+
+.searchBox{
+margin-bottom:20px;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Manage Products</h2>
+
+<!-- 🔍 SEARCH -->
+
+<div class="searchBox">
+<input id="search" placeholder="Search product...">
+<button onclick="searchProduct()">Search</button>
+</div>
+
+<hr>
+
+<!-- ➕ ADD PRODUCT -->
+
+<input id="name" placeholder="Product Name">
+
+<input id="price" placeholder="Price">
+
+<select id="category">
+<option>Tea Shop</option>
+<option>Grocery Shop</option>
+</select>
+
+<select id="shop">
+<option>Sunil Kumar</option>
+<option>Pintu Verity store</option>
+</select>
+
+<input type="file" id="image" multiple>
+
+<button onclick="saveProduct()">Save Product</button>
+
+</div>
+
+</body>
+</html>
