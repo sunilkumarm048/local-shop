@@ -142,7 +142,7 @@ collection, addDoc, getDocs, deleteDoc, doc, updateDoc
 const CLOUD_NAME = "dqcafnvpi";
 const UPLOAD_PRESET = "shop_upload";
 
-// ✅ DOM (clean structure)
+// DOM
 const DOM = {
 name: document.getElementById("name"),
 price: document.getElementById("price"),
@@ -174,7 +174,7 @@ editBtn: document.getElementById("editBtn")
 let products = [];
 let currentId = null;
 
-// 🔁 TOGGLE
+// TOGGLE
 DOM.addBtn.onclick = ()=>{
 DOM.addSection.style.display="block";
 DOM.editSection.style.display="none";
@@ -189,12 +189,14 @@ DOM.editBtn.classList.add("active");
 DOM.addBtn.classList.remove("active");
 };
 
-// 📥 LOAD DATA
+// LOAD DATA
 async function load(){
 
+// PRODUCTS
 const prodSnap = await getDocs(collection(db,"products"));
 products = prodSnap.docs.map(d=>({...d.data(), id:d.id}));
 
+// CATEGORIES (use name)
 const catSnap = await getDocs(collection(db,"shops"));
 
 DOM.category.innerHTML = "<option>Select Category</option>";
@@ -203,29 +205,35 @@ DOM.editCategory.innerHTML = "<option>Select Category</option>";
 catSnap.forEach(d=>{
 const data = d.data();
 
-DOM.category.innerHTML += `<option value="${data.name}">
+DOM.category.innerHTML += `
+<option value="${data.name}">
 ${data.icon || ''} ${data.name}
-
 </option>`;
 
-DOM.editCategory.innerHTML += `<option value="${data.name}">
+DOM.editCategory.innerHTML += `
+<option value="${data.name}">
 ${data.icon || ''} ${data.name}
-
 </option>`;
 });
 
-
+// SHOPS + ALL OPTION
 const shopSnap = await getDocs(collection(db,"localshop-details"));
+
+DOM.shop.innerHTML = "<option value='ALL'>🌐 All Shops</option>";
+DOM.editShop.innerHTML = "<option value='ALL'>🌐 All Shops</option>";
+
 shopSnap.forEach(d=>{
-DOM.shop.innerHTML += `<option>${d.data().shopName}</option>`;
-DOM.editShop.innerHTML += `<option>${d.data().shopName}</option>`;
+const shop = d.data().shopName;
+
+DOM.shop.innerHTML += `<option value="${shop}">${shop}</option>`;
+DOM.editShop.innerHTML += `<option value="${shop}">${shop}</option>`;
 });
 
 }
 
 load();
 
-// 📤 UPLOAD
+// UPLOAD
 async function uploadImages(files){
 
 let urls = [];
@@ -253,7 +261,7 @@ console.log(err);
 return urls;
 }
 
-// ➕ ADD
+// ADD PRODUCT
 DOM.saveBtn.onclick = async ()=>{
 
 if(!DOM.name.value || !DOM.price.value){
@@ -294,7 +302,7 @@ DOM.saveBtn.disabled = false;
 DOM.saveBtn.innerText = "Save Product";
 };
 
-// 🔍 SEARCH
+// SEARCH
 DOM.searchBtn.onclick = ()=>{
 
 let text = DOM.search.value.toLowerCase();
@@ -315,7 +323,7 @@ DOM.results.innerHTML += `
 });
 };
 
-// ✏️ EDIT LOAD
+// EDIT
 window.edit = (id)=>{
 
 let p = products.find(x=>x.id===id);
@@ -332,7 +340,7 @@ DOM.editShop.value = p.shopName;
 DOM.preview.innerHTML = p.images?.[0] ? `<img src="${p.images[0]}">` : "";
 };
 
-// 🔄 UPDATE
+// UPDATE
 DOM.updateBtn.onclick = async ()=>{
 
 if(!currentId){
@@ -371,7 +379,7 @@ DOM.updateBtn.disabled = false;
 DOM.updateBtn.innerText = "Update Product";
 };
 
-// ❌ DELETE
+// DELETE
 window.remove = async (id)=>{
 await deleteDoc(doc(db,"products",id));
 alert("Deleted");
