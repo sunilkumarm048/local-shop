@@ -52,7 +52,7 @@ display:none;
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, onSnapshot, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const popup = document.getElementById("popup");
@@ -60,9 +60,9 @@ const popup = document.getElementById("popup");
 let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 let lastCount = 0;
 
-// 📏 DISTANCE FUNCTION
+// 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
-if(!lat2 || !lon2) return 9999;
+if(!lat2 || !lon2) return null;
 
 const R = 6371;
 const dLat = (lat2-lat1)*Math.PI/180;
@@ -96,12 +96,14 @@ return;
 
 const shopEmail = user.email;
 
-// 🔥 IMPORTANT: Replace with real shop data (from DB ideally)
-const shopCategory = localStorage.getItem("shopCategory") || "general";
-const shopLat = parseFloat(localStorage.getItem("shopLat")) || 20.2961;
-const shopLng = parseFloat(localStorage.getItem("shopLng")) || 85.8245;
+// 🔥 GET SHOP DATA (SAFE DEFAULT)
+const shopCategory = localStorage.getItem("shopCategory") || "all";
+const shopLat = parseFloat(localStorage.getItem("shopLat"));
+const shopLng = parseFloat(localStorage.getItem("shopLng"));
 
-// 🔄 LISTEN ORDERS
+console.log("SHOP:", shopCategory, shopLat, shopLng);
+
+// 🔄 ORDERS
 onSnapshot(collection(db,"orders"), async(snapshot)=>{
 
 ordersDiv.innerHTML="";
@@ -112,24 +114,36 @@ for(const docSnap of snapshot.docs){
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ Skip completed
+console.log("ORDER:", order);
+
+// ❌ skip finished
 if(order.status==="Delivered" || order.status==="Rejected") continue;
 
-// ✅ CATEGORY FILTER
-if(order.category && order.category !== shopCategory) continue;
+// ✅ CATEGORY (allow all if "all")
+if(shopCategory !== "all" && order.category && order.category !== shopCategory){
+console.log("❌ Category mismatch");
+continue;
+}
 
-// 📍 DISTANCE FILTER (20 KM MAX)
-let distance = getDistance(
-shopLat,
-shopLng,
-order.customerLat,
-order.customerLng
-);
+// 📍 DISTANCE CHECK (ONLY if location exists)
+let distance = null;
 
-if(distance > 20) continue;
+if(shopLat && shopLng && order.customerLat && order.customerLng){
+distance = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
 
-// ❌ Hide if taken by other shop
-if(order.assigned === true && order.shopEmail !== shopEmail) continue;
+if(distance > 20){
+console.log("❌ Too far:", distance);
+continue;
+}
+}else{
+console.log("⚠️ Location missing → showing order anyway");
+}
+
+// ❌ already taken
+if(order.assigned === true && order.shopEmail !== shopEmail){
+console.log("❌ Taken by another shop");
+continue;
+}
 
 currentCount++;
 
@@ -151,7 +165,7 @@ ordersDiv.innerHTML += `
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br>
-📏 ${distance.toFixed(2)} km<br><br>
+📏 ${distance ? distance.toFixed(2)+" km" : "N/A"}<br><br>
 
 Total: ₹${order.total}<br>
 Status: ${order.status}<br><br>
@@ -168,33 +182,36 @@ ${itemsHTML}<br>
 
 }
 
-// 🔔 SOUND ALERT
+// 🔔 sound
 if(currentCount > lastCount){
 audio.play();
-showPopup("New Nearby Order!");
+showPopup("New Order!");
 }
 
 lastCount = currentCount;
 
-});
+// ❗ if nothing
+if(currentCount === 0){
+ordersDiv.innerHTML = "<h3>❌ No orders available</h3>";
+}
 
 });
 
-// ✅ ACCEPT (LOCK ORDER)
+});
+
+// ✅ ACCEPT
 window.accept = async id=>{
 
-const orderRef = doc(db,"orders",id);
-const orderSnap = await getDoc(orderRef);
-const order = orderSnap.data();
+const ref = doc(db,"orders",id);
+const snap = await getDoc(ref);
+const order = snap.data();
 
-// ❌ Already accepted
 if(order.assigned === true){
-alert("❌ Already accepted by another shop");
+alert("❌ Already accepted");
 return;
 }
 
-// ✅ LOCK
-await updateDoc(orderRef,{
+await updateDoc(ref,{
 status:"Accepted",
 shopEmail: auth.currentUser.email,
 assigned:true
@@ -205,69 +222,13 @@ assigned:true
 // 🚚 READY
 window.ready = async id=>{
 
-const orderDoc = await getDoc(doc(db,"orders",id));
-const order = orderDoc.data();
+const ref = doc(db,"orders",id);
 
-let availableItems = [];
-let newTotal = 0;
-
-// SELECT ITEMS
-order.items.forEach((item,i)=>{
-let checkbox = document.getElementById(`item_${id}_${i}`);
-
-if(checkbox && checkbox.checked){
-availableItems.push(item);
-newTotal += item.price;
-}
+await updateDoc(ref,{
+status:"Ready"
 });
 
-// FIND DELIVERY BOY
-const snap = await getDocs(collection(db,"delivery"));
-
-let nearestBoy = null;
-let minDistance = 9999;
-
-snap.forEach(d=>{
-let data = d.data();
-
-if(data.available && data.lat && data.lng){
-
-let dist = getDistance(
-data.lat,
-data.lng,
-order.customerLat,
-order.customerLng
-);
-
-if(dist < minDistance){
-minDistance = dist;
-nearestBoy = {id:d.id, data:data};
-}
-}
-});
-
-if(!nearestBoy){
-alert("No delivery boy available");
-return;
-}
-
-// UPDATE ORDER
-await updateDoc(doc(db,"orders",id),{
-status:"Ready",
-items: availableItems,
-total: newTotal,
-deliveryBoyId: nearestBoy.id,
-deliveryBoyName: nearestBoy.data.name,
-deliveryStatus:"Assigned",
-isMain:true
-});
-
-// MARK DELIVERY BUSY
-await updateDoc(doc(db,"delivery",nearestBoy.id),{
-available:false
-});
-
-alert("✅ Order Ready & Assigned");
+alert("✅ Order Ready");
 
 };
 
