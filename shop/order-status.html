@@ -51,8 +51,20 @@ display:none;
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import {
+collection,
+onSnapshot,
+doc,
+updateDoc,
+getDoc,
+getDocs,
+addDoc,
+runTransaction
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const popup = document.getElementById("popup");
@@ -96,14 +108,14 @@ return;
 
 const shopEmail = user.email;
 
-// 🔥 GET SHOP DATA (SAFE DEFAULT)
+// 🏪 SHOP DATA
 const shopCategory = localStorage.getItem("shopCategory") || "all";
 const shopLat = parseFloat(localStorage.getItem("shopLat"));
 const shopLng = parseFloat(localStorage.getItem("shopLng"));
 
 console.log("SHOP:", shopCategory, shopLat, shopLng);
 
-// 🔄 ORDERS
+// 🔄 LISTEN ORDERS
 onSnapshot(collection(db,"orders"), async(snapshot)=>{
 
 ordersDiv.innerHTML="";
@@ -114,36 +126,22 @@ for(const docSnap of snapshot.docs){
 const order = docSnap.data();
 const id = docSnap.id;
 
-console.log("ORDER:", order);
-
 // ❌ skip finished
 if(order.status==="Delivered" || order.status==="Rejected") continue;
 
-// ✅ CATEGORY (allow all if "all")
-if(shopCategory !== "all" && order.category && order.category !== shopCategory){
-console.log("❌ Category mismatch");
-continue;
-}
+// ✅ CATEGORY
+if(shopCategory !== "all" && order.category && order.category !== shopCategory) continue;
 
-// 📍 DISTANCE CHECK (ONLY if location exists)
+// 📍 DISTANCE
 let distance = null;
 
 if(shopLat && shopLng && order.customerLat && order.customerLng){
 distance = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
-
-if(distance > 20){
-console.log("❌ Too far:", distance);
-continue;
-}
-}else{
-console.log("⚠️ Location missing → showing order anyway");
+if(distance > 20) continue;
 }
 
 // ❌ already taken
-if(order.assigned === true && order.shopEmail !== shopEmail){
-console.log("❌ Taken by another shop");
-continue;
-}
+if(order.assigned === true && order.shopEmail !== shopEmail) continue;
 
 currentCount++;
 
@@ -182,7 +180,7 @@ ${itemsHTML}<br>
 
 }
 
-// 🔔 sound
+// 🔔 SOUND
 if(currentCount > lastCount){
 audio.play();
 showPopup("New Order!");
@@ -190,7 +188,7 @@ showPopup("New Order!");
 
 lastCount = currentCount;
 
-// ❗ if nothing
+// ❗ no orders
 if(currentCount === 0){
 ordersDiv.innerHTML = "<h3>❌ No orders available</h3>";
 }
@@ -199,36 +197,118 @@ ordersDiv.innerHTML = "<h3>❌ No orders available</h3>";
 
 });
 
-// ✅ ACCEPT
-window.accept = async id=>{
+// 🔒 ACCEPT WITH TRANSACTION
+window.accept = async (id)=>{
+
+const ref = doc(db,"orders",id);
+
+try{
+
+await runTransaction(db, async(transaction)=>{
+
+const snap = await transaction.get(ref);
+
+if(!snap.exists()) throw "Order not found";
+
+const order = snap.data();
+
+if(order.assigned === true){
+throw "Already accepted by another shop";
+}
+
+// ✅ LOCK ORDER
+transaction.update(ref,{
+assigned:true,
+shopEmail: auth.currentUser.email,
+status:"Accepted"
+});
+
+});
+
+alert("✅ Order Accepted");
+
+}catch(e){
+alert("❌ " + e);
+}
+
+};
+
+// 📦 READY + MULTI SPLIT
+window.ready = async (id)=>{
 
 const ref = doc(db,"orders",id);
 const snap = await getDoc(ref);
 const order = snap.data();
 
-if(order.assigned === true){
-alert("❌ Already accepted");
-return;
-}
+let availableItems = [];
+let remainingItems = [];
 
-await updateDoc(ref,{
-status:"Accepted",
-shopEmail: auth.currentUser.email,
-assigned:true
+// SPLIT
+order.items.forEach((item,i)=>{
+let checkbox = document.getElementById(`item_${id}_${i}`);
+
+if(checkbox && checkbox.checked){
+availableItems.push(item);
+}else{
+remainingItems.push(item);
+}
 });
 
-};
-
-// 🚚 READY
-window.ready = async id=>{
-
-const ref = doc(db,"orders",id);
-
+// UPDATE CURRENT
 await updateDoc(ref,{
+items: availableItems,
 status:"Ready"
 });
 
-alert("✅ Order Ready");
+// 🔥 SPLIT TO OTHER SHOP
+if(remainingItems.length > 0){
+
+const shopsSnap = await getDocs(collection(db,"localshop-details"));
+
+for(const s of shopsSnap.docs){
+
+let shop = s.data();
+
+if(shop.email === auth.currentUser.email) continue;
+if(shop.category !== order.category) continue;
+
+let dist = getDistance(
+shop.lat, shop.lng,
+order.customerLat, order.customerLng
+);
+
+if(dist > 20) continue;
+
+await addDoc(collection(db,"orders"),{
+
+parentOrderId: id,
+isSplit: true,
+
+name: order.name,
+phone: order.phone,
+address: order.address,
+
+customerLat: order.customerLat,
+customerLng: order.customerLng,
+
+shopEmail: shop.email,
+shopLat: shop.lat,
+shopLng: shop.lng,
+
+items: remainingItems,
+status:"Pending",
+assigned:false,
+
+time: new Date()
+
+});
+
+break; // only one shop at a time
+}
+
+}
+
+alert("✅ Order Ready & Split");
 
 };
 
