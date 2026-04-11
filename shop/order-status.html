@@ -90,13 +90,6 @@ const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 return R*c;
 }
 
-// 🔔 POPUP
-function showPopup(msg){
-popup.innerText = msg;
-popup.style.display = "block";
-setTimeout(()=> popup.style.display="none",2000);
-}
-
 // 🔐 AUTH
 onAuthStateChanged(auth, async(user)=>{
 
@@ -107,19 +100,15 @@ return;
 }
 
 const shopEmail = user.email;
-
-// 🏪 SHOP DATA
 const shopCategory = localStorage.getItem("shopCategory") || "all";
 const shopLat = parseFloat(localStorage.getItem("shopLat"));
 const shopLng = parseFloat(localStorage.getItem("shopLng"));
-
-console.log("SHOP:", shopCategory, shopLat, shopLng);
 
 // 🔄 LISTEN ORDERS
 onSnapshot(collection(db,"orders"), async(snapshot)=>{
 
 ordersDiv.innerHTML="";
-let currentCount = 0;
+let count = 0;
 
 for(const docSnap of snapshot.docs){
 
@@ -129,21 +118,17 @@ const id = docSnap.id;
 // ❌ skip finished
 if(order.status==="Delivered" || order.status==="Rejected") continue;
 
+// ✅ ONLY SHOW YOUR ORDERS
+if(order.shopEmail && order.shopEmail !== shopEmail) continue;
+
 // ✅ CATEGORY
 if(shopCategory !== "all" && order.category && order.category !== shopCategory) continue;
 
-// 📍 DISTANCE
-let distance = null;
-
+// 📍 DISTANCE FILTER
 if(shopLat && shopLng && order.customerLat && order.customerLng){
-distance = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
-if(distance > 20) continue;
+let dist = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
+if(dist > 20) continue;
 }
-
-// ❌ already taken
-if(order.assigned === true && order.shopEmail !== shopEmail) continue;
-
-currentCount++;
 
 // 🛒 ITEMS
 let itemsHTML = "";
@@ -156,19 +141,20 @@ ${item.name} ₹${item.price}
 `).join("");
 }
 
+count++;
+
 // UI
 ordersDiv.innerHTML += `
 <div class="order">
 
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
-📍 ${order.address}<br>
-📏 ${distance ? distance.toFixed(2)+" km" : "N/A"}<br><br>
+📍 ${order.address}<br><br>
 
 Total: ₹${order.total}<br>
 Status: ${order.status}<br><br>
 
-<b>🛒 Select Available Items:</b><br>
+<b>🛒 Items:</b><br>
 ${itemsHTML}<br>
 
 <button class="accept" onclick="accept('${id}')">Accept</button>
@@ -180,24 +166,15 @@ ${itemsHTML}<br>
 
 }
 
-// 🔔 SOUND
-if(currentCount > lastCount){
-audio.play();
-showPopup("New Order!");
-}
-
-lastCount = currentCount;
-
-// ❗ no orders
-if(currentCount === 0){
-ordersDiv.innerHTML = "<h3>❌ No orders available</h3>";
+if(count===0){
+ordersDiv.innerHTML="<h3>❌ No orders</h3>";
 }
 
 });
 
 });
 
-// 🔒 ACCEPT WITH TRANSACTION
+// 🔒 ACCEPT (TRANSACTION)
 window.accept = async (id)=>{
 
 const ref = doc(db,"orders",id);
@@ -213,10 +190,9 @@ if(!snap.exists()) throw "Order not found";
 const order = snap.data();
 
 if(order.assigned === true){
-throw "Already accepted by another shop";
+throw "Already accepted";
 }
 
-// ✅ LOCK ORDER
 transaction.update(ref,{
 assigned:true,
 shopEmail: auth.currentUser.email,
@@ -225,43 +201,49 @@ status:"Accepted"
 
 });
 
-alert("✅ Order Accepted");
+alert("✅ Accepted");
 
 }catch(e){
-alert("❌ " + e);
+alert("❌ "+e);
 }
 
 };
 
-// 📦 READY + MULTI SPLIT
+// 📦 READY (FIXED SPLIT)
 window.ready = async (id)=>{
 
 const ref = doc(db,"orders",id);
 const snap = await getDoc(ref);
 const order = snap.data();
 
-let availableItems = [];
-let remainingItems = [];
+let selected = [];
+let remaining = [];
 
-// SPLIT
+// SPLIT ITEMS
 order.items.forEach((item,i)=>{
 let checkbox = document.getElementById(`item_${id}_${i}`);
 
 if(checkbox && checkbox.checked){
-availableItems.push(item);
+selected.push(item);
 }else{
-remainingItems.push(item);
+remaining.push(item);
 }
 });
 
-// UPDATE CURRENT
+if(selected.length === 0){
+alert("Select items");
+return;
+}
+
+// ✅ UPDATE CURRENT ORDER
 await updateDoc(ref,{
-items: availableItems,
+items:selected,
+total:selected.reduce((s,i)=>s+i.price,0),
 status:"Ready"
 });
 
-// 🔥 SPLIT TO OTHER SHOP
-if(remainingItems.length > 0){
+// 🔥 CREATE NEW ORDER FOR REMAINING
+if(remaining.length > 0){
 
 const shopsSnap = await getDocs(collection(db,"localshop-details"));
 
@@ -281,8 +263,8 @@ if(dist > 20) continue;
 
 await addDoc(collection(db,"orders"),{
 
-parentOrderId: id,
-isSplit: true,
+parentOrderId:id,
+isSplit:true,
 
 name: order.name,
 phone: order.phone,
@@ -295,20 +277,22 @@ shopEmail: shop.email,
 shopLat: shop.lat,
 shopLng: shop.lng,
 
-items: remainingItems,
+items: remaining,
+total: remaining.reduce((s,i)=>s+i.price,0),
+
 status:"Pending",
 assigned:false,
 
-time: new Date()
+time:new Date()
 
 });
 
-break; // only one shop at a time
+break;
 }
 
 }
 
-alert("✅ Order Ready & Split");
+alert("✅ Order Split Done");
 
 };
 
