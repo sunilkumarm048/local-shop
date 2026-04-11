@@ -52,7 +52,7 @@ display:none;
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc, getDocs, getDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, onSnapshot, doc, updateDoc, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const popup = document.getElementById("popup");
@@ -96,12 +96,12 @@ return;
 
 const shopEmail = user.email;
 
-// 👉 TODO: Replace with real shop data
+// 🔥 IMPORTANT: Replace with real shop data (from DB ideally)
 const shopCategory = localStorage.getItem("shopCategory") || "general";
 const shopLat = parseFloat(localStorage.getItem("shopLat")) || 20.2961;
 const shopLng = parseFloat(localStorage.getItem("shopLng")) || 85.8245;
 
-// 🔄 ORDERS LISTENER
+// 🔄 LISTEN ORDERS
 onSnapshot(collection(db,"orders"), async(snapshot)=>{
 
 ordersDiv.innerHTML="";
@@ -112,13 +112,13 @@ for(const docSnap of snapshot.docs){
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ REMOVE FINISHED
+// ❌ Skip completed
 if(order.status==="Delivered" || order.status==="Rejected") continue;
 
 // ✅ CATEGORY FILTER
 if(order.category && order.category !== shopCategory) continue;
 
-// 📍 DISTANCE FILTER (MAX 20 KM)
+// 📍 DISTANCE FILTER (20 KM MAX)
 let distance = getDistance(
 shopLat,
 shopLng,
@@ -128,12 +128,12 @@ order.customerLng
 
 if(distance > 20) continue;
 
-// ❌ IF ORDER TAKEN BY OTHER SHOP → HIDE
+// ❌ Hide if taken by other shop
 if(order.assigned === true && order.shopEmail !== shopEmail) continue;
 
 currentCount++;
 
-// 🛒 ITEMS UI
+// 🛒 ITEMS
 let itemsHTML = "";
 if(order.items){
 itemsHTML = order.items.map((item,i)=>`
@@ -168,7 +168,7 @@ ${itemsHTML}<br>
 
 }
 
-// 🔔 NEW ORDER SOUND
+// 🔔 SOUND ALERT
 if(currentCount > lastCount){
 audio.play();
 showPopup("New Nearby Order!");
@@ -180,20 +180,20 @@ lastCount = currentCount;
 
 });
 
-// ✅ ACCEPT (LOCK SYSTEM)
+// ✅ ACCEPT (LOCK ORDER)
 window.accept = async id=>{
 
 const orderRef = doc(db,"orders",id);
 const orderSnap = await getDoc(orderRef);
 const order = orderSnap.data();
 
-// ❌ Already taken
+// ❌ Already accepted
 if(order.assigned === true){
 alert("❌ Already accepted by another shop");
 return;
 }
 
-// ✅ LOCK ORDER
+// ✅ LOCK
 await updateDoc(orderRef,{
 status:"Accepted",
 shopEmail: auth.currentUser.email,
@@ -202,25 +202,22 @@ assigned:true
 
 };
 
-// 🚚 READY (SPLIT SAME AS BEFORE)
+// 🚚 READY
 window.ready = async id=>{
 
 const orderDoc = await getDoc(doc(db,"orders",id));
 const order = orderDoc.data();
 
 let availableItems = [];
-let remainingItems = [];
 let newTotal = 0;
 
-// SPLIT ITEMS
+// SELECT ITEMS
 order.items.forEach((item,i)=>{
 let checkbox = document.getElementById(`item_${id}_${i}`);
 
 if(checkbox && checkbox.checked){
 availableItems.push(item);
 newTotal += item.price;
-}else{
-remainingItems.push(item);
 }
 });
 
@@ -235,7 +232,12 @@ let data = d.data();
 
 if(data.available && data.lat && data.lng){
 
-let dist = getDistance(data.lat,data.lng,order.customerLat,order.customerLng);
+let dist = getDistance(
+data.lat,
+data.lng,
+order.customerLat,
+order.customerLng
+);
 
 if(dist < minDistance){
 minDistance = dist;
@@ -249,7 +251,7 @@ alert("No delivery boy available");
 return;
 }
 
-// UPDATE MAIN ORDER
+// UPDATE ORDER
 await updateDoc(doc(db,"orders",id),{
 status:"Ready",
 items: availableItems,
@@ -265,7 +267,7 @@ await updateDoc(doc(db,"delivery",nearestBoy.id),{
 available:false
 });
 
-alert("✅ Order processed");
+alert("✅ Order Ready & Assigned");
 
 };
 
