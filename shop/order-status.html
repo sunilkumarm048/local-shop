@@ -47,19 +47,10 @@ margin-left:5px;
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-collection,
-onSnapshot,
-doc,
-updateDoc,
-getDoc,
-getDocs,
-addDoc,
-runTransaction
+collection, onSnapshot, doc, updateDoc,
+getDoc, getDocs, addDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
@@ -67,19 +58,15 @@ const ordersDiv = document.getElementById("orders");
 // 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
 if(!lat2 || !lon2) return null;
-
 const R = 6371;
 const dLat = (lat2-lat1)*Math.PI/180;
 const dLon = (lon2-lon1)*Math.PI/180;
-
 const a =
 Math.sin(dLat/2)**2 +
 Math.cos(lat1*Math.PI/180) *
 Math.cos(lat2*Math.PI/180) *
 Math.sin(dLon/2)**2;
-
-const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-return R*c;
+return 2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
 // 🔐 AUTH
@@ -96,18 +83,11 @@ const shopCategory = localStorage.getItem("shopCategory") || "all";
 const shopLat = parseFloat(localStorage.getItem("shopLat"));
 const shopLng = parseFloat(localStorage.getItem("shopLng"));
 
-// 🔄 LISTEN MAIN ORDERS
-onSnapshot(collection(db,"orders"), (snapshot)=>{
-renderOrders(snapshot, false);
-});
+// 🔄 LISTEN BOTH COLLECTIONS
+onSnapshot(collection(db,"orders"), snap => render(snap,false));
+onSnapshot(collection(db,"split-orders"), snap => render(snap,true));
 
-// 🔄 LISTEN SPLIT ORDERS
-onSnapshot(collection(db,"split-orders"), (snapshot)=>{
-renderOrders(snapshot, true);
-});
-
-// 🎨 RENDER FUNCTION
-function renderOrders(snapshot, isSplit){
+function render(snapshot, isSplit){
 
 snapshot.docs.forEach(docSnap=>{
 
@@ -126,55 +106,48 @@ let dist = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
 if(dist > 20) return;
 }
 
-// 🔥 MAIN ORDER VISIBILITY
+// 🔥 VISIBILITY
 if(!isSplit){
 if(order.assigned === true && order.shopEmail !== shopEmail) return;
-}
-
-// 🔥 SPLIT ORDER VISIBILITY
-if(isSplit){
+}else{
 if(order.shopEmail !== shopEmail) return;
 }
 
 // 🛒 ITEMS
-let itemsHTML = "";
-if(order.items){
-itemsHTML = order.items.map((item,i)=>`
+let itemsHTML = order.items?.map((item,i)=>`
 <label>
 <input type="checkbox" id="item_${id}_${i}" checked>
 ${item.name} ₹${item.price}
 </label><br>
-`).join("");
-}
+`).join("") || "";
 
-// 🎯 BUTTON LOGIC
+// 🎯 BUTTONS
 let buttons = "";
 
-// 🧾 NEW ORDER
-if(order.status === "Pending"){
+// Pending
+if(order.status==="Pending"){
 buttons = `
-<button class="accept" onclick="accept('${id}', ${isSplit})">Accept</button>
-<button class="reject" onclick="reject('${id}', ${isSplit})">Reject</button>
+<button class="accept" onclick="accept('${id}',${isSplit})">Accept</button>
+<button class="reject" onclick="reject('${id}',${isSplit})">Reject</button>
 `;
 }
 
-// ✅ AFTER ACCEPT
-else if(order.status === "Accepted"){
+// Accepted
+else if(order.status==="Accepted"){
 buttons = `
-<button class="split" onclick="splitOrder('${id}', ${isSplit})">Split / Partial</button>
-<button class="ready" onclick="markReady('${id}', ${isSplit})">Ready</button>
+<button class="split" onclick="splitOrder('${id}')">Split</button>
+<button class="ready" onclick="markReady('${id}',${isSplit})">Ready</button>
 `;
 }
 
-// 📦 READY
-else if(order.status === "Ready"){
+// Ready
+else if(order.status==="Ready"){
 buttons = `<button class="ready">Ready ✔</button>`;
 }
 
 // UI
 ordersDiv.innerHTML += `
 <div class="order">
-
 <b>${order.name}</b> ${isSplit ? '<span class="badge">Split</span>' : ''}<br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
@@ -186,62 +159,48 @@ Status: ${order.status}<br><br>
 ${itemsHTML}<br>
 
 ${buttons}
-
 </div>
 `;
 
 });
+
 }
 
 // 🔒 ACCEPT
-window.accept = async (id, isSplit)=>{
-
+window.accept = async(id,isSplit)=>{
 const col = isSplit ? "split-orders" : "orders";
-const ref = doc(db, col, id);
+const ref = doc(db,col,id);
 
 try{
-await runTransaction(db, async(transaction)=>{
+await runTransaction(db, async(tx)=>{
+let snap = await tx.get(ref);
+let data = snap.data();
 
-const snap = await transaction.get(ref);
-const order = snap.data();
+if(data.assigned) throw "Already accepted";
 
-if(order.assigned === true){
-throw "Already accepted";
-}
-
-transaction.update(ref,{
+tx.update(ref,{
 assigned:true,
 shopEmail: auth.currentUser.email,
 status:"Accepted"
 });
-
 });
-
 alert("✅ Accepted");
-
-}catch(e){
-alert("❌ "+e);
-}
-
+}catch(e){ alert(e); }
 };
 
 // 📦 SPLIT
-window.splitOrder = async (id)=>{
+window.splitOrder = async(id)=>{
 
 const ref = doc(db,"orders",id);
 const snap = await getDoc(ref);
 const order = snap.data();
 
-let selected = [];
-let remaining = [];
+let selected=[], remaining=[];
 
 order.items.forEach((item,i)=>{
-let checkbox = document.getElementById(`item_${id}_${i}`);
-if(checkbox && checkbox.checked){
-selected.push(item);
-}else{
-remaining.push(item);
-}
+let cb=document.getElementById(`item_${id}_${i}`);
+if(cb && cb.checked) selected.push(item);
+else remaining.push(item);
 });
 
 // update main
@@ -250,44 +209,38 @@ items:selected,
 total:selected.reduce((s,i)=>s+i.price,0)
 });
 
-// send remaining to split-orders
-if(remaining.length > 0){
+// create split orders
+if(remaining.length>0){
 
 const shopsSnap = await getDocs(collection(db,"localshop-details"));
 
 for(const s of shopsSnap.docs){
 
-let shop = s.data();
+let shop=s.data();
 
-if(shop.email === auth.currentUser.email) continue;
-if(shop.category !== order.category) continue;
+if(shop.email===auth.currentUser.email) continue;
+if(shop.category!==order.category) continue;
 
-let dist = getDistance(shop.lat, shop.lng, order.customerLat, order.customerLng);
-if(dist > 20) continue;
+let dist=getDistance(shop.lat,shop.lng,order.customerLat,order.customerLng);
+if(dist>20) continue;
 
-if(remaining.length === 0) break;
+if(remaining.length===0) break;
 
-let item = [remaining.shift()];
+let item=[remaining.shift()];
 
 await addDoc(collection(db,"split-orders"),{
-
 parentOrderId:id,
-name: order.name,
-phone: order.phone,
-address: order.address,
-
-customerLat: order.customerLat,
-customerLng: order.customerLng,
-
-shopEmail: shop.email,
-
+name:order.name,
+phone:order.phone,
+address:order.address,
+customerLat:order.customerLat,
+customerLng:order.customerLng,
+shopEmail:shop.email,
 items:item,
 total:item.reduce((s,i)=>s+i.price,0),
-
 status:"Pending",
 assigned:false,
 time:new Date()
-
 });
 
 }
@@ -295,30 +248,22 @@ time:new Date()
 }
 
 alert("✅ Split Done");
-
 };
 
 // 🚚 READY
-window.markReady = async (id, isSplit)=>{
-
+window.markReady = async(id,isSplit)=>{
 const col = isSplit ? "split-orders" : "orders";
-
-await updateDoc(doc(db,col,id),{
-status:"Ready"
-});
-
-alert("✅ Ready for delivery");
-
+await updateDoc(doc(db,col,id),{status:"Ready"});
+alert("✅ Ready");
 };
 
 // ❌ REJECT
-window.reject = async (id, isSplit)=>{
+window.reject = async(id,isSplit)=>{
 const col = isSplit ? "split-orders" : "orders";
-
-await updateDoc(doc(db,col,id),{
-status:"Rejected"
-});
+await updateDoc(doc(db,col,id),{status:"Rejected"});
 };
+
+});
 
 </script>
 
