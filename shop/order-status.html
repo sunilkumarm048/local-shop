@@ -26,6 +26,7 @@ cursor:pointer;
 .accept{background:green;}
 .ready{background:blue;}
 .reject{background:red;}
+.split{background:orange;}
 
 .badge{
 background:#ddd;
@@ -95,35 +96,45 @@ const shopCategory = localStorage.getItem("shopCategory") || "all";
 const shopLat = parseFloat(localStorage.getItem("shopLat"));
 const shopLng = parseFloat(localStorage.getItem("shopLng"));
 
-// 🔄 LISTEN ORDERS
-onSnapshot(collection(db,"orders"), async(snapshot)=>{
+// 🔄 LISTEN MAIN ORDERS
+onSnapshot(collection(db,"orders"), (snapshot)=>{
+renderOrders(snapshot, false);
+});
 
-ordersDiv.innerHTML="";
-let count = 0;
+// 🔄 LISTEN SPLIT ORDERS
+onSnapshot(collection(db,"split-orders"), (snapshot)=>{
+renderOrders(snapshot, true);
+});
 
-for(const docSnap of snapshot.docs){
+// 🎨 RENDER FUNCTION
+function renderOrders(snapshot, isSplit){
+
+snapshot.docs.forEach(docSnap=>{
 
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ skip finished
-if(order.status==="Delivered" || order.status==="Rejected") continue;
+// ❌ skip completed
+if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// ✅ CATEGORY FILTER
-if(shopCategory !== "all" && order.category && order.category !== shopCategory) continue;
+// ✅ CATEGORY
+if(shopCategory !== "all" && order.category && order.category !== shopCategory) return;
 
-// 📍 DISTANCE FILTER
+// 📍 DISTANCE
 if(shopLat && shopLng && order.customerLat && order.customerLng){
 let dist = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
-if(dist > 20) continue;
+if(dist > 20) return;
 }
 
-// 🔥 SHOW LOGIC
-// Show all if not assigned
-// Show only own if assigned
-if(order.assigned === true && order.shopEmail !== shopEmail) continue;
+// 🔥 MAIN ORDER VISIBILITY
+if(!isSplit){
+if(order.assigned === true && order.shopEmail !== shopEmail) return;
+}
 
-count++;
+// 🔥 SPLIT ORDER VISIBILITY
+if(isSplit){
+if(order.shopEmail !== shopEmail) return;
+}
 
 // 🛒 ITEMS
 let itemsHTML = "";
@@ -136,16 +147,35 @@ ${item.name} ₹${item.price}
 `).join("");
 }
 
-// 🏷️ BADGES
-let badge = "";
-if(order.isSplit) badge += `<span class="badge">Split</span>`;
-if(order.parentOrderId) badge += `<span class="badge">Child</span>`;
+// 🎯 BUTTON LOGIC
+let buttons = "";
+
+// 🧾 NEW ORDER
+if(order.status === "Pending"){
+buttons = `
+<button class="accept" onclick="accept('${id}', ${isSplit})">Accept</button>
+<button class="reject" onclick="reject('${id}', ${isSplit})">Reject</button>
+`;
+}
+
+// ✅ AFTER ACCEPT
+else if(order.status === "Accepted"){
+buttons = `
+<button class="split" onclick="splitOrder('${id}', ${isSplit})">Split / Partial</button>
+<button class="ready" onclick="markReady('${id}', ${isSplit})">Ready</button>
+`;
+}
+
+// 📦 READY
+else if(order.status === "Ready"){
+buttons = `<button class="ready">Ready ✔</button>`;
+}
 
 // UI
 ordersDiv.innerHTML += `
 <div class="order">
 
-<b>${order.name}</b> ${badge}<br>
+<b>${order.name}</b> ${isSplit ? '<span class="badge">Split</span>' : ''}<br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
@@ -155,36 +185,24 @@ Status: ${order.status}<br><br>
 <b>🛒 Items:</b><br>
 ${itemsHTML}<br>
 
-<button class="accept" onclick="accept('${id}')">Accept</button>
-<button class="ready" onclick="ready('${id}')">Ready</button>
-<button class="reject" onclick="reject('${id}')">Reject</button>
+${buttons}
 
 </div>
 `;
 
+});
 }
 
-if(count===0){
-ordersDiv.innerHTML="<h3>❌ No orders available</h3>";
-}
+// 🔒 ACCEPT
+window.accept = async (id, isSplit)=>{
 
-});
-
-});
-
-// 🔒 ACCEPT (TRANSACTION)
-window.accept = async (id)=>{
-
-const ref = doc(db,"orders",id);
+const col = isSplit ? "split-orders" : "orders";
+const ref = doc(db, col, id);
 
 try{
-
 await runTransaction(db, async(transaction)=>{
 
 const snap = await transaction.get(ref);
-
-if(!snap.exists()) throw "Order not found";
-
 const order = snap.data();
 
 if(order.assigned === true){
@@ -199,7 +217,7 @@ status:"Accepted"
 
 });
 
-alert("✅ Order Accepted");
+alert("✅ Accepted");
 
 }catch(e){
 alert("❌ "+e);
@@ -207,8 +225,8 @@ alert("❌ "+e);
 
 };
 
-// 📦 READY → MULTI SPLIT
-window.ready = async (id)=>{
+// 📦 SPLIT
+window.splitOrder = async (id)=>{
 
 const ref = doc(db,"orders",id);
 const snap = await getDoc(ref);
@@ -217,10 +235,8 @@ const order = snap.data();
 let selected = [];
 let remaining = [];
 
-// SPLIT ITEMS
 order.items.forEach((item,i)=>{
 let checkbox = document.getElementById(`item_${id}_${i}`);
-
 if(checkbox && checkbox.checked){
 selected.push(item);
 }else{
@@ -228,19 +244,13 @@ remaining.push(item);
 }
 });
 
-if(selected.length === 0){
-alert("Select at least 1 item");
-return;
-}
-
-// ✅ UPDATE CURRENT ORDER
+// update main
 await updateDoc(ref,{
 items:selected,
-total:selected.reduce((s,i)=>s+i.price,0),
-status:"Ready"
+total:selected.reduce((s,i)=>s+i.price,0)
 });
 
-// 🔥 MULTI SHOP SPLIT
+// send remaining to split-orders
 if(remaining.length > 0){
 
 const shopsSnap = await getDocs(collection(db,"localshop-details"));
@@ -252,24 +262,16 @@ let shop = s.data();
 if(shop.email === auth.currentUser.email) continue;
 if(shop.category !== order.category) continue;
 
-let dist = getDistance(
-shop.lat, shop.lng,
-order.customerLat, order.customerLng
-);
-
+let dist = getDistance(shop.lat, shop.lng, order.customerLat, order.customerLng);
 if(dist > 20) continue;
 
-// ❌ stop if no items
 if(remaining.length === 0) break;
 
-// 👉 assign 1 item per shop
-let itemToSend = [remaining.shift()];
+let item = [remaining.shift()];
 
-await addDoc(collection(db,"orders"),{
+await addDoc(collection(db,"split-orders"),{
 
 parentOrderId:id,
-isSplit:true,
-
 name: order.name,
 phone: order.phone,
 address: order.address,
@@ -278,15 +280,12 @@ customerLat: order.customerLat,
 customerLng: order.customerLng,
 
 shopEmail: shop.email,
-shopLat: shop.lat,
-shopLng: shop.lng,
 
-items: itemToSend,
-total: itemToSend.reduce((s,i)=>s+i.price,0),
+items:item,
+total:item.reduce((s,i)=>s+i.price,0),
 
 status:"Pending",
 assigned:false,
-
 time:new Date()
 
 });
@@ -295,13 +294,28 @@ time:new Date()
 
 }
 
-alert("✅ Order Split Successfully");
+alert("✅ Split Done");
+
+};
+
+// 🚚 READY
+window.markReady = async (id, isSplit)=>{
+
+const col = isSplit ? "split-orders" : "orders";
+
+await updateDoc(doc(db,col,id),{
+status:"Ready"
+});
+
+alert("✅ Ready for delivery");
 
 };
 
 // ❌ REJECT
-window.reject = async id=>{
-await updateDoc(doc(db,"orders",id),{
+window.reject = async (id, isSplit)=>{
+const col = isSplit ? "split-orders" : "orders";
+
+await updateDoc(doc(db,col,id),{
 status:"Rejected"
 });
 };
