@@ -27,15 +27,12 @@ cursor:pointer;
 .ready{background:blue;}
 .reject{background:red;}
 
-.popup{
-position:fixed;
-top:20px;
-right:20px;
-background:#28a745;
-color:white;
-padding:10px;
-border-radius:8px;
-display:none;
+.badge{
+background:#ddd;
+padding:3px 8px;
+border-radius:5px;
+font-size:12px;
+margin-left:5px;
 }
 </style>
 
@@ -44,9 +41,7 @@ display:none;
 <body>
 
 <h2>📦 Smart Active Orders</h2>
-
 <div id="orders"></div>
-<div id="popup" class="popup"></div>
 
 <script type="module">
 
@@ -67,10 +62,6 @@ runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
-const popup = document.getElementById("popup");
-
-let audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
-let lastCount = 0;
 
 // 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
@@ -118,10 +109,7 @@ const id = docSnap.id;
 // ❌ skip finished
 if(order.status==="Delivered" || order.status==="Rejected") continue;
 
-// ✅ ONLY SHOW YOUR ORDERS
-if(order.shopEmail && order.shopEmail !== shopEmail) continue;
-
-// ✅ CATEGORY
+// ✅ CATEGORY FILTER
 if(shopCategory !== "all" && order.category && order.category !== shopCategory) continue;
 
 // 📍 DISTANCE FILTER
@@ -129,6 +117,13 @@ if(shopLat && shopLng && order.customerLat && order.customerLng){
 let dist = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
 if(dist > 20) continue;
 }
+
+// 🔥 SHOW LOGIC
+// Show all if not assigned
+// Show only own if assigned
+if(order.assigned === true && order.shopEmail !== shopEmail) continue;
+
+count++;
 
 // 🛒 ITEMS
 let itemsHTML = "";
@@ -141,13 +136,16 @@ ${item.name} ₹${item.price}
 `).join("");
 }
 
-count++;
+// 🏷️ BADGES
+let badge = "";
+if(order.isSplit) badge += `<span class="badge">Split</span>`;
+if(order.parentOrderId) badge += `<span class="badge">Child</span>`;
 
 // UI
 ordersDiv.innerHTML += `
 <div class="order">
 
-<b>${order.name}</b><br>
+<b>${order.name}</b> ${badge}<br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
@@ -167,7 +165,7 @@ ${itemsHTML}<br>
 }
 
 if(count===0){
-ordersDiv.innerHTML="<h3>❌ No orders</h3>";
+ordersDiv.innerHTML="<h3>❌ No orders available</h3>";
 }
 
 });
@@ -201,7 +199,7 @@ status:"Accepted"
 
 });
 
-alert("✅ Accepted");
+alert("✅ Order Accepted");
 
 }catch(e){
 alert("❌ "+e);
@@ -209,7 +207,7 @@ alert("❌ "+e);
 
 };
 
-// 📦 READY (FIXED SPLIT)
+// 📦 READY → MULTI SPLIT
 window.ready = async (id)=>{
 
 const ref = doc(db,"orders",id);
@@ -231,7 +229,7 @@ remaining.push(item);
 });
 
 if(selected.length === 0){
-alert("Select items");
+alert("Select at least 1 item");
 return;
 }
 
@@ -242,7 +240,7 @@ total:selected.reduce((s,i)=>s+i.price,0),
 status:"Ready"
 });
 
-// 🔥 CREATE NEW ORDER FOR REMAINING
+// 🔥 MULTI SHOP SPLIT
 if(remaining.length > 0){
 
 const shopsSnap = await getDocs(collection(db,"localshop-details"));
@@ -261,6 +259,12 @@ order.customerLat, order.customerLng
 
 if(dist > 20) continue;
 
+// ❌ stop if no items
+if(remaining.length === 0) break;
+
+// 👉 assign 1 item per shop
+let itemToSend = [remaining.shift()];
+
 await addDoc(collection(db,"orders"),{
 
 parentOrderId:id,
@@ -277,8 +281,8 @@ shopEmail: shop.email,
 shopLat: shop.lat,
 shopLng: shop.lng,
 
-items: remaining,
-total: remaining.reduce((s,i)=>s+i.price,0),
+items: itemToSend,
+total: itemToSend.reduce((s,i)=>s+i.price,0),
 
 status:"Pending",
 assigned:false,
@@ -287,12 +291,11 @@ time:new Date()
 
 });
 
-break;
 }
 
 }
 
-alert("✅ Order Split Done");
+alert("✅ Order Split Successfully");
 
 };
 
