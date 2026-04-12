@@ -55,20 +55,6 @@ getDoc, getDocs, addDoc, runTransaction
 
 const ordersDiv = document.getElementById("orders");
 
-// 📏 DISTANCE
-function getDistance(lat1, lon1, lat2, lon2){
-if(!lat2 || !lon2) return null;
-const R = 6371;
-const dLat = (lat2-lat1)*Math.PI/180;
-const dLon = (lon2-lon1)*Math.PI/180;
-const a =
-Math.sin(dLat/2)**2 +
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2)**2;
-return 2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
 // 🔐 AUTH
 onAuthStateChanged(auth, async(user)=>{
 
@@ -79,17 +65,15 @@ return;
 }
 
 const shopEmail = user.email;
-const shopCategory = localStorage.getItem("shopCategory") || "all";
-const shopLat = parseFloat(localStorage.getItem("shopLat"));
-const shopLng = parseFloat(localStorage.getItem("shopLng"));
 
-// 🔄 LISTEN BOTH COLLECTIONS
-onSnapshot(collection(db,"orders"), snap => {
-ordersDiv.innerHTML = "";
+// 🔄 LISTEN MAIN
+onSnapshot(collection(db,"orders"), snap=>{
+ordersDiv.innerHTML="";
 render(snap,false);
 });
 
-onSnapshot(collection(db,"split-orders"), snap => {
+// 🔄 LISTEN SPLIT
+onSnapshot(collection(db,"split-orders"), snap=>{
 render(snap,true);
 });
 
@@ -101,23 +85,14 @@ snapshot.docs.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-console.log("ORDER:", order, "isSplit:", isSplit);
+console.log("SHOW ORDER:", order, "isSplit:", isSplit);
 
 // ❌ skip completed
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// ✅ CATEGORY
-if(shopCategory !== "all" && order.category && order.category !== shopCategory) return;
-
-// 📍 DISTANCE (ONLY for main)
-if(!isSplit && shopLat && shopLng && order.customerLat && order.customerLng){
-let dist = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
-if(dist > 20) return;
-}
-
 // 🔥 VISIBILITY
 if(!isSplit){
-if(order.assigned === true && order.shopEmail !== shopEmail) return;
+if(order.assigned && order.shopEmail !== shopEmail) return;
 }else{
 if(order.shopEmail !== shopEmail) return;
 }
@@ -131,41 +106,35 @@ ${item.name} ₹${item.price}
 `).join("") || "";
 
 // 🎯 BUTTONS
-let buttons = "";
+let buttons="";
 
-// Pending
 if(order.status==="Pending"){
-buttons = `
+buttons=`
 <button class="accept" onclick="accept('${id}',${isSplit})">Accept</button>
 <button class="reject" onclick="reject('${id}',${isSplit})">Reject</button>
 `;
 }
-
-// Accepted
 else if(order.status==="Accepted"){
-buttons = `
+buttons=`
 <button class="split" onclick="splitOrder('${id}')">Split</button>
-<button class="ready" onclick="markReady('${id}',${isSplit})">Ready</button>
+<button class="ready" onclick="ready('${id}',${isSplit})">Ready</button>
 `;
 }
-
-// Ready
 else if(order.status==="Ready"){
-buttons = `<button class="ready">Ready ✔</button>`;
+buttons=`<button class="ready">Ready ✔</button>`;
 }
 
 // UI
-ordersDiv.innerHTML += `
+ordersDiv.innerHTML+=`
 <div class="order">
-<b>${order.name}</b> ${isSplit ? '<span class="badge">Split</span>' : ''}<br>
+<b>${order.name}</b> ${isSplit?'<span class="badge">Split</span>':''}<br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
 Total: ₹${order.total}<br>
 Status: ${order.status}<br><br>
 
-<b>🛒 Items:</b><br>
-${itemsHTML}<br>
+${itemsHTML}
 
 ${buttons}
 </div>
@@ -176,14 +145,15 @@ ${buttons}
 }
 
 // 🔒 ACCEPT
-window.accept = async(id,isSplit)=>{
-const col = isSplit ? "split-orders" : "orders";
-const ref = doc(db,col,id);
+window.accept=async(id,isSplit)=>{
+
+const col=isSplit?"split-orders":"orders";
+const ref=doc(db,col,id);
 
 try{
 await runTransaction(db, async(tx)=>{
-let snap = await tx.get(ref);
-let data = snap.data();
+let snap=await tx.get(ref);
+let data=snap.data();
 
 if(data.assigned) throw "Already accepted";
 
@@ -193,28 +163,41 @@ shopEmail: auth.currentUser.email,
 status:"Accepted"
 });
 });
+
 alert("✅ Accepted");
-}catch(e){ alert(e); }
+
+}catch(e){
+alert("❌ "+e);
+}
+
 };
 
-// 📦 SPLIT
-window.splitOrder = async(id)=>{
+// 🚀 SPLIT (FORCE WORKING)
+window.splitOrder=async(id)=>{
 
-const ref = doc(db,"orders",id);
-const snap = await getDoc(ref);
-const order = snap.data();
+console.log("🔥 SPLIT START");
+
+const ref=doc(db,"orders",id);
+const snap=await getDoc(ref);
+const order=snap.data();
 
 let selected=[], remaining=[];
 
-// SPLIT ITEMS
+// SPLIT
 order.items.forEach((item,i)=>{
 let cb=document.getElementById(`item_${id}_${i}`);
 if(cb && cb.checked) selected.push(item);
 else remaining.push(item);
 });
 
-console.log("Selected:", selected);
-console.log("Remaining:", remaining);
+console.log("SELECTED:", selected);
+console.log("REMAINING:", remaining);
+
+// FORCE split if empty
+if(remaining.length===0){
+remaining.push(order.items[0]);
+console.log("⚠️ FORCED SPLIT");
+}
 
 // UPDATE MAIN
 await updateDoc(ref,{
@@ -222,28 +205,8 @@ items:selected,
 total:selected.reduce((s,i)=>s+i.price,0)
 });
 
-// CREATE SPLIT ORDERS
-if(remaining.length>0){
-
-const shopsSnap = await getDocs(collection(db,"localshop-details"));
-
-for(const s of shopsSnap.docs){
-
-let shop=s.data();
-
-console.log("Checking shop:", shop.email);
-
-if(shop.email===auth.currentUser.email) continue;
-if(shop.category!==order.category) continue;
-
-let dist=getDistance(shop.lat,shop.lng,order.customerLat,order.customerLng);
-if(dist>20) continue;
-
-if(remaining.length===0) break;
-
-let item=[remaining.shift()];
-
-console.log("Creating split for:", shop.email, item);
+// 🔥 CREATE SPLIT (NO FILTER)
+try{
 
 await addDoc(collection(db,"split-orders"),{
 
@@ -253,17 +216,15 @@ name:order.name,
 phone:order.phone,
 address:order.address,
 
-customerLat:order.customerLat,
-customerLng:order.customerLng,
+customerLat:order.customerLat || 0,
+customerLng:order.customerLng || 0,
 
-shopEmail:shop.email,
-shopLat:shop.lat,
-shopLng:shop.lng,
+shopEmail:"test@shop.com",   // TEMP
 
-category: order.category,   // ✅ FIXED
+category: order.category || "general",
 
-items:item,
-total:item.reduce((s,i)=>s+i.price,0),
+items:[remaining[0]],
+total:remaining[0].price,
 
 status:"Pending",
 assigned:false,
@@ -272,23 +233,27 @@ time:new Date()
 
 });
 
+console.log("✅ SPLIT CREATED");
+
+alert("✅ Split Created! Check Firestore");
+
+}catch(e){
+console.error("❌ ERROR:", e);
+alert("Error: "+e.message);
 }
 
-}
-
-alert("✅ Split Done");
 };
 
 // 🚚 READY
-window.markReady = async(id,isSplit)=>{
-const col = isSplit ? "split-orders" : "orders";
+window.ready=async(id,isSplit)=>{
+const col=isSplit?"split-orders":"orders";
 await updateDoc(doc(db,col,id),{status:"Ready"});
 alert("✅ Ready");
 };
 
 // ❌ REJECT
-window.reject = async(id,isSplit)=>{
-const col = isSplit ? "split-orders" : "orders";
+window.reject=async(id,isSplit)=>{
+const col=isSplit?"split-orders":"orders";
 await updateDoc(doc(db,col,id),{status:"Rejected"});
 };
 
