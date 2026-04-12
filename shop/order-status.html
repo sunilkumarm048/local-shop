@@ -84,9 +84,16 @@ const shopLat = parseFloat(localStorage.getItem("shopLat"));
 const shopLng = parseFloat(localStorage.getItem("shopLng"));
 
 // 🔄 LISTEN BOTH COLLECTIONS
-onSnapshot(collection(db,"orders"), snap => render(snap,false));
-onSnapshot(collection(db,"split-orders"), snap => render(snap,true));
+onSnapshot(collection(db,"orders"), snap => {
+ordersDiv.innerHTML = "";
+render(snap,false);
+});
 
+onSnapshot(collection(db,"split-orders"), snap => {
+render(snap,true);
+});
+
+// 🎨 RENDER
 function render(snapshot, isSplit){
 
 snapshot.docs.forEach(docSnap=>{
@@ -94,14 +101,16 @@ snapshot.docs.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
+console.log("ORDER:", order, "isSplit:", isSplit);
+
 // ❌ skip completed
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
 // ✅ CATEGORY
 if(shopCategory !== "all" && order.category && order.category !== shopCategory) return;
 
-// 📍 DISTANCE
-if(shopLat && shopLng && order.customerLat && order.customerLng){
+// 📍 DISTANCE (ONLY for main)
+if(!isSplit && shopLat && shopLng && order.customerLat && order.customerLng){
 let dist = getDistance(shopLat, shopLng, order.customerLat, order.customerLng);
 if(dist > 20) return;
 }
@@ -197,19 +206,23 @@ const order = snap.data();
 
 let selected=[], remaining=[];
 
+// SPLIT ITEMS
 order.items.forEach((item,i)=>{
 let cb=document.getElementById(`item_${id}_${i}`);
 if(cb && cb.checked) selected.push(item);
 else remaining.push(item);
 });
 
-// update main
+console.log("Selected:", selected);
+console.log("Remaining:", remaining);
+
+// UPDATE MAIN
 await updateDoc(ref,{
 items:selected,
 total:selected.reduce((s,i)=>s+i.price,0)
 });
 
-// create split orders
+// CREATE SPLIT ORDERS
 if(remaining.length>0){
 
 const shopsSnap = await getDocs(collection(db,"localshop-details"));
@@ -217,6 +230,8 @@ const shopsSnap = await getDocs(collection(db,"localshop-details"));
 for(const s of shopsSnap.docs){
 
 let shop=s.data();
+
+console.log("Checking shop:", shop.email);
 
 if(shop.email===auth.currentUser.email) continue;
 if(shop.category!==order.category) continue;
@@ -228,19 +243,33 @@ if(remaining.length===0) break;
 
 let item=[remaining.shift()];
 
+console.log("Creating split for:", shop.email, item);
+
 await addDoc(collection(db,"split-orders"),{
+
 parentOrderId:id,
+
 name:order.name,
 phone:order.phone,
 address:order.address,
+
 customerLat:order.customerLat,
 customerLng:order.customerLng,
+
 shopEmail:shop.email,
+shopLat:shop.lat,
+shopLng:shop.lng,
+
+category: order.category,   // ✅ FIXED
+
 items:item,
 total:item.reduce((s,i)=>s+i.price,0),
+
 status:"Pending",
 assigned:false,
+
 time:new Date()
+
 });
 
 }
