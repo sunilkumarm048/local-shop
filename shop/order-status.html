@@ -1,44 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-
 <title>Smart Orders</title>
 
 <style>
 body{font-family:Arial;background:#eef1f5;padding:20px;}
-
-.order{
-background:white;
-padding:15px;
-margin-bottom:15px;
-border-radius:10px;
-}
-
-button{
-margin:5px;
-padding:6px 10px;
-border:none;
-border-radius:5px;
-color:white;
-cursor:pointer;
-}
-
+.order{background:white;padding:15px;margin-bottom:15px;border-radius:10px;}
+button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cursor:pointer;}
 .accept{background:green;}
 .ready{background:blue;}
 .reject{background:red;}
 .split{background:orange;}
-
-.badge{
-background:#ddd;
-padding:3px 8px;
-border-radius:5px;
-font-size:12px;
-margin-left:5px;
-}
+.badge{background:#ddd;padding:3px 8px;border-radius:5px;font-size:12px;margin-left:5px;}
 </style>
 
 </head>
-
 <body>
 
 <h2>📦 Smart Active Orders</h2>
@@ -50,12 +26,11 @@ import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
 collection, onSnapshot, doc, updateDoc,
-getDoc, getDocs, addDoc, runTransaction
+getDoc, addDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 
-// 🔐 AUTH
 onAuthStateChanged(auth, async(user)=>{
 
 if(!user){
@@ -66,13 +41,13 @@ return;
 
 const shopEmail = user.email;
 
-// 🔄 LISTEN MAIN
+// 🔄 MAIN ORDERS
 onSnapshot(collection(db,"orders"), snap=>{
 ordersDiv.innerHTML="";
 render(snap,false);
 });
 
-// 🔄 LISTEN SPLIT
+// 🔄 SPLIT ORDERS
 onSnapshot(collection(db,"split-orders"), snap=>{
 render(snap,true);
 });
@@ -80,24 +55,21 @@ render(snap,true);
 // 🎨 RENDER
 function render(snapshot, isSplit){
 
-snapshot.docs.forEach(docSnap=>{
+snapshot.forEach(docSnap=>{
 
 const order = docSnap.data();
 const id = docSnap.id;
 
-console.log("SHOW ORDER:", order, "isSplit:", isSplit);
-
-// ❌ skip completed
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// 🔥 VISIBILITY
+// FILTER
 if(!isSplit){
 if(order.assigned && order.shopEmail !== shopEmail) return;
 }else{
 if(order.shopEmail !== shopEmail) return;
 }
 
-// 🛒 ITEMS
+// ITEMS
 let itemsHTML = order.items?.map((item,i)=>`
 <label>
 <input type="checkbox" id="item_${id}_${i}" checked>
@@ -105,7 +77,7 @@ ${item.name} ₹${item.price}
 </label><br>
 `).join("") || "";
 
-// 🎯 BUTTONS
+// BUTTONS
 let buttons="";
 
 if(order.status==="Pending"){
@@ -135,119 +107,33 @@ Total: ₹${order.total}<br>
 Status: ${order.status}<br><br>
 
 ${itemsHTML}
-
 ${buttons}
 </div>
 `;
 
 });
-
 }
 
-// 🔒 ACCEPT
+// ✅ ACCEPT
 window.accept=async(id,isSplit)=>{
-
 const col=isSplit?"split-orders":"orders";
-const ref=doc(db,col,id);
 
-try{
-await runTransaction(db, async(tx)=>{
-let snap=await tx.get(ref);
-let data=snap.data();
-
-if(data.assigned) throw "Already accepted";
-
-tx.update(ref,{
+await updateDoc(doc(db,col,id),{
 assigned:true,
 shopEmail: auth.currentUser.email,
 status:"Accepted"
 });
-});
-
-alert("✅ Accepted");
-
-}catch(e){
-alert("❌ "+e);
-}
-
 };
 
-// 🚀 SPLIT (FORCE WORKING)
-window.splitOrder=async(id)=>{
-
-console.log("🔥 SPLIT START");
-
-const ref=doc(db,"orders",id);
-const snap=await getDoc(ref);
-const order=snap.data();
-
-let selected=[], remaining=[];
-
-// SPLIT
-order.items.forEach((item,i)=>{
-let cb=document.getElementById(`item_${id}_${i}`);
-if(cb && cb.checked) selected.push(item);
-else remaining.push(item);
-});
-
-console.log("SELECTED:", selected);
-console.log("REMAINING:", remaining);
-
-// FORCE split if empty
-if(remaining.length===0){
-remaining.push(order.items[0]);
-console.log("⚠️ FORCED SPLIT");
-}
-
-// UPDATE MAIN
-await updateDoc(ref,{
-items:selected,
-total:selected.reduce((s,i)=>s+i.price,0)
-});
-
-// 🔥 CREATE SPLIT (NO FILTER)
-try{
-
-await addDoc(collection(db,"split-orders"),{
-
-parentOrderId:id,
-
-name:order.name,
-phone:order.phone,
-address:order.address,
-
-customerLat:order.customerLat || 0,
-customerLng:order.customerLng || 0,
-
-shopEmail:"test@shop.com",   // TEMP
-
-category: order.category || "general",
-
-items:[remaining[0]],
-total:remaining[0].price,
-
-status:"Pending",
-assigned:false,
-
-time:new Date()
-
-});
-
-console.log("✅ SPLIT CREATED");
-
-alert("✅ Split Created! Check Firestore");
-
-}catch(e){
-console.error("❌ ERROR:", e);
-alert("Error: "+e.message);
-}
-
-};
-
-// 🚚 READY
+// ✅ READY (FIXED)
 window.ready=async(id,isSplit)=>{
 const col=isSplit?"split-orders":"orders";
-await updateDoc(doc(db,col,id),{status:"Ready"});
+
+await updateDoc(doc(db,col,id),{
+status:"Ready",
+deliveryStatus:"Ready"   // 🔥 IMPORTANT
+});
+
 alert("✅ Ready");
 };
 
@@ -257,9 +143,60 @@ const col=isSplit?"split-orders":"orders";
 await updateDoc(doc(db,col,id),{status:"Rejected"});
 };
 
+// 🔥 SPLIT (FIXED)
+window.splitOrder=async(id)=>{
+
+const ref=doc(db,"orders",id);
+const snap=await getDoc(ref);
+const order=snap.data();
+
+let selected=[], remaining=[];
+
+order.items.forEach((item,i)=>{
+let cb=document.getElementById(`item_${id}_${i}`);
+if(cb && cb.checked) selected.push(item);
+else remaining.push(item);
+});
+
+if(remaining.length===0){
+remaining.push(order.items[0]);
+}
+
+// UPDATE MAIN
+await updateDoc(ref,{
+items:selected,
+total:selected.reduce((s,i)=>s+i.price,0)
+});
+
+// CREATE SPLIT
+await addDoc(collection(db,"split-orders"),{
+parentOrderId:id,
+
+name:order.name,
+phone:order.phone,
+address:order.address,
+
+customerLat:order.customerLat || 0,
+customerLng:order.customerLng || 0,
+
+shopEmail: order.shopEmail,   // ✅ FIXED
+
+items:[remaining[0]],
+total:remaining[0].price,
+
+status:"Pending",
+deliveryStatus:"Pending",
+assigned:false,
+
+time:new Date()
+});
+
+alert("✅ Split Created");
+
+};
+
 });
 
 </script>
-
 </body>
 </html>
