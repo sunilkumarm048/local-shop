@@ -79,76 +79,21 @@ color:white;cursor:pointer;
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const newOrderDiv = document.getElementById("newOrder");
 
-// 🔔 SOUND
-let notifySound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
-let lastStatus = "";
-
-// SIDEBAR
-window.toggleMenu = ()=>{
-let menu=document.getElementById("sidebar");
-menu.style.left=(menu.style.left==="0px")?"-250px":"0px";
-};
-
-window.goWallet=()=>location.href="wallet.html";
-window.goAnalytics=()=>location.href="analytics.html";
-window.logout=()=>{signOut(auth);location.href="login.html";};
-
-// 📏 DISTANCE
-function getDistance(lat1, lon1, lat2, lon2){
-let R=6371;
-let dLat=(lat2-lat1)*Math.PI/180;
-let dLon=(lon2-lon1)*Math.PI/180;
-
-let a=Math.sin(dLat/2)**2+
-Math.cos(lat1*Math.PI/180)*
-Math.cos(lat2*Math.PI/180)*
-Math.sin(dLon/2)**2;
-
-let c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-return R*c;
-}
-
-// ⏱ ETA
-function calculateETA(distanceKm){
-let speed = 30; // km/h
-return Math.round((distanceKm / speed) * 60);
-}
-
-// 📍 LOCATION
-function startLiveLocation(){
-navigator.geolocation.watchPosition((pos)=>{
-window.myLat=pos.coords.latitude;
-window.myLng=pos.coords.longitude;
-});
-}
-
-// 🧭 GOOGLE NAVIGATION
-window.openNavigation = function(lat,lng){
-window.open(
-`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
-"_blank"
-);
-};
-
-// 🔐 AUTH
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
-alert("Login required");
 location.href="login.html";
 return;
 }
 
-startLiveLocation();
-
-// 🔄 ORDERS
-onSnapshot(collection(db,"orders"),(snapshot)=>{
+// 🔥 LISTEN SPLIT ORDERS ONLY
+onSnapshot(collection(db,"split-orders"),(snapshot)=>{
 
 ordersDiv.innerHTML="";
 let newOrderShown=false;
@@ -158,91 +103,35 @@ snapshot.forEach(docSnap=>{
 const order=docSnap.data();
 const id=docSnap.id;
 
-if(order.deliveryBoyId===user.email){
-
-// 🔔 SOUND ON STATUS CHANGE
-if(order.deliveryStatus !== lastStatus){
-notifySound.play();
-lastStatus = order.deliveryStatus;
-}
-
-// 📏 DISTANCE + ETA
-let distToCustomer = 0;
-if(window.myLat){
-distToCustomer = getDistance(
-window.myLat, window.myLng,
-order.customerLat, order.customerLng
-);
-}
-
-let eta = calculateETA(distToCustomer);
-
-// 🆕 NEW ORDER PANEL
-if(order.deliveryStatus==="Assigned" && !newOrderShown){
-
-let shopDist=getDistance(window.myLat,window.myLng,order.shopLat,order.shopLng);
-let custDist=getDistance(order.shopLat,order.shopLng,order.customerLat,order.customerLng);
-let totalDist=(shopDist+custDist).toFixed(2);
+// 🆕 SHOW READY ORDERS
+if(order.deliveryStatus==="Ready" && !order.deliveryBoyId && !newOrderShown){
 
 newOrderDiv.innerHTML=`
 <h3>🆕 New Order</h3>
 
 <b>${order.name}</b><br>
-📞 ${order.phone}<br>
-📍 ${order.address}<br><br>
-
-🚚 ${order.deliveryBoyName || ""}<br><br>
-
-📍 You → Shop: ${shopDist.toFixed(2)} km<br>
-📍 Shop → Customer: ${custDist.toFixed(2)} km<br>
-📍 Total: ${totalDist} km<br><br>
-
+📍 ${order.address}<br>
 💰 ₹${order.total}<br><br>
 
-<button class="accept" onclick="acceptOrder('${id}')">Accept</button>
-<button class="reject" onclick="rejectOrder('${id}')">Reject</button>
+<button onclick="acceptOrder('${id}')">Accept</button>
 `;
 
 newOrderShown=true;
 }
 
-// 📦 ORDER LIST
+// 📦 SHOW ACCEPTED ORDERS
+if(order.deliveryBoyId===user.email){
+
 ordersDiv.innerHTML+=`
 <div class="order">
-
 <b>${order.name}</b><br>
 📍 ${order.address}<br>
-💰 ₹${order.total}<br>
+💰 ₹${order.total}<br><br>
 
-🚚 ${order.deliveryBoyName || ""}<br>
-
-📏 ${distToCustomer.toFixed(2)} km | ⏱ ETA: ${eta} mins<br><br>
-
-<button class="start" onclick="startDelivery('${id}')">Start</button>
-<button class="complete" onclick="complete('${id}')">Delivered</button>
-
-<button onclick="openNavigation(${order.customerLat},${order.customerLng})">
-🧭 Navigate
-</button>
-
-<div id="map_${id}" class="map"></div>
-
+<button onclick="startDelivery('${id}')">Start</button>
+<button onclick="complete('${id}')">Delivered</button>
 </div>
 `;
-
-setTimeout(()=>{
-let map=L.map(`map_${id}`).setView(
-[order.customerLat,order.customerLng],13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-L.marker([order.customerLat,order.customerLng]).addTo(map);
-
-if(window.myLat){
-L.marker([window.myLat,window.myLng]).addTo(map);
-}
-
-},100);
 
 }
 
@@ -256,51 +145,31 @@ newOrderDiv.innerHTML="No new order";
 
 });
 
-// ACTIONS
+// ✅ ACCEPT
 window.acceptOrder=async(id)=>{
-await updateDoc(doc(db,"orders",id),{
+await updateDoc(doc(db,"split-orders",id),{
+deliveryBoyId: auth.currentUser.email,
 deliveryStatus:"Accepted"
 });
 };
 
-window.rejectOrder=async(id)=>{
-await updateDoc(doc(db,"orders",id),{
-deliveryBoyId:null,
-deliveryBoyName:null,
-deliveryStatus:"Pending"
+// 🚚 START
+window.startDelivery=async(id)=>{
+await updateDoc(doc(db,"split-orders",id),{
+deliveryStatus:"On the way"
 });
 };
 
-window.startDelivery = async(id)=>{
-
-await updateDoc(doc(db,"orders",id),{
-deliveryStatus:"On the way",
-status:"Out for Delivery"   // 🔥 IMPORTANT
-});
-
-};
-
-window.complete = async(id)=>{
-
-await updateDoc(doc(db,"orders",id),{
+// ✅ COMPLETE
+window.complete=async(id)=>{
+await updateDoc(doc(db,"split-orders",id),{
 deliveryStatus:"Delivered",
 status:"Delivered"
 });
 
-// ✅ FREE DELIVERY BOY
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-available:true
-});
-
-// ✅ CLEAR UI IMMEDIATELY
-ordersDiv.innerHTML = "";
-newOrderDiv.innerHTML = "No new order";
-
 alert("✅ Delivered");
-
 };
 
 </script>
-
 </body>
 </html>
