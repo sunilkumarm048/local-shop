@@ -1,82 +1,3 @@
-
-<!DOCTYPE html>
-<html>
-<head>
-
-<title>Delivery Dashboard</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-
-<style>
-body{font-family:Arial;margin:0;background:#f5f5f5;}
-
-.header{
-background:#ff5a5f;color:white;padding:15px;text-align:center;
-font-size:18px;font-weight:bold;
-}
-
-#sidebar{
-position:fixed;left:-250px;top:0;width:250px;height:100%;
-background:#222;color:white;padding:20px;transition:0.3s;z-index:999;
-}
-
-#sidebar button{
-width:100%;margin:10px 0;padding:10px;border:none;border-radius:6px;
-}
-
-.menuBtn{position:fixed;top:10px;left:10px;z-index:1000;}
-
-.main{margin-left:60px;padding:15px;}
-
-#newOrder{
-background:white;padding:20px;border-radius:12px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-bottom:20px;
-}
-
-.order{
-background:white;padding:15px;margin-bottom:15px;
-border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-
-button{
-margin:5px;padding:8px 12px;border:none;border-radius:5px;
-color:white;cursor:pointer;
-}
-
-.accept{background:green;}
-.reject{background:red;}
-.start{background:orange;}
-.complete{background:blue;}
-
-.map{height:200px;margin-top:10px;border-radius:10px;}
-</style>
-
-</head>
-
-<body>
-
-<div class="menuBtn">
-<button onclick="toggleMenu()">☰</button>
-</div>
-
-<div id="sidebar">
-<h3>🚚 Delivery Panel</h3>
-<button onclick="goWallet()">💰 Wallet</button>
-<button onclick="goAnalytics()">📊 Analytics</button>
-<button onclick="logout()" style="background:red;">🚪 Logout</button>
-</div>
-
-<div class="header">🚚 Smart Delivery Dashboard</div>
-
-<div class="main">
-<div id="newOrder">No new order</div>
-<div id="orders"></div>
-</div>
-
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
@@ -86,19 +7,16 @@ import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/
 const ordersDiv = document.getElementById("orders");
 const newOrderDiv = document.getElementById("newOrder");
 
-// 🔔 SOUND
 let notifySound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 let lastStatus = "";
 
-// SIDEBAR
-window.toggleMenu = ()=>{
-let menu=document.getElementById("sidebar");
-menu.style.left=(menu.style.left==="0px")?"-250px":"0px";
-};
-
-window.goWallet=()=>location.href="wallet.html";
-window.goAnalytics=()=>location.href="analytics.html";
-window.logout=()=>{signOut(auth);location.href="login.html";};
+// 📍 LOCATION TRACK
+function startLiveLocation(){
+navigator.geolocation.watchPosition((pos)=>{
+window.myLat=pos.coords.latitude;
+window.myLng=pos.coords.longitude;
+});
+}
 
 // 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
@@ -117,25 +35,9 @@ return R*c;
 
 // ⏱ ETA
 function calculateETA(distanceKm){
-let speed = 30; // km/h
+let speed = 30;
 return Math.round((distanceKm / speed) * 60);
 }
-
-// 📍 LOCATION
-function startLiveLocation(){
-navigator.geolocation.watchPosition((pos)=>{
-window.myLat=pos.coords.latitude;
-window.myLng=pos.coords.longitude;
-});
-}
-
-// 🧭 GOOGLE NAVIGATION
-window.openNavigation = function(lat,lng){
-window.open(
-`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
-"_blank"
-);
-};
 
 // 🔐 AUTH
 onAuthStateChanged(auth,(user)=>{
@@ -148,79 +50,79 @@ return;
 
 startLiveLocation();
 
-// 🔄 ORDERS
-onSnapshot(collection(db,"split-orders"),(snapshot)=>{
+// 🔥 LISTEN BOTH COLLECTIONS
+listenOrders("orders");
+listenOrders("split-orders");
 
-ordersDiv.innerHTML="";
-let newOrderShown=false;
+function listenOrders(colName){
+
+onSnapshot(collection(db,colName),(snapshot)=>{
 
 snapshot.forEach(docSnap=>{
 
-const order=docSnap.data();
-const id=docSnap.id;
+const order = docSnap.data();
+const id = docSnap.id;
 
-if(order.deliveryBoyId===user.email){
+// ✅ ONLY READY ORDERS
+if(order.deliveryStatus !== "Ready") return;
 
-// 🔔 SOUND ON STATUS CHANGE
+// 🔔 SOUND
 if(order.deliveryStatus !== lastStatus){
 notifySound.play();
 lastStatus = order.deliveryStatus;
 }
 
-// 📏 DISTANCE + ETA
-let distToCustomer = 0;
+// 📏 DISTANCE
+let dist = 0;
 if(window.myLat){
-distToCustomer = getDistance(
+dist = getDistance(
 window.myLat, window.myLng,
 order.customerLat, order.customerLng
 );
 }
 
-let eta = calculateETA(distToCustomer);
+let eta = calculateETA(dist);
 
-// 🆕 NEW ORDER PANEL
-if(order.deliveryStatus==="Ready" && !order.deliveryBoyId && !newOrderShown){
-
-let shopDist=getDistance(window.myLat,window.myLng,order.shopLat,order.shopLng);
-let custDist=getDistance(order.shopLat,order.shopLng,order.customerLat,order.customerLng);
-let totalDist=(shopDist+custDist).toFixed(2);
-
+// 🆕 SHOW NEW ORDER
 newOrderDiv.innerHTML=`
-<h3>🆕 New Order</h3>
+<h3>🆕 New Order (${colName})</h3>
 
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
-🚚 ${order.deliveryBoyName || ""}<br><br>
-
-📍 You → Shop: ${shopDist.toFixed(2)} km<br>
-📍 Shop → Customer: ${custDist.toFixed(2)} km<br>
-📍 Total: ${totalDist} km<br><br>
+📏 ${dist.toFixed(2)} km<br>
+⏱ ETA: ${eta} mins<br><br>
 
 💰 ₹${order.total}<br><br>
 
-<button class="accept" onclick="acceptOrder('${id}')">Accept</button>
-<button class="reject" onclick="rejectOrder('${id}')">Reject</button>
+<button class="accept" onclick="acceptOrder('${id}','${colName}')">Accept</button>
+<button class="reject" onclick="rejectOrder('${id}','${colName}')">Reject</button>
 `;
 
-newOrderShown=true;
-}
+});
 
-// 📦 ORDER LIST
+// 🔄 SHOW ACTIVE ORDERS
+onSnapshot(collection(db,colName),(snapshot2)=>{
+
+snapshot2.forEach(docSnap=>{
+
+const order = docSnap.data();
+const id = docSnap.id;
+
+// 👇 ONLY MY ORDERS
+if(order.deliveryBoyId !== user.email) return;
+
+// UI
 ordersDiv.innerHTML+=`
 <div class="order">
 
-<b>${order.name}</b><br>
+<b>${order.name}</b> (${colName})<br>
 📍 ${order.address}<br>
-💰 ₹${order.total}<br>
+💰 ₹${order.total}<br><br>
 
-🚚 ${order.deliveryBoyName || ""}<br>
-
-📏 ${distToCustomer.toFixed(2)} km | ⏱ ETA: ${eta} mins<br><br>
-
-<button class="start" onclick="startDelivery('${id}')">Start</button>
-<button class="complete" onclick="complete('${id}')">Delivered</button>
+<button class="start" onclick="startDelivery('${id}','${colName}')">Start</button>
+<button class="complete" onclick="complete('${id}','${colName}')">Delivered</button>
 
 <button onclick="openNavigation(${order.customerLat},${order.customerLng})">
 🧭 Navigate
@@ -245,79 +147,46 @@ L.marker([window.myLat,window.myLng]).addTo(map);
 
 },100);
 
+});
+
+});
+
+});
+
 }
 
 });
 
-if(!newOrderShown){
-newOrderDiv.innerHTML="No new order";
-}
-
-});
-
-});
-
-// ACTIONS
-window.acceptOrder=async(id)=>{
-await updateDoc(doc(db,"orders",id),{
+// ✅ ACCEPT
+window.acceptOrder = async(id,col)=>{
+await updateDoc(doc(db,col,id),{
+deliveryBoyId: auth.currentUser.email,
 deliveryStatus:"Accepted"
 });
 };
 
-window.rejectOrder=async(id)=>{
-await updateDoc(doc(db,"orders",id),{
+// ❌ REJECT
+window.rejectOrder = async(id,col)=>{
+await updateDoc(doc(db,col,id),{
 deliveryBoyId:null,
-deliveryBoyName:null,
-deliveryStatus:"Pending"
+deliveryStatus:"Ready"
 });
 };
 
-window.startDelivery = async(id)=>{
-
-await updateDoc(doc(db,"orders",id),{
-deliveryStatus:"On the way",
-status:"Out for Delivery"   // 🔥 IMPORTANT
+// 🚚 START
+window.startDelivery = async(id,col)=>{
+await updateDoc(doc(db,col,id),{
+deliveryStatus:"On the way"
 });
-
 };
 
-window.complete = async(id)=>{
-
-await updateDoc(doc(db,"orders",id),{
+// ✅ COMPLETE
+window.complete = async(id,col)=>{
+await updateDoc(doc(db,col,id),{
 deliveryStatus:"Delivered",
 status:"Delivered"
 });
-
-// ✅ FREE DELIVERY BOY
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-available:true
-});
-
-// ✅ CLEAR UI IMMEDIATELY
-ordersDiv.innerHTML = "";
-newOrderDiv.innerHTML = "No new order";
-
 alert("✅ Delivered");
-
 };
 
 </script>
-
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
