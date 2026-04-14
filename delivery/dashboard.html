@@ -149,7 +149,7 @@ return;
 startLiveLocation();
 
 // 🔄 ORDERS
-onSnapshot(collection(db,"orders"),(snapshot)=>{
+onSnapshot(collection(db,"split-orders"),(snapshot)=>{
 
 ordersDiv.innerHTML="";
 let newOrderShown=false;
@@ -179,7 +179,7 @@ order.customerLat, order.customerLng
 let eta = calculateETA(distToCustomer);
 
 // 🆕 NEW ORDER PANEL
-if(order.deliveryStatus==="Assigned" && !newOrderShown){
+if(order.deliveryStatus==="Ready" && !order.deliveryBoyId && !newOrderShown){
 
 let shopDist=getDistance(window.myLat,window.myLng,order.shopLat,order.shopLng);
 let custDist=getDistance(order.shopLat,order.shopLng,order.customerLat,order.customerLng);
