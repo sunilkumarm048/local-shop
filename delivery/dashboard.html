@@ -1,3 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Delivery Dashboard</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+body{font-family:Arial;margin:0;background:#f5f5f5;}
+
+.header{
+background:#ff5a5f;color:white;padding:15px;text-align:center;
+font-size:18px;font-weight:bold;
+}
+
+#sidebar{
+position:fixed;left:-250px;top:0;width:250px;height:100%;
+background:#222;color:white;padding:20px;transition:0.3s;z-index:999;
+}
+
+#sidebar button{
+width:100%;margin:10px 0;padding:10px;border:none;border-radius:6px;
+}
+
+.menuBtn{position:fixed;top:10px;left:10px;z-index:1000;}
+
+.main{margin-left:60px;padding:15px;}
+
+#newOrder{
+background:white;padding:20px;border-radius:12px;
+box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-bottom:20px;
+}
+
+.order{
+background:white;padding:15px;margin-bottom:15px;
+border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+button{
+margin:5px;padding:8px 12px;border:none;border-radius:5px;
+color:white;cursor:pointer;
+}
+
+.accept{background:green;}
+.reject{background:red;}
+.start{background:orange;}
+.complete{background:blue;}
+
+.map{height:200px;margin-top:10px;border-radius:10px;}
+</style>
+
+</head>
+
+<body>
+
+<div class="menuBtn">
+<button onclick="toggleMenu()">☰</button>
+</div>
+
+<div id="sidebar">
+<h3>🚚 Delivery Panel</h3>
+<button onclick="goWallet()">💰 Wallet</button>
+<button onclick="goAnalytics()">📊 Analytics</button>
+<button onclick="logout()" style="background:red;">🚪 Logout</button>
+</div>
+
+<div class="header">🚚 Smart Delivery Dashboard</div>
+
+<div class="main">
+<div id="newOrder">No new order</div>
+<div id="orders"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script type="module">
 
 import { auth, db } from "../js/firebase.js";
@@ -7,16 +85,19 @@ import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/
 const ordersDiv = document.getElementById("orders");
 const newOrderDiv = document.getElementById("newOrder");
 
+// 🔔 SOUND
 let notifySound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
 let lastStatus = "";
 
-// 📍 LOCATION TRACK
-function startLiveLocation(){
-navigator.geolocation.watchPosition((pos)=>{
-window.myLat=pos.coords.latitude;
-window.myLng=pos.coords.longitude;
-});
-}
+// SIDEBAR
+window.toggleMenu = ()=>{
+let menu=document.getElementById("sidebar");
+menu.style.left=(menu.style.left==="0px")?"-250px":"0px";
+};
+
+window.goWallet=()=>location.href="wallet.html";
+window.goAnalytics=()=>location.href="analytics.html";
+window.logout=()=>{signOut(auth);location.href="login.html";};
 
 // 📏 DISTANCE
 function getDistance(lat1, lon1, lat2, lon2){
@@ -39,6 +120,14 @@ let speed = 30;
 return Math.round((distanceKm / speed) * 60);
 }
 
+// 📍 LOCATION
+function startLiveLocation(){
+navigator.geolocation.watchPosition((pos)=>{
+window.myLat=pos.coords.latitude;
+window.myLng=pos.coords.longitude;
+});
+}
+
 // 🔐 AUTH
 onAuthStateChanged(auth,(user)=>{
 
@@ -54,75 +143,60 @@ startLiveLocation();
 listenOrders("orders");
 listenOrders("split-orders");
 
-function listenOrders(colName){
+function listenOrders(col){
 
-onSnapshot(collection(db,colName),(snapshot)=>{
+onSnapshot(collection(db,col),(snapshot)=>{
+
+let newOrderShown=false;
+ordersDiv.innerHTML="";
 
 snapshot.forEach(docSnap=>{
 
-const order = docSnap.data();
-const id = docSnap.id;
+const order=docSnap.data();
+const id=docSnap.id;
 
-// ✅ ONLY READY ORDERS
-if(order.deliveryStatus !== "Ready") return;
+// 🔔 NEW READY ORDER
+if(order.deliveryStatus==="Ready" && !order.deliveryBoyId && !newOrderShown){
 
-// 🔔 SOUND
-if(order.deliveryStatus !== lastStatus){
 notifySound.play();
-lastStatus = order.deliveryStatus;
-}
 
-// 📏 DISTANCE
-let dist = 0;
-if(window.myLat){
-dist = getDistance(
-window.myLat, window.myLng,
-order.customerLat, order.customerLng
-);
-}
-
-let eta = calculateETA(dist);
-
-// 🆕 SHOW NEW ORDER
 newOrderDiv.innerHTML=`
-<h3>🆕 New Order (${colName})</h3>
+<h3>🆕 New Order (${col})</h3>
 
 <b>${order.name}</b><br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
-📏 ${dist.toFixed(2)} km<br>
-⏱ ETA: ${eta} mins<br><br>
-
 💰 ₹${order.total}<br><br>
 
-<button class="accept" onclick="acceptOrder('${id}','${colName}')">Accept</button>
-<button class="reject" onclick="rejectOrder('${id}','${colName}')">Reject</button>
+<button class="accept" onclick="acceptOrder('${id}','${col}')">Accept</button>
+<button class="reject" onclick="rejectOrder('${id}','${col}')">Reject</button>
 `;
 
-});
+newOrderShown=true;
+}
 
-// 🔄 SHOW ACTIVE ORDERS
-onSnapshot(collection(db,colName),(snapshot2)=>{
+// 📦 ACTIVE ORDERS
+if(order.deliveryBoyId===user.email){
 
-snapshot2.forEach(docSnap=>{
+let dist=0;
+if(window.myLat){
+dist=getDistance(window.myLat,window.myLng,order.customerLat,order.customerLng);
+}
 
-const order = docSnap.data();
-const id = docSnap.id;
+let eta=calculateETA(dist);
 
-// 👇 ONLY MY ORDERS
-if(order.deliveryBoyId !== user.email) return;
-
-// UI
 ordersDiv.innerHTML+=`
 <div class="order">
 
-<b>${order.name}</b> (${colName})<br>
+<b>${order.name}</b> (${col})<br>
 📍 ${order.address}<br>
-💰 ₹${order.total}<br><br>
+💰 ₹${order.total}<br>
 
-<button class="start" onclick="startDelivery('${id}','${colName}')">Start</button>
-<button class="complete" onclick="complete('${id}','${colName}')">Delivered</button>
+📏 ${dist.toFixed(2)} km | ETA ${eta} min<br><br>
+
+<button class="start" onclick="startDelivery('${id}','${col}')">Start</button>
+<button class="complete" onclick="complete('${id}','${col}')">Delivered</button>
 
 <button onclick="openNavigation(${order.customerLat},${order.customerLng})">
 🧭 Navigate
@@ -147,9 +221,13 @@ L.marker([window.myLat,window.myLng]).addTo(map);
 
 },100);
 
-});
+}
 
 });
+
+if(!newOrderShown){
+newOrderDiv.innerHTML="No new order";
+}
 
 });
 
@@ -157,30 +235,27 @@ L.marker([window.myLat,window.myLng]).addTo(map);
 
 });
 
-// ✅ ACCEPT
-window.acceptOrder = async(id,col)=>{
+// ACTIONS
+window.acceptOrder=async(id,col)=>{
 await updateDoc(doc(db,col,id),{
 deliveryBoyId: auth.currentUser.email,
 deliveryStatus:"Accepted"
 });
 };
 
-// ❌ REJECT
-window.rejectOrder = async(id,col)=>{
+window.rejectOrder=async(id,col)=>{
 await updateDoc(doc(db,col,id),{
 deliveryBoyId:null,
 deliveryStatus:"Ready"
 });
 };
 
-// 🚚 START
 window.startDelivery = async(id,col)=>{
 await updateDoc(doc(db,col,id),{
 deliveryStatus:"On the way"
 });
 };
 
-// ✅ COMPLETE
 window.complete = async(id,col)=>{
 await updateDoc(doc(db,col,id),{
 deliveryStatus:"Delivered",
@@ -190,3 +265,6 @@ alert("✅ Delivered");
 };
 
 </script>
+
+</body>
+</html>
