@@ -49,18 +49,24 @@ ordersDiv.innerHTML="";
 render(snap);
 });
 
-// 🎨 RENDER
+// 🎨 RENDER FUNCTION
 function render(snapshot){
+
+if(snapshot.empty){
+ordersDiv.innerHTML = "<p>No orders available</p>";
+return;
+}
 
 snapshot.forEach(docSnap=>{
 
 const order = docSnap.data();
 const id = docSnap.id;
 
+// ❌ Skip completed
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// FILTER
-if(order.assigned && order.shopEmail !== shopEmail) return;
+// ✅ FIXED FILTER (NO CROSS SHOP ISSUE)
+if(order.shopEmail && order.shopEmail !== shopEmail) return;
 
 // ITEMS
 let itemsHTML = order.items?.map((item,i)=>`
@@ -107,7 +113,7 @@ ${buttons}
 });
 }
 
-// ACCEPT
+// ✅ ACCEPT
 window.accept=async(id)=>{
 await updateDoc(doc(db,"orders",id),{
 assigned:true,
@@ -116,63 +122,74 @@ status:"Accepted"
 });
 };
 
-// READY
+// ✅ READY
 window.ready=async(id)=>{
 await updateDoc(doc(db,"orders",id),{
 status:"Ready",
 deliveryStatus:"Ready"
 });
+alert("✅ Order Ready");
 };
 
-// REJECT
+// ❌ REJECT
 window.reject=async(id)=>{
 await updateDoc(doc(db,"orders",id),{
 status:"Rejected"
 });
 };
 
-// 🔥 SPLIT (MULTI ITEM)
+// 🔥 SPLIT (FINAL FIXED VERSION)
 window.splitOrder=async(id)=>{
 
-const ref=doc(db,"orders",id);
-const snap=await getDoc(ref);
-const order=snap.data();
+const ref = doc(db,"orders",id);
+const snap = await getDoc(ref);
 
-let selected=[], remaining=[];
+if(!snap.exists()){
+alert("Order not found");
+return;
+}
 
+const order = snap.data();
+
+let selected = [];
+let remaining = [];
+
+// SPLIT ITEMS
 order.items.forEach((item,i)=>{
-let cb=document.getElementById(`item_${id}_${i}`);
+let cb = document.getElementById(`item_${id}_${i}`);
 if(cb && cb.checked) selected.push(item);
 else remaining.push(item);
 });
 
-if(remaining.length===0){
-alert("⚠️ Select items to split");
+// ❌ PREVENT WRONG SPLIT
+if(remaining.length === 0){
+alert("⚠️ Select at least one item to split");
 return;
 }
 
-// UPDATE MAIN
+// ✅ UPDATE MAIN ORDER
 await updateDoc(ref,{
 items:selected,
 total:selected.reduce((s,i)=>s+i.price,0)
 });
 
-// CREATE SPLIT
+// ✅ CREATE SPLIT ORDER (IMPORTANT FIX)
 await addDoc(collection(db,"split-orders"),{
 
-parentOrderId:id,
+parentOrderId: id,
 
-name:order.name,
-phone:order.phone,
-address:order.address,
+name: order.name,
+phone: order.phone,
+address: order.address,
 
-customerLat:order.customerLat || 0,
-customerLng:order.customerLng || 0,
+customerLat: order.customerLat || 0,
+customerLng: order.customerLng || 0,
 
+// 🔥 CRITICAL FIX
 shopEmail: auth.currentUser.email,
 
-items:remaining,
-total:remaining.reduce((s,i)=>s+i.price,0),
+items: remaining,
+total: remaining.reduce((s,i)=>s+i.price,0),
 
 status:"Pending",
 deliveryStatus:"Pending",
@@ -181,10 +198,11 @@ assigned:false,
 time:new Date()
 });
 
-alert("✅ Split Created");
+alert("✅ Split Created Successfully");
+
 };
 
-// NAVIGATION
+// 🔁 NAVIGATION
 window.goSplit=()=>{
 location.href="split-order.html";
 };
