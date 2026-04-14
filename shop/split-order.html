@@ -11,6 +11,7 @@ button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cur
 .ready{background:blue;}
 .reject{background:red;}
 .badge{background:#ddd;padding:3px 8px;border-radius:5px;font-size:12px;margin-left:5px;}
+.empty{color:#666;margin-top:20px;}
 </style>
 
 </head>
@@ -42,28 +43,33 @@ return;
 
 const shopEmail = user.email;
 
-// ✅ ONLY SPLIT ORDERS
+// ✅ LISTEN SPLIT ORDERS
 onSnapshot(collection(db,"split-orders"), snap=>{
 ordersDiv.innerHTML="";
 render(snap);
 });
 
-// RENDER
+// 🎨 RENDER
 function render(snapshot){
+
+let hasData = false;
 
 snapshot.forEach(docSnap=>{
 
 const order = docSnap.data();
 const id = docSnap.id;
 
+// ❌ skip completed
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// FILTER
-if(order.shopEmail !== shopEmail) return;
+// ✅ FIX FILTER (safe)
+if(order.shopEmail && order.shopEmail !== shopEmail) return;
+
+hasData = true;
 
 // ITEMS
 let itemsHTML = order.items?.map(item=>`
-<div>${item.name} ₹${item.price}</div>
+<div>• ${item.name} ₹${item.price}</div>
 `).join("") || "";
 
 // BUTTONS
@@ -100,10 +106,16 @@ ${buttons}
 `;
 
 });
+
+// ✅ EMPTY STATE
+if(!hasData){
+ordersDiv.innerHTML = `<p class="empty">No split orders available</p>`;
 }
 
-// ACCEPT
-window.accept=async(id)=>{
+}
+
+// ✅ ACCEPT
+window.accept = async(id)=>{
 await updateDoc(doc(db,"split-orders",id),{
 assigned:true,
 shopEmail: auth.currentUser.email,
@@ -111,29 +123,46 @@ status:"Accepted"
 });
 };
 
-// REJECT
-window.reject=async(id)=>{
+// ❌ REJECT
+window.reject = async(id)=>{
 await updateDoc(doc(db,"split-orders",id),{
 status:"Rejected"
 });
 };
 
-// 🔥 READY (SAME DELIVERY)
-window.ready=async(id,parentId)=>{
+// 🔥 READY (SAFE VERSION)
+window.ready = async(id,parentId)=>{
 
-const mainSnap = await getDoc(doc(db,"orders",parentId));
+try{
+
+const mainRef = doc(db,"orders",parentId);
+const mainSnap = await getDoc(mainRef);
+
+let deliveryBoy = null;
+
+// ✅ SAFETY CHECK
+if(mainSnap.exists()){
 const mainOrder = mainSnap.data();
+deliveryBoy = mainOrder.deliveryBoy || null;
+}
 
+// UPDATE SPLIT
 await updateDoc(doc(db,"split-orders",id),{
 status:"Ready",
 deliveryStatus:"Ready",
-deliveryBoy: mainOrder.deliveryBoy || null
+deliveryBoy: deliveryBoy
 });
 
-alert("✅ Ready (same delivery)");
+alert("✅ Ready (linked to main delivery)");
+
+}catch(err){
+console.error(err);
+alert("Error updating order");
+}
+
 };
 
-// BACK
+// 🔙 BACK
 window.goBack=()=>{
 history.back();
 };
