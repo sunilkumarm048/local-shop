@@ -26,7 +26,7 @@ import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
 collection, onSnapshot, doc, updateDoc,
-getDoc, addDoc, runTransaction
+getDoc, addDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
@@ -52,7 +52,7 @@ onSnapshot(collection(db,"split-orders"), snap=>{
 render(snap,true);
 });
 
-// 🎨 RENDER
+// 🎨 RENDER FUNCTION
 function render(snapshot, isSplit){
 
 snapshot.forEach(docSnap=>{
@@ -62,12 +62,8 @@ const id = docSnap.id;
 
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// FILTER
-if(!isSplit){
-if(order.assigned && order.shopEmail !== shopEmail) return;
-}else{
-if(order.shopEmail !== shopEmail) return;
-}
+// ✅ FIXED FILTER (NO CROSS-SHOP ISSUE)
+if(order.shopEmail && order.shopEmail !== shopEmail) return;
 
 // ITEMS
 let itemsHTML = order.items?.map((item,i)=>`
@@ -115,8 +111,8 @@ ${buttons}
 }
 
 // ✅ ACCEPT
-window.accept=async(id,isSplit)=>{
-const col=isSplit?"split-orders":"orders";
+window.accept = async (id,isSplit)=>{
+const col = isSplit ? "split-orders" : "orders";
 
 await updateDoc(doc(db,col,id),{
 assigned:true,
@@ -125,54 +121,29 @@ status:"Accepted"
 });
 };
 
-// ✅ READY (FIXED)
-window.ready=async(id,isSplit)=>{
-const col=isSplit?"split-orders":"orders";
+// ✅ READY
+window.ready = async (id,isSplit)=>{
+const col = isSplit ? "split-orders" : "orders";
 
 await updateDoc(doc(db,col,id),{
 status:"Ready",
-deliveryStatus:"Ready"   // 🔥 IMPORTANT
+deliveryStatus:"Ready"
 });
 
 alert("✅ Ready");
 };
 
 // ❌ REJECT
-window.reject=async(id,isSplit)=>{
-const col=isSplit?"split-orders":"orders";
-await updateDoc(doc(db,col,id),{status:"Rejected"});
+window.reject = async (id,isSplit)=>{
+const col = isSplit ? "split-orders" : "orders";
+
+await updateDoc(doc(db,col,id),{
+status:"Rejected"
+});
 };
 
-// 🔥 SPLIT (FIXED)
-window.splitOrder=async(id)=>{
-
-const ref=doc(db,"orders",id);
-const snap=await getDoc(ref);
-const order=snap.data();
-
-let selected=[], remaining=[];
-
-order.items.forEach((item,i)=>{
-let cb=document.getElementById(`item_${id}_${i}`);
-if(cb && cb.checked) selected.push(item);
-else remaining.push(item);
-});
-
-if(remaining.length===0){
-remaining.push(order.items[0]);
-}
-
-// UPDATE MAIN
-await updateDoc(ref,{
-items:selected,
-total:selected.reduce((s,i)=>s+i.price,0)
-});
-
-// CREATE SPLIT
-await addDoc(collection(db,"split-orders"),{
-parentOrderId:id,
-
-window.splitOrder = async (id) => {
+// 🔥 SPLIT FUNCTION (FINAL FIXED)
+window.splitOrder = async (id)=>{
 
 const ref = doc(db,"orders",id);
 const snap = await getDoc(ref);
@@ -188,19 +159,19 @@ if(cb && cb.checked) selected.push(item);
 else remaining.push(item);
 });
 
-// ❌ IF NOTHING LEFT → STOP
+// ❌ IF NOTHING TO SPLIT
 if(remaining.length === 0){
 alert("⚠️ Select at least one item to split");
 return;
 }
 
-// ✅ UPDATE MAIN ORDER (selected items)
+// ✅ UPDATE MAIN ORDER
 await updateDoc(ref,{
 items: selected,
 total: selected.reduce((s,i)=>s+i.price,0)
 });
 
-// ✅ CREATE SPLIT ORDER (ALL remaining items)
+// ✅ CREATE SPLIT ORDER (ALL REMAINING ITEMS)
 await addDoc(collection(db,"split-orders"),{
 
 parentOrderId: id,
@@ -212,10 +183,10 @@ address: order.address,
 customerLat: order.customerLat || 0,
 customerLng: order.customerLng || 0,
 
-shopEmail: order.shopEmail,
+shopEmail: auth.currentUser.email, // 🔥 IMPORTANT
 
-items: remaining,   // 🔥 FIXED (ALL items)
-total: remaining.reduce((s,i)=>s+i.price,0), // 🔥 FIXED
+items: remaining,
+total: remaining.reduce((s,i)=>s+i.price,0),
 
 status: "Pending",
 deliveryStatus: "Pending",
