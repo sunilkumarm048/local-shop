@@ -172,23 +172,56 @@ total:selected.reduce((s,i)=>s+i.price,0)
 await addDoc(collection(db,"split-orders"),{
 parentOrderId:id,
 
-name:order.name,
-phone:order.phone,
-address:order.address,
+window.splitOrder = async (id) => {
 
-customerLat:order.customerLat || 0,
-customerLng:order.customerLng || 0,
+const ref = doc(db,"orders",id);
+const snap = await getDoc(ref);
+const order = snap.data();
 
-shopEmail: order.shopEmail,   // ✅ FIXED
+let selected = [];
+let remaining = [];
 
-items:[remaining[0]],
-total:remaining[0].price,
+// SPLIT ITEMS
+order.items.forEach((item,i)=>{
+let cb = document.getElementById(`item_${id}_${i}`);
+if(cb && cb.checked) selected.push(item);
+else remaining.push(item);
+});
 
-status:"Pending",
-deliveryStatus:"Pending",
-assigned:false,
+// ❌ IF NOTHING LEFT → STOP
+if(remaining.length === 0){
+alert("⚠️ Select at least one item to split");
+return;
+}
 
-time:new Date()
+// ✅ UPDATE MAIN ORDER (selected items)
+await updateDoc(ref,{
+items: selected,
+total: selected.reduce((s,i)=>s+i.price,0)
+});
+
+// ✅ CREATE SPLIT ORDER (ALL remaining items)
+await addDoc(collection(db,"split-orders"),{
+
+parentOrderId: id,
+
+name: order.name,
+phone: order.phone,
+address: order.address,
+
+customerLat: order.customerLat || 0,
+customerLng: order.customerLng || 0,
+
+shopEmail: order.shopEmail,
+
+items: remaining,   // 🔥 FIXED (ALL items)
+total: remaining.reduce((s,i)=>s+i.price,0), // 🔥 FIXED
+
+status: "Pending",
+deliveryStatus: "Pending",
+assigned: false,
+
+time: new Date()
 });
 
 alert("✅ Split Created");
