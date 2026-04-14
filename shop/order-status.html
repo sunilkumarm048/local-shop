@@ -11,13 +11,15 @@ button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cur
 .ready{background:blue;}
 .reject{background:red;}
 .split{background:orange;}
-.badge{background:#ddd;padding:3px 8px;border-radius:5px;font-size:12px;margin-left:5px;}
 </style>
 
 </head>
 <body>
 
 <h2>📦 Smart Active Orders</h2>
+
+<button onclick="goSplit()">✂️ View Split Orders</button>
+
 <div id="orders"></div>
 
 <script type="module">
@@ -41,19 +43,14 @@ return;
 
 const shopEmail = user.email;
 
-// MAIN ORDERS
+// ✅ ONLY MAIN ORDERS
 onSnapshot(collection(db,"orders"), snap=>{
 ordersDiv.innerHTML="";
-render(snap,false);
+render(snap);
 });
 
-// SPLIT ORDERS
-onSnapshot(collection(db,"split-orders"), snap=>{
-render(snap,true);
-});
-
-// RENDER
-function render(snapshot, isSplit){
+// 🎨 RENDER
+function render(snapshot){
 
 snapshot.forEach(docSnap=>{
 
@@ -62,12 +59,8 @@ const id = docSnap.id;
 
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// OLD FILTER LOGIC
-if(!isSplit){
+// FILTER
 if(order.assigned && order.shopEmail !== shopEmail) return;
-}else{
-if(order.shopEmail !== shopEmail) return;
-}
 
 // ITEMS
 let itemsHTML = order.items?.map((item,i)=>`
@@ -82,14 +75,14 @@ let buttons="";
 
 if(order.status==="Pending"){
 buttons=`
-<button class="accept" onclick="accept('${id}',${isSplit})">Accept</button>
-<button class="reject" onclick="reject('${id}',${isSplit})">Reject</button>
+<button class="accept" onclick="accept('${id}')">Accept</button>
+<button class="reject" onclick="reject('${id}')">Reject</button>
 `;
 }
 else if(order.status==="Accepted"){
 buttons=`
 <button class="split" onclick="splitOrder('${id}')">Split</button>
-<button class="ready" onclick="ready('${id}',${isSplit})">Ready</button>
+<button class="ready" onclick="ready('${id}')">Ready</button>
 `;
 }
 else if(order.status==="Ready"){
@@ -99,7 +92,7 @@ buttons=`<button class="ready">Ready ✔</button>`;
 // UI
 ordersDiv.innerHTML+=`
 <div class="order">
-<b>${order.name}</b> ${isSplit?'<span class="badge">Split</span>':''}<br>
+<b>${order.name}</b><br>
 📞 ${order.phone}<br>
 📍 ${order.address}<br><br>
 
@@ -115,10 +108,8 @@ ${buttons}
 }
 
 // ACCEPT
-window.accept=async(id,isSplit)=>{
-const col=isSplit?"split-orders":"orders";
-
-await updateDoc(doc(db,col,id),{
+window.accept=async(id)=>{
+await updateDoc(doc(db,"orders",id),{
 assigned:true,
 shopEmail: auth.currentUser.email,
 status:"Accepted"
@@ -126,24 +117,21 @@ status:"Accepted"
 };
 
 // READY
-window.ready=async(id,isSplit)=>{
-const col=isSplit?"split-orders":"orders";
-
-await updateDoc(doc(db,col,id),{
+window.ready=async(id)=>{
+await updateDoc(doc(db,"orders",id),{
 status:"Ready",
 deliveryStatus:"Ready"
 });
-
-alert("✅ Ready");
 };
 
 // REJECT
-window.reject=async(id,isSplit)=>{
-const col=isSplit?"split-orders":"orders";
-await updateDoc(doc(db,col,id),{status:"Rejected"});
+window.reject=async(id)=>{
+await updateDoc(doc(db,"orders",id),{
+status:"Rejected"
+});
 };
 
-// OLD SPLIT LOGIC (SIMPLE)
+// 🔥 SPLIT (MULTI ITEM)
 window.splitOrder=async(id)=>{
 
 const ref=doc(db,"orders",id);
@@ -158,9 +146,9 @@ if(cb && cb.checked) selected.push(item);
 else remaining.push(item);
 });
 
-// FALLBACK (OLD BEHAVIOR)
 if(remaining.length===0){
-remaining.push(order.items[0]);
+alert("⚠️ Select items to split");
+return;
 }
 
 // UPDATE MAIN
@@ -169,7 +157,7 @@ items:selected,
 total:selected.reduce((s,i)=>s+i.price,0)
 });
 
-// CREATE SPLIT (ONLY 1 ITEM LIKE OLD)
+// CREATE SPLIT
 await addDoc(collection(db,"split-orders"),{
 
 parentOrderId:id,
@@ -181,10 +169,10 @@ address:order.address,
 customerLat:order.customerLat || 0,
 customerLng:order.customerLng || 0,
 
-shopEmail: order.shopEmail,
+shopEmail: auth.currentUser.email,
 
-items:[remaining[0]],   // OLD BEHAVIOR
-total:remaining[0].price,
+items:remaining,
+total:remaining.reduce((s,i)=>s+i.price,0),
 
 status:"Pending",
 deliveryStatus:"Pending",
@@ -194,7 +182,11 @@ time:new Date()
 });
 
 alert("✅ Split Created");
+};
 
+// NAVIGATION
+window.goSplit=()=>{
+location.href="split-order.html";
 };
 
 });
