@@ -17,6 +17,9 @@ button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cur
 <body>
 
 <h2>✂️ Split Orders</h2>
+
+<button onclick="goBack()">⬅ Back</button>
+
 <div id="orders"></div>
 
 <script type="module">
@@ -39,13 +42,13 @@ return;
 
 const shopEmail = user.email;
 
-// 🔄 ONLY SPLIT ORDERS
+// ✅ ONLY SPLIT ORDERS
 onSnapshot(collection(db,"split-orders"), snap=>{
 ordersDiv.innerHTML="";
 render(snap);
 });
 
-// 🎨 RENDER
+// RENDER
 function render(snapshot){
 
 snapshot.forEach(docSnap=>{
@@ -55,7 +58,7 @@ const id = docSnap.id;
 
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// ✅ ONLY THIS SHOP
+// FILTER
 if(order.shopEmail !== shopEmail) return;
 
 // ITEMS
@@ -99,8 +102,8 @@ ${buttons}
 });
 }
 
-// ✅ ACCEPT
-window.accept = async(id)=>{
+// ACCEPT
+window.accept=async(id)=>{
 await updateDoc(doc(db,"split-orders",id),{
 assigned:true,
 shopEmail: auth.currentUser.email,
@@ -108,36 +111,35 @@ status:"Accepted"
 });
 };
 
-// ❌ REJECT
-window.reject = async(id)=>{
+// REJECT
+window.reject=async(id)=>{
 await updateDoc(doc(db,"split-orders",id),{
 status:"Rejected"
 });
 };
 
-// 🔥 READY (MAIN LOGIC)
-window.ready = async(id,parentId)=>{
+// 🔥 READY (SAME DELIVERY)
+window.ready=async(id,parentId)=>{
 
-// 🔥 GET MAIN ORDER
 const mainSnap = await getDoc(doc(db,"orders",parentId));
 const mainOrder = mainSnap.data();
 
-// ✅ TAKE DELIVERY BOY FROM MAIN ORDER
-const deliveryBoy = mainOrder.deliveryBoy || null;
-
-// UPDATE SPLIT ORDER
 await updateDoc(doc(db,"split-orders",id),{
 status:"Ready",
 deliveryStatus:"Ready",
-deliveryBoy: deliveryBoy   // 🔥 SAME DELIVERY
+deliveryBoy: mainOrder.deliveryBoy || null
 });
 
-alert("✅ Split Ready (same delivery assigned)");
+alert("✅ Ready (same delivery)");
+};
+
+// BACK
+window.goBack=()=>{
+history.back();
 };
 
 });
 
 </script>
-
 </body>
 </html>
