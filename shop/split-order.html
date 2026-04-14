@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Split Order</title>
+
+<style>
+body{font-family:Arial;background:#eef1f5;padding:20px;}
+.card{background:white;padding:15px;border-radius:10px;}
+button{padding:8px 12px;border:none;border-radius:5px;color:white;cursor:pointer;}
+.split{background:orange;}
+</style>
+
+</head>
+<body>
+
+<h2>✂️ Split Order</h2>
+
+<div id="order"></div>
+
+<button class="split" onclick="splitNow()">Split Selected</button>
+
+<script type="module">
+
+import { db } from "../js/firebase.js";
+import {
+doc, getDoc, updateDoc, addDoc, collection
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const params = new URLSearchParams(location.search);
+const orderId = params.get("id");
+
+let orderData;
+
+const orderDiv = document.getElementById("order");
+
+// LOAD ORDER
+async function loadOrder(){
+
+const ref = doc(db,"orders",orderId);
+const snap = await getDoc(ref);
+
+orderData = snap.data();
+
+let html = `<div class="card">`;
+
+orderData.items.forEach((item,i)=>{
+html += `
+<label>
+<input type="checkbox" id="item_${i}">
+${item.name} ₹${item.price}
+</label><br>
+`;
+});
+
+html += `</div>`;
+
+orderDiv.innerHTML = html;
+}
+
+loadOrder();
+
+// SPLIT FUNCTION
+window.splitNow = async ()=>{
+
+let selected = [];
+let remaining = [];
+
+orderData.items.forEach((item,i)=>{
+let cb = document.getElementById(`item_${i}`);
+if(cb.checked) selected.push(item);
+else remaining.push(item);
+});
+
+if(selected.length === 0 || remaining.length === 0){
+alert("⚠️ Select some items to split");
+return;
+}
+
+// UPDATE MAIN ORDER
+await updateDoc(doc(db,"orders",orderId),{
+items: selected,
+total: selected.reduce((s,i)=>s+i.price,0)
+});
+
+// CREATE SPLIT ORDER
+await addDoc(collection(db,"split-orders"),{
+
+parentOrderId: orderId,
+
+name: orderData.name,
+phone: orderData.phone,
+address: orderData.address,
+
+customerLat: orderData.customerLat || 0,
+customerLng: orderData.customerLng || 0,
+
+shopEmail: orderData.shopEmail,
+
+items: remaining,
+total: remaining.reduce((s,i)=>s+i.price,0),
+
+status:"Pending",
+deliveryStatus:"Pending",
+assigned:false,
+
+time:new Date()
+});
+
+alert("✅ Split Done");
+history.back();
+};
+
+</script>
+
+</body>
+</html>
