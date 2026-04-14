@@ -12,6 +12,7 @@ button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cur
 .reject{background:red;}
 .badge{background:#ddd;padding:3px 8px;border-radius:5px;font-size:12px;margin-left:5px;}
 .empty{color:#666;margin-top:20px;}
+.info{color:#888;font-size:13px;}
 </style>
 
 </head>
@@ -28,7 +29,7 @@ button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cur
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-collection, onSnapshot, doc, updateDoc, getDoc
+collection, onSnapshot, doc, updateDoc, getDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
@@ -43,7 +44,7 @@ return;
 
 const shopEmail = user.email;
 
-// ✅ LISTEN SPLIT ORDERS
+// 🔄 LISTEN SPLIT ORDERS
 onSnapshot(collection(db,"split-orders"), snap=>{
 ordersDiv.innerHTML="";
 render(snap);
@@ -62,8 +63,8 @@ const id = docSnap.id;
 // ❌ skip completed
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// ✅ FIX FILTER (safe)
-if(order.shopEmail && order.shopEmail !== shopEmail) return;
+// 🔥 LOCK LOGIC (SAME AS MAIN)
+if(order.assigned && order.shopEmail !== shopEmail) return;
 
 hasData = true;
 
@@ -75,17 +76,28 @@ let itemsHTML = order.items?.map(item=>`
 // BUTTONS
 let buttons="";
 
+// 🟡 Pending
 if(order.status==="Pending"){
 buttons=`
 <button class="accept" onclick="accept('${id}')">Accept</button>
 <button class="reject" onclick="reject('${id}')">Reject</button>
 `;
 }
+
+// 🔵 Accepted
 else if(order.status==="Accepted"){
+
+if(order.shopEmail !== shopEmail){
+buttons=`<span class="info">Taken by another shop</span>`;
+}else{
 buttons=`
 <button class="ready" onclick="ready('${id}','${order.parentOrderId}')">Ready</button>
 `;
 }
+
+}
+
+// 🟢 Ready
 else if(order.status==="Ready"){
 buttons=`<button class="ready">Ready ✔</button>`;
 }
@@ -107,20 +119,45 @@ ${buttons}
 
 });
 
-// ✅ EMPTY STATE
+// EMPTY STATE
 if(!hasData){
 ordersDiv.innerHTML = `<p class="empty">No split orders available</p>`;
 }
 
 }
 
-// ✅ ACCEPT
+// ✅ ACCEPT (LOCK WITH TRANSACTION)
 window.accept = async(id)=>{
-await updateDoc(doc(db,"split-orders",id),{
+
+const ref = doc(db,"split-orders",id);
+
+try{
+
+await runTransaction(db, async (transaction)=>{
+
+const snap = await transaction.get(ref);
+
+if(!snap.exists()) throw "Order not found";
+
+const order = snap.data();
+
+if(order.assigned){
+alert("❌ Already taken by another shop");
+return;
+}
+
+transaction.update(ref,{
 assigned:true,
 shopEmail: auth.currentUser.email,
 status:"Accepted"
 });
+
+});
+
+}catch(e){
+console.error(e);
+}
+
 };
 
 // ❌ REJECT
@@ -130,7 +167,7 @@ status:"Rejected"
 });
 };
 
-// 🔥 READY (SAFE VERSION)
+// 🔥 READY (LINK SAME DELIVERY)
 window.ready = async(id,parentId)=>{
 
 try{
@@ -140,20 +177,18 @@ const mainSnap = await getDoc(mainRef);
 
 let deliveryBoy = null;
 
-// ✅ SAFETY CHECK
 if(mainSnap.exists()){
 const mainOrder = mainSnap.data();
 deliveryBoy = mainOrder.deliveryBoy || null;
 }
 
-// UPDATE SPLIT
 await updateDoc(doc(db,"split-orders",id),{
 status:"Ready",
 deliveryStatus:"Ready",
 deliveryBoy: deliveryBoy
 });
 
-alert("✅ Ready (linked to main delivery)");
+alert("✅ Ready (same delivery)");
 
 }catch(err){
 console.error(err);
