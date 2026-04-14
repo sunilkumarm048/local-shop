@@ -11,6 +11,7 @@ button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cur
 .ready{background:blue;}
 .reject{background:red;}
 .split{background:orange;}
+.info{color:#888;font-size:13px;}
 </style>
 
 </head>
@@ -28,7 +29,7 @@ import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
 collection, onSnapshot, doc, updateDoc,
-getDoc, addDoc
+getDoc, addDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
@@ -43,7 +44,7 @@ return;
 
 const shopEmail = user.email;
 
-// ✅ ONLY MAIN ORDERS
+// 🔄 MAIN ORDERS ONLY
 onSnapshot(collection(db,"orders"), snap=>{
 ordersDiv.innerHTML="";
 render(snap);
@@ -52,10 +53,7 @@ render(snap);
 // 🎨 RENDER FUNCTION
 function render(snapshot){
 
-if(snapshot.empty){
-ordersDiv.innerHTML = "<p>No orders available</p>";
-return;
-}
+let hasData = false;
 
 snapshot.forEach(docSnap=>{
 
@@ -65,8 +63,10 @@ const id = docSnap.id;
 // ❌ Skip completed
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// ✅ FIXED FILTER (NO CROSS SHOP ISSUE)
-if(order.shopEmail && order.shopEmail !== shopEmail) return;
+// 🔥 LOCK LOGIC (FINAL)
+if(order.assigned && order.shopEmail !== shopEmail) return;
+
+hasData = true;
 
 // ITEMS
 let itemsHTML = order.items?.map((item,i)=>`
@@ -79,18 +79,30 @@ ${item.name} ₹${item.price}
 // BUTTONS
 let buttons="";
 
+// 🟡 Pending
 if(order.status==="Pending"){
 buttons=`
 <button class="accept" onclick="accept('${id}')">Accept</button>
 <button class="reject" onclick="reject('${id}')">Reject</button>
 `;
 }
+
+// 🔵 Accepted
 else if(order.status==="Accepted"){
+
+// if taken by other shop
+if(order.shopEmail !== shopEmail){
+buttons=`<span class="info">Taken by another shop</span>`;
+}else{
 buttons=`
 <button class="split" onclick="splitOrder('${id}')">Split</button>
 <button class="ready" onclick="ready('${id}')">Ready</button>
 `;
 }
+
+}
+
+// 🟢 Ready
 else if(order.status==="Ready"){
 buttons=`<button class="ready">Ready ✔</button>`;
 }
@@ -111,19 +123,51 @@ ${buttons}
 `;
 
 });
+
+// EMPTY STATE
+if(!hasData){
+ordersDiv.innerHTML = "<p>No active orders</p>";
 }
 
-// ✅ ACCEPT
-window.accept=async(id)=>{
-await updateDoc(doc(db,"orders",id),{
+}
+
+// ✅ ACCEPT (SAFE TRANSACTION LOCK)
+window.accept = async(id)=>{
+
+const ref = doc(db,"orders",id);
+
+try{
+
+await runTransaction(db, async (transaction)=>{
+
+const snap = await transaction.get(ref);
+
+if(!snap.exists()) throw "Order not found";
+
+const order = snap.data();
+
+// 🔥 already taken
+if(order.assigned){
+alert("❌ Already accepted by another shop");
+return;
+}
+
+transaction.update(ref,{
 assigned:true,
 shopEmail: auth.currentUser.email,
 status:"Accepted"
 });
+
+});
+
+}catch(e){
+console.error(e);
+}
+
 };
 
 // ✅ READY
-window.ready=async(id)=>{
+window.ready = async(id)=>{
 await updateDoc(doc(db,"orders",id),{
 status:"Ready",
 deliveryStatus:"Ready"
@@ -132,14 +176,14 @@ alert("✅ Order Ready");
 };
 
 // ❌ REJECT
-window.reject=async(id)=>{
+window.reject = async(id)=>{
 await updateDoc(doc(db,"orders",id),{
 status:"Rejected"
 });
 };
 
-// 🔥 SPLIT (FINAL FIXED VERSION)
-window.splitOrder=async(id)=>{
+// 🔥 SPLIT FUNCTION (FINAL)
+window.splitOrder = async(id)=>{
 
 const ref = doc(db,"orders",id);
 const snap = await getDoc(ref);
@@ -161,9 +205,9 @@ if(cb && cb.checked) selected.push(item);
 else remaining.push(item);
 });
 
-// ❌ PREVENT WRONG SPLIT
+// ❌ prevent invalid split
 if(remaining.length === 0){
-alert("⚠️ Select at least one item to split");
+alert("⚠️ Select items to split");
 return;
 }
 
@@ -173,19 +217,19 @@ items:selected,
 total:selected.reduce((s,i)=>s+i.price,0)
 });
 
-// ✅ CREATE SPLIT ORDER (IMPORTANT FIX)
+// ✅ CREATE SPLIT ORDER
 await addDoc(collection(db,"split-orders"),{
 
-parentOrderId: id,
+parentOrderId:id,
 
-name: order.name,
-phone: order.phone,
-address: order.address,
+name:order.name,
+phone:order.phone,
+address:order.address,
 
 customerLat: order.customerLat || 0,
 customerLng: order.customerLng || 0,
 
-// 🔥 CRITICAL FIX
+// 🔥 IMPORTANT FIX
 shopEmail: auth.currentUser.email,
 
 items: remaining,
@@ -198,12 +242,12 @@ assigned:false,
 time:new Date()
 });
 
-alert("✅ Split Created Successfully");
+alert("✅ Split Created → Check Split Orders");
 
 };
 
 // 🔁 NAVIGATION
-window.goSplit=()=>{
+window.goSplit = ()=>{
 location.href="split-order.html";
 };
 
