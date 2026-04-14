@@ -1,114 +1,141 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Split Order</title>
+<title>Split Orders</title>
 
 <style>
 body{font-family:Arial;background:#eef1f5;padding:20px;}
-.card{background:white;padding:15px;border-radius:10px;}
-button{padding:8px 12px;border:none;border-radius:5px;color:white;cursor:pointer;}
-.split{background:orange;}
+.order{background:white;padding:15px;margin-bottom:15px;border-radius:10px;}
+button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cursor:pointer;}
+.accept{background:green;}
+.ready{background:blue;}
+.reject{background:red;}
+.badge{background:#ddd;padding:3px 8px;border-radius:5px;font-size:12px;margin-left:5px;}
 </style>
 
 </head>
 <body>
 
-<h2>✂️ Split Order</h2>
-
-<div id="order"></div>
-
-<button class="split" onclick="splitNow()">Split Selected</button>
+<h2>✂️ Split Orders</h2>
+<div id="orders"></div>
 
 <script type="module">
 
-import { db } from "../js/firebase.js";
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-doc, getDoc, updateDoc, addDoc, collection
+collection, onSnapshot, doc, updateDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const params = new URLSearchParams(location.search);
-const orderId = params.get("id");
+const ordersDiv = document.getElementById("orders");
 
-let orderData;
+onAuthStateChanged(auth, async(user)=>{
 
-const orderDiv = document.getElementById("order");
-
-// LOAD ORDER
-async function loadOrder(){
-
-const ref = doc(db,"orders",orderId);
-const snap = await getDoc(ref);
-
-orderData = snap.data();
-
-let html = `<div class="card">`;
-
-orderData.items.forEach((item,i)=>{
-html += `
-<label>
-<input type="checkbox" id="item_${i}">
-${item.name} ₹${item.price}
-</label><br>
-`;
-});
-
-html += `</div>`;
-
-orderDiv.innerHTML = html;
-}
-
-loadOrder();
-
-// SPLIT FUNCTION
-window.splitNow = async ()=>{
-
-let selected = [];
-let remaining = [];
-
-orderData.items.forEach((item,i)=>{
-let cb = document.getElementById(`item_${i}`);
-if(cb.checked) selected.push(item);
-else remaining.push(item);
-});
-
-if(selected.length === 0 || remaining.length === 0){
-alert("⚠️ Select some items to split");
+if(!user){
+alert("Login required");
+location.href="login.html";
 return;
 }
 
-// UPDATE MAIN ORDER
-await updateDoc(doc(db,"orders",orderId),{
-items: selected,
-total: selected.reduce((s,i)=>s+i.price,0)
+const shopEmail = user.email;
+
+// 🔄 ONLY SPLIT ORDERS
+onSnapshot(collection(db,"split-orders"), snap=>{
+ordersDiv.innerHTML="";
+render(snap);
 });
 
-// CREATE SPLIT ORDER
-await addDoc(collection(db,"split-orders"),{
+// 🎨 RENDER
+function render(snapshot){
 
-parentOrderId: orderId,
+snapshot.forEach(docSnap=>{
 
-name: orderData.name,
-phone: orderData.phone,
-address: orderData.address,
+const order = docSnap.data();
+const id = docSnap.id;
 
-customerLat: orderData.customerLat || 0,
-customerLng: orderData.customerLng || 0,
+if(order.status==="Delivered" || order.status==="Rejected") return;
 
-shopEmail: orderData.shopEmail,
+// ✅ ONLY THIS SHOP
+if(order.shopEmail !== shopEmail) return;
 
-items: remaining,
-total: remaining.reduce((s,i)=>s+i.price,0),
+// ITEMS
+let itemsHTML = order.items?.map(item=>`
+<div>${item.name} ₹${item.price}</div>
+`).join("") || "";
 
-status:"Pending",
-deliveryStatus:"Pending",
-assigned:false,
+// BUTTONS
+let buttons="";
 
-time:new Date()
+if(order.status==="Pending"){
+buttons=`
+<button class="accept" onclick="accept('${id}')">Accept</button>
+<button class="reject" onclick="reject('${id}')">Reject</button>
+`;
+}
+else if(order.status==="Accepted"){
+buttons=`
+<button class="ready" onclick="ready('${id}','${order.parentOrderId}')">Ready</button>
+`;
+}
+else if(order.status==="Ready"){
+buttons=`<button class="ready">Ready ✔</button>`;
+}
+
+// UI
+ordersDiv.innerHTML+=`
+<div class="order">
+<b>${order.name}</b> <span class="badge">Split</span><br>
+📞 ${order.phone}<br>
+📍 ${order.address}<br><br>
+
+Total: ₹${order.total}<br>
+Status: ${order.status}<br><br>
+
+${itemsHTML}
+${buttons}
+</div>
+`;
+
 });
+}
 
-alert("✅ Split Done");
-history.back();
+// ✅ ACCEPT
+window.accept = async(id)=>{
+await updateDoc(doc(db,"split-orders",id),{
+assigned:true,
+shopEmail: auth.currentUser.email,
+status:"Accepted"
+});
 };
+
+// ❌ REJECT
+window.reject = async(id)=>{
+await updateDoc(doc(db,"split-orders",id),{
+status:"Rejected"
+});
+};
+
+// 🔥 READY (MAIN LOGIC)
+window.ready = async(id,parentId)=>{
+
+// 🔥 GET MAIN ORDER
+const mainSnap = await getDoc(doc(db,"orders",parentId));
+const mainOrder = mainSnap.data();
+
+// ✅ TAKE DELIVERY BOY FROM MAIN ORDER
+const deliveryBoy = mainOrder.deliveryBoy || null;
+
+// UPDATE SPLIT ORDER
+await updateDoc(doc(db,"split-orders",id),{
+status:"Ready",
+deliveryStatus:"Ready",
+deliveryBoy: deliveryBoy   // 🔥 SAME DELIVERY
+});
+
+alert("✅ Split Ready (same delivery assigned)");
+};
+
+});
 
 </script>
 
