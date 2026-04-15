@@ -8,9 +8,35 @@
 
 <style>
 body{font-family:Arial;margin:0;background:#f5f5f5;}
-.header{background:#ff5a5f;color:white;padding:15px;text-align:center;}
-#map{height:400px;margin:15px;border-radius:10px;}
-.box{background:white;margin:15px;padding:15px;border-radius:10px;}
+
+.header{
+background:#ff5a5f;
+color:white;
+padding:15px;
+text-align:center;
+font-size:18px;
+font-weight:bold;
+}
+
+#map{
+height:400px;
+margin:15px;
+border-radius:10px;
+}
+
+.box{
+background:white;
+margin:15px;
+padding:15px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+.pending{color:orange;}
+.accepted{color:green;}
+.ready{color:blue;}
+.out{color:#ff9800;}
+.delivered{color:purple;}
 </style>
 
 </head>
@@ -21,99 +47,188 @@ body{font-family:Arial;margin:0;background:#f5f5f5;}
 
 <div class="box">
 Order ID: <span id="orderId"></span><br><br>
-Status: <b id="status"></b><br><br>
-Delivery Boy: <span id="boy"></span>
+
+Status: <b id="status">Loading...</b><br><br>
+
+Delivery Boy:
+<div id="boy">Not assigned</div>
 </div>
 
 <div id="map"></div>
-
-<div id="confirmBox" class="box"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { doc, onSnapshot, updateDoc, getDocs, collection } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const orderId = new URLSearchParams(location.search).get("orderId");
+// 📦 GET ORDER ID
+const urlParams = new URLSearchParams(window.location.search);
+const orderId = urlParams.get("orderId") || localStorage.getItem("lastOrderId");
+
 document.getElementById("orderId").innerText = orderId;
 
+// 🗺️ MAP INIT
 let map = L.map('map').setView([20.2961,85.8245], 13);
+
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-let deliveryMarker;
+// MARKERS
+let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
+let popupShown=false;
 
-// LIVE DATA
-onSnapshot(doc(db,"orders",orderId),(snap)=>{
+// 🧭 DRAW ROUTE
+function drawLine(start,end){
 
-if(!snap.exists()) return;
+if(routeLine){
+map.removeLayer(routeLine);
+}
 
-let data = snap.data();
+routeLine = L.polyline([
+[start.lat,start.lng],
+[end.lat,end.lng]
+],{
+color:"blue",
+weight:4
+}).addTo(map);
 
-document.getElementById("status").innerText = data.status;
-document.getElementById("boy").innerText = data.deliveryBoyId || "Not assigned";
+}
 
-// DELIVERY MARKER
-if(data.deliveryLat){
+// 🔴 LIVE LISTENER
+onSnapshot(doc(db,"orders",orderId),(docSnap)=>{
+
+if(!docSnap.exists()){
+document.getElementById("status").innerText = "Order not found";
+return;
+}
+
+let data = docSnap.data();
+
+// ✅ STATUS
+let statusEl = document.getElementById("status");
+statusEl.innerText = data.status;
+
+statusEl.className="";
+if(data.status==="Pending") statusEl.classList.add("pending");
+if(data.status==="Accepted") statusEl.classList.add("accepted");
+if(data.status==="Ready") statusEl.classList.add("ready");
+if(data.status==="Out for Delivery") statusEl.classList.add("out");
+if(data.status==="Delivered") statusEl.classList.add("delivered");
+
+// ✅ DELIVERY DETAILS (FROM ORDER)
+document.getElementById("boy").innerHTML = `
+👤 ${data.deliveryBoyName || "Not assigned"}<br>
+📞 ${data.deliveryBoyPhone || "-"}<br>
+🚗 ${data.deliveryVehicle || "-"}
+`;
+
+// 👤 CUSTOMER MARKER
+if(data.customerLat && data.customerLng){
+
+let pos=[data.customerLat,data.customerLng];
+
+if(!customerMarker){
+customerMarker=L.marker(pos).addTo(map).bindPopup("👤 Customer");
+}else{
+customerMarker.setLatLng(pos);
+}
+
+}
+
+// 🏪 SHOP MARKER
+if(data.shopLat && data.shopLng){
+
+let pos=[data.shopLat,data.shopLng];
+
+if(!shopMarker){
+shopMarker=L.marker(pos).addTo(map).bindPopup("🏪 Shop");
+}else{
+shopMarker.setLatLng(pos);
+}
+
+}
+
+// 🚚 DELIVERY LIVE MARKER
+if(data.deliveryLat && data.deliveryLng){
 
 let pos=[data.deliveryLat,data.deliveryLng];
 
 if(!deliveryMarker){
-deliveryMarker=L.marker(pos).addTo(map);
+deliveryMarker=L.marker(pos).addTo(map).bindPopup("🚚 Delivery Boy");
 }else{
 deliveryMarker.setLatLng(pos);
 }
 
-map.setView(pos,15);
+// AUTO ZOOM
+let group=[];
+if(customerMarker) group.push(customerMarker.getLatLng());
+if(shopMarker) group.push(shopMarker.getLatLng());
+if(deliveryMarker) group.push(deliveryMarker.getLatLng());
+
+if(group.length>1){
+map.fitBounds(group,{padding:[50,50]});
 }
 
-// ✅ SHOW CONFIRM BUTTON
-if(data.deliveryStatus==="WaitingCustomerConfirm"){
-
-document.getElementById("confirmBox").innerHTML=`
-<h3>📦 Order Delivered?</h3>
-<button onclick="confirmDelivery('${orderId}')">✅ Yes Received</button>
-<button onclick="reportIssue()">❌ Not Received</button>
-`;
+// ROUTE SWITCH
+if(data.status==="Out for Delivery"){
+drawLine(
+{lat:data.deliveryLat,lng:data.deliveryLng},
+{lat:data.customerLat,lng:data.customerLng}
+);
+}else{
+drawLine(
+{lat:data.deliveryLat,lng:data.deliveryLng},
+{lat:data.shopLat,lng:data.shopLng}
+);
+}
 
 }
 
-// AUTO REDIRECT AFTER DELIVERY
-if(data.deliveryStatus==="Delivered"){
-alert("🎉 Delivered!");
-location.href="index.html";
+// 🔥 CUSTOMER CONFIRM POPUP (MAIN FEATURE)
+if(data.deliveryStatus==="WaitingCustomerConfirm" && !popupShown){
+
+popupShown = true;
+
+setTimeout(()=>{
+
+let confirmDelivery = confirm("📦 Delivery completed?\nConfirm your order.");
+
+if(confirmDelivery){
+
+updateDoc(doc(db,"orders",orderId),{
+status:"Delivered",
+deliveryStatus:"Delivered"
+});
+
+alert("✅ Order Completed");
+
+setTimeout(()=>{
+window.location.href="https://sunilkumarm048.github.io/local-shop/";
+},1500);
+
+}else{
+
+updateDoc(doc(db,"orders",orderId),{
+deliveryStatus:"Issue"
+});
+
+alert("⚠️ Issue reported");
+
+}
+
+},500);
+
+}
+
+// 🎉 AUTO REDIRECT AFTER DELIVERY
+if(data.status==="Delivered"){
+setTimeout(()=>{
+window.location.href="https://sunilkumarm048.github.io/local-shop/";
+},2000);
 }
 
 });
-
-// CONFIRM DELIVERY
-window.confirmDelivery = async(id)=>{
-
-await updateDoc(doc(db,"orders",id),{
-deliveryStatus:"Delivered",
-status:"Delivered"
-});
-
-// UPDATE SPLIT ORDERS
-const snap = await getDocs(collection(db,"split-orders"));
-
-snap.forEach(async(d)=>{
-if(d.data().parentOrderId===id){
-await updateDoc(doc(db,"split-orders",d.id),{
-deliveryStatus:"Delivered",
-status:"Delivered"
-});
-}
-});
-
-};
-
-// ISSUE
-window.reportIssue = ()=>{
-alert("Support will contact you");
-};
 
 </script>
 
