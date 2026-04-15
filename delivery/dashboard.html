@@ -80,7 +80,8 @@ color:white;cursor:pointer;
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, onSnapshot, doc, updateDoc, getDoc, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const newOrderDiv = document.getElementById("newOrder");
@@ -97,16 +98,31 @@ window.goWallet=()=>location.href="wallet.html";
 window.goAnalytics=()=>location.href="analytics.html";
 window.logout=()=>{signOut(auth);location.href="login.html";};
 
-// LOCATION
+// 📍 LOCATION + LIVE UPDATE
 function startLiveLocation(){
 navigator.geolocation.watchPosition(async(pos)=>{
 
 window.myLat = pos.coords.latitude;
 window.myLng = pos.coords.longitude;
 
+// ✅ update delivery profile
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 lat: window.myLat,
 lng: window.myLng
+});
+
+// ✅ update all active orders
+const ordersSnap = await getDocs(collection(db,"orders"));
+
+ordersSnap.forEach(async(docSnap)=>{
+let o = docSnap.data();
+
+if(o.deliveryBoyId === auth.currentUser.email){
+await updateDoc(doc(db,"orders",docSnap.id),{
+deliveryLat: window.myLat,
+deliveryLng: window.myLng
+});
+}
 });
 
 });
@@ -138,10 +154,9 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ hide delivered
 if(order.deliveryStatus==="Delivered") return;
 
-// NEW ORDER
+// 🆕 NEW ORDER
 if(order.deliveryStatus==="Ready" && !order.deliveryBoyId && !newOrderShown){
 
 notifySound.play();
@@ -159,7 +174,7 @@ newOrderDiv.innerHTML=`
 newOrderShown=true;
 }
 
-// MY ORDER
+// 📦 MY ORDER
 if(order.deliveryBoyId === user.email){
 
 let step = order.pickupStep || 0;
@@ -167,7 +182,6 @@ let step = order.pickupStep || 0;
 let targetLat = order.customerLat;
 let targetLng = order.customerLng;
 
-// UI
 ordersDiv.innerHTML+=`
 <div class="order">
 
@@ -185,7 +199,6 @@ ${step>=2 ? `<button class="complete" onclick="markDelivered('${id}','${col}')">
 </div>
 `;
 
-// MAP
 setTimeout(()=>{
 let map=L.map(`map_${id}`).setView([targetLat,targetLng],13);
 
@@ -213,14 +226,30 @@ newOrderDiv.innerHTML="No new order";
 
 });
 
-// ACTIONS
-window.acceptOrder=async(id,col)=>{
+// ✅ ACCEPT ORDER (FIXED)
+window.acceptOrder = async(id,col)=>{
+
+const email = auth.currentUser.email;
+
+// 🔥 fetch delivery profile
+const snap = await getDoc(doc(db,"delivery",email));
+const d = snap.data();
+
 await updateDoc(doc(db,col,id),{
-deliveryBoyId: auth.currentUser.email,
+
+deliveryBoyId: email,
+
+deliveryBoyName: d.name || "",
+deliveryBoyPhone: d.phone || "",
+deliveryVehicle: d.bikeNumber || "",
+
 deliveryStatus:"Accepted"
+
 });
+
 };
 
+// REJECT
 window.rejectOrder=async(id,col)=>{
 await updateDoc(doc(db,col,id),{
 deliveryBoyId:null,
@@ -228,6 +257,7 @@ deliveryStatus:"Ready"
 });
 };
 
+// STEP
 window.nextStep = async(id,col,step)=>{
 
 if(step===0){
@@ -239,7 +269,7 @@ await updateDoc(doc(db,col,id),{pickupStep:2});
 
 };
 
-// ✅ DELIVER BUTTON
+// ✅ DELIVER
 window.markDelivered = async(id,col)=>{
 
 await updateDoc(doc(db,col,id),{
