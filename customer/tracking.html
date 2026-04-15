@@ -8,31 +8,9 @@
 
 <style>
 body{font-family:Arial;margin:0;background:#f5f5f5;}
-.header{
-background:#ff5a5f;
-color:white;
-padding:15px;
-text-align:center;
-font-size:18px;
-font-weight:bold;
-}
-#map{
-height:400px;
-margin:15px;
-border-radius:10px;
-}
-.box{
-background:white;
-margin:15px;
-padding:15px;
-border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-.pending{color:orange;}
-.accepted{color:green;}
-.ready{color:blue;}
-.out{color:#ff9800;}
-.delivered{color:purple;}
+.header{background:#ff5a5f;color:white;padding:15px;text-align:center;}
+#map{height:400px;margin:15px;border-radius:10px;}
+.box{background:white;margin:15px;padding:15px;border-radius:10px;}
 </style>
 
 </head>
@@ -43,170 +21,99 @@ box-shadow:0 4px 10px rgba(0,0,0,0.1);
 
 <div class="box">
 Order ID: <span id="orderId"></span><br><br>
-Status: <b id="status">Loading...</b><br><br>
-Delivery Boy: <span id="boy">Not assigned</span>
+Status: <b id="status"></b><br><br>
+Delivery Boy: <span id="boy"></span>
 </div>
 
 <div id="map"></div>
+
+<div id="confirmBox" class="box"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
 
 import { db } from "../js/firebase.js";
-import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, onSnapshot, updateDoc, getDocs, collection } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ORDER ID
-const urlParams = new URLSearchParams(window.location.search);
-const orderId = urlParams.get("orderId") || localStorage.getItem("lastOrderId");
-
+const orderId = new URLSearchParams(location.search).get("orderId");
 document.getElementById("orderId").innerText = orderId;
 
-// MAP
 let map = L.map('map').setView([20.2961,85.8245], 13);
-
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// MARKERS
-let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
-let deliveredShown=false;
-
-// ROUTE FUNCTION
-async function drawRoute(start,end){
-
-if(routeLine){
-map.removeLayer(routeLine);
-}
-
-try{
-let res = await fetch("https://api.openrouteservice.org/v2/directions/driving-car",{
-method:"POST",
-headers:{
-"Authorization":"YOUR_API_KEY_HERE",
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-coordinates:[
-[start.lng,start.lat],
-[end.lng,end.lat]
-]
-})
-});
-
-let data = await res.json();
-if(!data.features) return;
-
-let coords = data.features[0].geometry.coordinates;
-let latlngs = coords.map(c => [c[1],c[0]]);
-
-routeLine = L.polyline(latlngs,{
-color:"blue",
-weight:5
-}).addTo(map);
-
-}catch(e){
-console.error(e);
-}
-}
+let deliveryMarker;
 
 // LIVE DATA
-onSnapshot(doc(db,"orders",orderId),(docSnap)=>{
+onSnapshot(doc(db,"orders",orderId),(snap)=>{
 
-if(!docSnap.exists()){
-document.getElementById("status").innerText = "Order not found";
-return;
-}
+if(!snap.exists()) return;
 
-let data = docSnap.data();
+let data = snap.data();
 
-// STATUS
 document.getElementById("status").innerText = data.status;
+document.getElementById("boy").innerText = data.deliveryBoyId || "Not assigned";
 
-// DELIVERY BOY NAME
-let boyName = data.deliveryBoyName || data.deliveryBoy || "Not assigned";
-document.getElementById("boy").innerText = boyName;
-
-// STATUS COLOR
-let statusEl = document.getElementById("status");
-statusEl.className="";
-
-if(data.status==="Pending") statusEl.classList.add("pending");
-if(data.status==="Accepted") statusEl.classList.add("accepted");
-if(data.status==="Ready") statusEl.classList.add("ready");
-if(data.status==="Out for Delivery") statusEl.classList.add("out");
-if(data.status==="Delivered") statusEl.classList.add("delivered");
-
-// CUSTOMER MARKER
-if(data.customerLat && data.customerLng){
-let pos=[data.customerLat,data.customerLng];
-
-if(!customerMarker){
-customerMarker=L.marker(pos).addTo(map).bindPopup("👤 Customer");
-}else{
-customerMarker.setLatLng(pos);
-}
-}
-
-// SHOP MARKER
-if(data.shopLat && data.shopLng){
-let pos=[data.shopLat,data.shopLng];
-
-if(!shopMarker){
-shopMarker=L.marker(pos).addTo(map).bindPopup("🏪 Shop");
-}else{
-shopMarker.setLatLng(pos);
-}
-}
-
-// 🚚 DELIVERY LIVE MOVEMENT
-if(data.deliveryLat && data.deliveryLng){
+// DELIVERY MARKER
+if(data.deliveryLat){
 
 let pos=[data.deliveryLat,data.deliveryLng];
 
 if(!deliveryMarker){
-deliveryMarker=L.marker(pos).addTo(map).bindPopup("🚚 Delivery Boy");
+deliveryMarker=L.marker(pos).addTo(map);
 }else{
-// smooth movement
 deliveryMarker.setLatLng(pos);
 }
 
-// AUTO FIT VIEW (BEST UX)
-let group = [];
-if(customerMarker) group.push(customerMarker.getLatLng());
-if(shopMarker) group.push(shopMarker.getLatLng());
-if(deliveryMarker) group.push(deliveryMarker.getLatLng());
-
-if(group.length > 1){
-map.fitBounds(group, {padding:[50,50]});
+map.setView(pos,15);
 }
 
-// ROUTE SWITCH
-if(data.status==="Out for Delivery"){
-drawRoute(
-{lat:data.deliveryLat,lng:data.deliveryLng},
-{lat:data.customerLat,lng:data.customerLng}
-);
-}else{
-drawRoute(
-{lat:data.deliveryLat,lng:data.deliveryLng},
-{lat:data.shopLat,lng:data.shopLng}
-);
-}
+// ✅ SHOW CONFIRM BUTTON
+if(data.deliveryStatus==="WaitingCustomerConfirm"){
+
+document.getElementById("confirmBox").innerHTML=`
+<h3>📦 Order Delivered?</h3>
+<button onclick="confirmDelivery('${orderId}')">✅ Yes Received</button>
+<button onclick="reportIssue()">❌ Not Received</button>
+`;
 
 }
 
-// DELIVERY COMPLETE → REDIRECT
-if(data.status==="Delivered" && !deliveredShown){
-deliveredShown = true;
-
-alert("🎉 Order Delivered Successfully!");
-
-setTimeout(()=>{
-window.location.href = "https://sunilkumarm048.github.io/local-shop/";
-},1500);
+// AUTO REDIRECT AFTER DELIVERY
+if(data.deliveryStatus==="Delivered"){
+alert("🎉 Delivered!");
+location.href="index.html";
 }
 
 });
+
+// CONFIRM DELIVERY
+window.confirmDelivery = async(id)=>{
+
+await updateDoc(doc(db,"orders",id),{
+deliveryStatus:"Delivered",
+status:"Delivered"
+});
+
+// UPDATE SPLIT ORDERS
+const snap = await getDocs(collection(db,"split-orders"));
+
+snap.forEach(async(d)=>{
+if(d.data().parentOrderId===id){
+await updateDoc(doc(db,"split-orders",d.id),{
+deliveryStatus:"Delivered",
+status:"Delivered"
+});
+}
+});
+
+};
+
+// ISSUE
+window.reportIssue = ()=>{
+alert("Support will contact you");
+};
 
 </script>
 
