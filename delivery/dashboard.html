@@ -80,7 +80,7 @@ color:white;cursor:pointer;
 
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
 const newOrderDiv = document.getElementById("newOrder");
@@ -97,42 +97,22 @@ window.goWallet=()=>location.href="wallet.html";
 window.goAnalytics=()=>location.href="analytics.html";
 window.logout=()=>{signOut(auth);location.href="login.html";};
 
-// 📏 DISTANCE
-function getDistance(lat1, lon1, lat2, lon2){
-let R=6371;
-let dLat=(lat2-lat1)*Math.PI/180;
-let dLon=(lon2-lon1)*Math.PI/180;
-
-let a=Math.sin(dLat/2)**2+
-Math.cos(lat1*Math.PI/180)*
-Math.cos(lat2*Math.PI/180)*
-Math.sin(dLon/2)**2;
-
-let c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-return R*c;
-}
-
-// 📍 LIVE LOCATION + FIRESTORE UPDATE
+// LOCATION
 function startLiveLocation(){
 navigator.geolocation.watchPosition(async(pos)=>{
 
-let lat = pos.coords.latitude;
-let lng = pos.coords.longitude;
+window.myLat = pos.coords.latitude;
+window.myLng = pos.coords.longitude;
 
-window.myLat = lat;
-window.myLng = lng;
-
-// 🔥 SAVE LOCATION
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-lat: lat,
-lng: lng,
-lastUpdate: new Date()
+lat: window.myLat,
+lng: window.myLng
 });
 
 });
 }
 
-// 🔐 AUTH
+// AUTH
 onAuthStateChanged(auth,(user)=>{
 
 if(!user){
@@ -143,7 +123,6 @@ return;
 
 startLiveLocation();
 
-// 🔥 LISTEN BOTH COLLECTIONS
 listen("orders");
 listen("split-orders");
 
@@ -159,13 +138,16 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// 🆕 NEW ORDER
+// ❌ hide delivered
+if(order.deliveryStatus==="Delivered") return;
+
+// NEW ORDER
 if(order.deliveryStatus==="Ready" && !order.deliveryBoyId && !newOrderShown){
 
 notifySound.play();
 
 newOrderDiv.innerHTML=`
-<h3>🆕 New Order (${col})</h3>
+<h3>🆕 New Order</h3>
 <b>${order.name}</b><br>
 📍 ${order.address}<br>
 💰 ₹${order.total}<br><br>
@@ -177,49 +159,13 @@ newOrderDiv.innerHTML=`
 newOrderShown=true;
 }
 
-// 🚴 MY ORDERS
+// MY ORDER
 if(order.deliveryBoyId === user.email){
 
 let step = order.pickupStep || 0;
 
-// 🧠 SMART ROUTE
-let targets=[];
-
-if(order.shopLat){
-targets.push({lat:order.shopLat,lng:order.shopLng});
-}
-
-if(order.secondShopLat){
-targets.push({lat:order.secondShopLat,lng:order.secondShopLng});
-}
-
-// SORT NEAREST
-if(step===0 && window.myLat){
-targets.sort((a,b)=>{
-let d1=getDistance(window.myLat,window.myLng,a.lat,a.lng);
-let d2=getDistance(window.myLat,window.myLng,b.lat,b.lng);
-return d1-d2;
-});
-
-updateDoc(doc(db,col,id),{route:targets});
-}
-
-let route = order.route || targets;
-
-let targetLat, targetLng;
-
-if(step===0){
-targetLat = route[0]?.lat;
-targetLng = route[0]?.lng;
-}
-else if(step===1){
-targetLat = route[1]?.lat;
-targetLng = route[1]?.lng;
-}
-else{
-targetLat = order.customerLat;
-targetLng = order.customerLng;
-}
+let targetLat = order.customerLat;
+let targetLng = order.customerLng;
 
 // UI
 ordersDiv.innerHTML+=`
@@ -228,7 +174,8 @@ ordersDiv.innerHTML+=`
 <b>${order.name}</b><br>
 📍 Step: ${step}<br>
 
-<button class="start" onclick="nextStep('${id}','${col}',${step})">Next Step</button>  
+<button class="start" onclick="nextStep('${id}','${col}',${step})">Next Step</button>
+
 ${step>=2 ? `<button class="complete" onclick="markDelivered('${id}','${col}')">Delivered</button>` : ""}
 
 <button onclick="openNavigation(${targetLat},${targetLng})">🧭 Navigate</button>
@@ -266,7 +213,7 @@ newOrderDiv.innerHTML="No new order";
 
 });
 
-// ✅ ACCEPT
+// ACTIONS
 window.acceptOrder=async(id,col)=>{
 await updateDoc(doc(db,col,id),{
 deliveryBoyId: auth.currentUser.email,
@@ -274,7 +221,6 @@ deliveryStatus:"Accepted"
 });
 };
 
-// ❌ REJECT
 window.rejectOrder=async(id,col)=>{
 await updateDoc(doc(db,col,id),{
 deliveryBoyId:null,
@@ -282,7 +228,6 @@ deliveryStatus:"Ready"
 });
 };
 
-// 🚚 STEP FLOW
 window.nextStep = async(id,col,step)=>{
 
 if(step===0){
@@ -291,24 +236,10 @@ await updateDoc(doc(db,col,id),{pickupStep:1});
 else if(step===1){
 await updateDoc(doc(db,col,id),{pickupStep:2});
 }
-else{
-
-// 💰 EARNING + WAIT CONFIRM
-await updateDoc(doc(db,col,id),{
-deliveryStatus:"WaitingCustomerConfirm",
-status:"WaitingCustomerConfirm"
-});
-
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-earnings: increment(30)
-});
-
-alert("📦 Waiting for customer confirmation");
-
-}
 
 };
-  // 📦 DELIVERY COMPLETE (WAIT FOR CUSTOMER CONFIRM)
+
+// ✅ DELIVER BUTTON
 window.markDelivered = async(id,col)=>{
 
 await updateDoc(doc(db,col,id),{
@@ -320,10 +251,10 @@ alert("📦 Waiting for customer confirmation");
 
 };
 
-// 🧭 NAVIGATION
+// NAVIGATION
 window.openNavigation = function(lat,lng){
 window.open(
-`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`,
+`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
 "_blank"
 );
 };
