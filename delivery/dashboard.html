@@ -228,7 +228,8 @@ ordersDiv.innerHTML+=`
 <b>${order.name}</b><br>
 📍 Step: ${step}<br>
 
-<button class="start" onclick="nextStep('${id}','${col}',${step})">Next Step</button>
+<button class="start" onclick="nextStep('${id}','${col}',${step})">Next Step</button>  
+${step>=2 ? `<button class="complete" onclick="markDelivered('${id}','${col}')">Delivered</button>` : ""}
 
 <button onclick="openNavigation(${targetLat},${targetLng})">🧭 Navigate</button>
 
@@ -305,6 +306,17 @@ earnings: increment(30)
 alert("📦 Waiting for customer confirmation");
 
 }
+
+};
+  // 📦 DELIVERY COMPLETE (WAIT FOR CUSTOMER CONFIRM)
+window.markDelivered = async(id,col)=>{
+
+await updateDoc(doc(db,col,id),{
+deliveryStatus:"WaitingCustomerConfirm",
+status:"WaitingCustomerConfirm"
+});
+
+alert("📦 Waiting for customer confirmation");
 
 };
 
