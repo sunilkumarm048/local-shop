@@ -44,14 +44,17 @@ return;
 
 const shopEmail = user.email;
 
-// 🔄 MAIN ORDERS ONLY
+// 🔄 SINGLE SNAPSHOT (NO DUPLICATE LISTENER)
 onSnapshot(collection(db,"orders"), snap=>{
-ordersDiv.innerHTML="";
 render(snap);
 });
 
-// 🎨 RENDER FUNCTION
+// 🎨 RENDER FUNCTION (FIXED)
 function render(snapshot){
+
+ordersDiv.innerHTML = ""; // ✅ CLEAR FIRST
+
+let shown = new Set(); // ✅ prevent duplicate UI
 
 let hasData = false;
 
@@ -60,10 +63,14 @@ snapshot.forEach(docSnap=>{
 const order = docSnap.data();
 const id = docSnap.id;
 
-// ❌ Skip completed
+// ❌ skip duplicate UI render
+if(shown.has(id)) return;
+shown.add(id);
+
+// ❌ skip completed
 if(order.status==="Delivered" || order.status==="Rejected") return;
 
-// 🔥 LOCK LOGIC (FINAL)
+// 🔥 LOCK LOGIC
 if(order.assigned && order.shopEmail !== shopEmail) return;
 
 hasData = true;
@@ -90,7 +97,6 @@ buttons=`
 // 🔵 Accepted
 else if(order.status==="Accepted"){
 
-// if taken by other shop
 if(order.shopEmail !== shopEmail){
 buttons=`<span class="info">Taken by another shop</span>`;
 }else{
@@ -124,14 +130,13 @@ ${buttons}
 
 });
 
-// EMPTY STATE
 if(!hasData){
 ordersDiv.innerHTML = "<p>No active orders</p>";
 }
 
 }
 
-// ✅ ACCEPT (SAFE TRANSACTION LOCK)
+// 🔒 ACCEPT
 window.accept = async(id)=>{
 
 const ref = doc(db,"orders",id);
@@ -146,9 +151,8 @@ if(!snap.exists()) throw "Order not found";
 
 const order = snap.data();
 
-// 🔥 already taken
 if(order.assigned){
-alert("❌ Already accepted by another shop");
+alert("❌ Already accepted");
 return;
 }
 
@@ -172,7 +176,7 @@ await updateDoc(doc(db,"orders",id),{
 status:"Ready",
 deliveryStatus:"Ready"
 });
-alert("✅ Order Ready");
+alert("✅ Ready");
 };
 
 // ❌ REJECT
@@ -182,42 +186,34 @@ status:"Rejected"
 });
 };
 
-// 🔥 SPLIT FUNCTION (FINAL)
+// 🔥 SPLIT
 window.splitOrder = async(id)=>{
 
 const ref = doc(db,"orders",id);
 const snap = await getDoc(ref);
 
-if(!snap.exists()){
-alert("Order not found");
-return;
-}
-
 const order = snap.data();
 
-let selected = [];
-let remaining = [];
+let selected=[], remaining=[];
 
-// SPLIT ITEMS
 order.items.forEach((item,i)=>{
-let cb = document.getElementById(`item_${id}_${i}`);
+let cb=document.getElementById(`item_${id}_${i}`);
 if(cb && cb.checked) selected.push(item);
 else remaining.push(item);
 });
 
-// ❌ prevent invalid split
 if(remaining.length === 0){
 alert("⚠️ Select items to split");
 return;
 }
 
-// ✅ UPDATE MAIN ORDER
+// update main
 await updateDoc(ref,{
 items:selected,
 total:selected.reduce((s,i)=>s+i.price,0)
 });
 
-// ✅ CREATE SPLIT ORDER
+// create split
 await addDoc(collection(db,"split-orders"),{
 
 parentOrderId:id,
@@ -226,27 +222,25 @@ name:order.name,
 phone:order.phone,
 address:order.address,
 
-customerLat: order.customerLat || 0,
-customerLng: order.customerLng || 0,
+customerLat:order.customerLat || 0,
+customerLng:order.customerLng || 0,
 
-// 🔥 IMPORTANT FIX
 shopEmail: auth.currentUser.email,
 
 items: remaining,
 total: remaining.reduce((s,i)=>s+i.price,0),
 
 status:"Pending",
-deliveryStatus:"Pending",
 assigned:false,
-
 time:new Date()
+
 });
 
-alert("✅ Split Created → Check Split Orders");
+alert("✅ Split Created");
 
 };
 
-// 🔁 NAVIGATION
+// 🔁 NAV
 window.goSplit = ()=>{
 location.href="split-order.html";
 };
