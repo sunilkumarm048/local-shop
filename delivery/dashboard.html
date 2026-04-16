@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 
@@ -98,20 +99,20 @@ window.goWallet=()=>location.href="wallet.html";
 window.goAnalytics=()=>location.href="analytics.html";
 window.logout=()=>{signOut(auth);location.href="login.html";};
 
-// 📍 LOCATION + LIVE UPDATE
+// 📍 LOCATION + LIVE UPDATE (HIGH ACCURACY)
 function startLiveLocation(){
 navigator.geolocation.watchPosition(async(pos)=>{
 
 window.myLat = pos.coords.latitude;
 window.myLng = pos.coords.longitude;
 
-// ✅ update delivery profile
+// update delivery profile
 await updateDoc(doc(db,"delivery",auth.currentUser.email),{
 lat: window.myLat,
 lng: window.myLng
 });
 
-// ✅ update all active orders
+// update all active orders
 const ordersSnap = await getDocs(collection(db,"orders"));
 
 ordersSnap.forEach(async(docSnap)=>{
@@ -125,6 +126,12 @@ deliveryLng: window.myLng
 }
 });
 
+},
+(err)=>{console.log(err);},
+{
+enableHighAccuracy:true,
+maximumAge:0,
+timeout:5000
 });
 }
 
@@ -156,7 +163,7 @@ const id = docSnap.id;
 
 if(order.deliveryStatus==="Delivered") return;
 
-// 🆕 NEW ORDER
+// NEW ORDER
 if(order.deliveryStatus==="Ready" && !order.deliveryBoyId && !newOrderShown){
 
 notifySound.play();
@@ -174,13 +181,21 @@ newOrderDiv.innerHTML=`
 newOrderShown=true;
 }
 
-// 📦 MY ORDER
+// MY ORDER
 if(order.deliveryBoyId === user.email){
 
 let step = order.pickupStep || 0;
 
-let targetLat = order.customerLat;
-let targetLng = order.customerLng;
+// ✅ FIXED ROUTING LOGIC
+let targetLat, targetLng;
+
+if(step < 2){
+targetLat = order.shopLat;
+targetLng = order.shopLng;
+}else{
+targetLat = order.lat;
+targetLng = order.lng;
+}
 
 ordersDiv.innerHTML+=`
 <div class="order">
@@ -200,14 +215,20 @@ ${step>=2 ? `<button class="complete" onclick="markDelivered('${id}','${col}')">
 `;
 
 setTimeout(()=>{
+
 let map=L.map(`map_${id}`).setView([targetLat,targetLng],13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-L.marker([targetLat,targetLng]).addTo(map);
+// 🏪 Shop
+L.marker([order.shopLat,order.shopLng]).addTo(map).bindPopup("Shop");
 
+// 🏠 Customer
+L.marker([order.lat,order.lng]).addTo(map).bindPopup("Customer");
+
+// 🚚 Delivery boy
 if(window.myLat){
-L.marker([window.myLat,window.myLng]).addTo(map);
+L.marker([window.myLat,window.myLng]).addTo(map).bindPopup("You");
 }
 
 },100);
@@ -226,12 +247,11 @@ newOrderDiv.innerHTML="No new order";
 
 });
 
-// ✅ ACCEPT ORDER (FIXED)
+// ACCEPT ORDER
 window.acceptOrder = async(id,col)=>{
 
 const email = auth.currentUser.email;
 
-// 🔥 fetch delivery profile
 const snap = await getDoc(doc(db,"delivery",email));
 const d = snap.data();
 
@@ -269,7 +289,7 @@ await updateDoc(doc(db,col,id),{pickupStep:2});
 
 };
 
-// ✅ DELIVER
+// DELIVER
 window.markDelivered = async(id,col)=>{
 
 await updateDoc(doc(db,col,id),{
@@ -281,10 +301,10 @@ alert("📦 Waiting for customer confirmation");
 
 };
 
-// NAVIGATION
+// ✅ IMPROVED NAVIGATION
 window.openNavigation = function(lat,lng){
 window.open(
-`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+`https://www.google.com/maps/dir/?api=1&origin=${window.myLat},${window.myLng}&destination=${lat},${lng}&travelmode=driving`,
 "_blank"
 );
 };
