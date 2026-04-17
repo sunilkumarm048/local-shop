@@ -29,17 +29,18 @@ align-items:center;
 }
 
 .location{
-font-size:14px;
+font-size:15px;
 font-weight:bold;
 }
 
-/* CART */
+/* 🔥 BIG CART BUTTON */
 .cartTop{
 background:black;
 color:white;
-padding:6px 10px;
-border-radius:15px;
-font-size:13px;
+padding:8px 14px;
+border-radius:20px;
+font-size:15px;
+font-weight:bold;
 cursor:pointer;
 }
 
@@ -50,8 +51,8 @@ margin-top:8px;
 
 .search input{
 width:100%;
-padding:8px;
-border-radius:8px;
+padding:10px;
+border-radius:10px;
 border:none;
 font-size:14px;
 }
@@ -66,42 +67,45 @@ margin:8px 0;
 font-size:16px;
 }
 
-/* PRODUCTS → 3 PER ROW */
+/* 🔥 PRODUCTS → 4 PER ROW */
 .products{
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:12px;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
 }
 
+/* CARD */
 .card{
 background:white;
-border-radius:10px;
-padding:8px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
+border-radius:12px;
+padding:6px;
+box-shadow:0 2px 5px rgba(0,0,0,0.08);
 }
 
-/* IMAGE */
+/* 🔥 IMAGE (BIG & CLOSE LIKE BLINKIT) */
 .imgSlider{
-height:100px;
+height:95px;
 display:flex;
-overflow-x:auto;
+overflow:hidden;
 }
 
 .imgSlider img{
-min-width:100%;
-height:100px;
-object-fit:contain;
+width:100%;
+height:95px;
+object-fit:cover; /* important */
+border-radius:8px;
 }
 
-/* TEXT */
+/* 🔥 TEXT BIGGER */
 .card h4{
-font-size:15px;
+font-size:14px;
 font-weight:600;
-margin:6px 0;
+margin:6px 0 2px;
+line-height:1.2;
 }
 
 .price{
-font-size:14px;
+font-size:13px;
 color:green;
 font-weight:bold;
 }
@@ -110,11 +114,12 @@ font-weight:bold;
 button{
 width:100%;
 padding:6px;
-font-size:13px;
+font-size:12px;
 border-radius:6px;
 background:#ff5a5f;
 color:white;
 border:none;
+margin-top:4px;
 }
 
 /* SHOPS */
@@ -132,7 +137,7 @@ font-size:13px;
 white-space:nowrap;
 }
 
-/* BOTTOM CATEGORY */
+/* 🔥 BOTTOM CATEGORY */
 .bottomCat{
 position:fixed;
 bottom:0;
@@ -147,7 +152,7 @@ border-top:1px solid #ddd;
 }
 
 .cat{
-padding:6px 12px;
+padding:7px 14px;
 background:#eee;
 border-radius:15px;
 font-size:13px;
@@ -197,7 +202,6 @@ display:none;
 <div id="products" class="products"></div>
 </div>
 
-<!-- CATEGORY BOTTOM -->
 <div id="categories" class="bottomCat"></div>
 
 <script type="module">
@@ -285,11 +289,13 @@ if(selectedCategory) f = f.filter(p=>p.category===selectedCategory);
 if(selectedShop) f = f.filter(p=>p.shopName===selectedShop);
 
 f.forEach(p=>{
-let imgs = p.images?.map(i=>`<img src="${i}">`).join("") || `<img src="https://via.placeholder.com/150">`;
+let img = p.images?.[0] || "https://via.placeholder.com/150";
 
 c.innerHTML += `
 <div class="card">
-<div class="imgSlider">${imgs}</div>
+<div class="imgSlider">
+<img src="${img}">
+</div>
 <h4>${p.name}</h4>
 <p class="price">₹${p.price}</p>
 <button onclick="addToCart('${p.name}',${p.price})">Add</button>
