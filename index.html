@@ -33,13 +33,13 @@ font-size:14px;
 font-weight:bold;
 }
 
-/* CART BUTTON */
+/* CART */
 .cartTop{
 background:black;
 color:white;
-padding:6px 12px;
-border-radius:20px;
-font-size:13px;
+padding:6px 10px;
+border-radius:15px;
+font-size:12px;
 cursor:pointer;
 }
 
@@ -50,10 +50,10 @@ margin-top:8px;
 
 .search input{
 width:100%;
-padding:10px;
-border-radius:10px;
+padding:8px;
+border-radius:8px;
 border:none;
-font-size:14px;
+font-size:13px;
 }
 
 /* SECTION */
@@ -62,120 +62,105 @@ padding:10px;
 }
 
 h3{
-margin:10px 0;
+margin:8px 0;
+font-size:15px;
 }
 
-/* 🔥 BLINKIT STYLE CATEGORY GRID */
-.categories{
+/* PRODUCTS (clean 2 grid) */
+.products{
 display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:12px;
+grid-template-columns:repeat(2,1fr);
+gap:10px;
 }
 
-.cat{
-background:#eef3f3;
-border-radius:16px;
-padding:10px;
-text-align:center;
-cursor:pointer;
-transition:0.2s;
+.card{
+background:white;
+border-radius:10px;
+padding:8px;
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 
-.cat img{
-width:100%;
-height:70px;
+/* IMAGE */
+.imgSlider{
+height:110px;
+display:flex;
+overflow-x:auto;
+}
+
+.imgSlider img{
+min-width:100%;
+height:110px;
 object-fit:contain;
-margin-bottom:6px;
 }
 
-.cat span{
+/* TEXT */
+.card h4{
+font-size:13px;
+margin:4px 0;
+}
+
+.price{
+font-size:13px;
+color:green;
+font-weight:bold;
+}
+
+/* BUTTON */
+button{
+padding:5px;
 font-size:12px;
-font-weight:600;
-color:#333;
-display:block;
-line-height:1.2;
-}
-
-.cat:active{
-transform:scale(0.95);
+border-radius:6px;
+background:#ff5a5f;
+color:white;
+border:none;
 }
 
 /* SHOPS */
 .shops{
 display:flex;
 overflow-x:auto;
-gap:10px;
+gap:8px;
 }
 
 .shop{
-padding:8px 14px;
+padding:6px 10px;
 background:white;
-border-radius:20px;
+border-radius:15px;
+font-size:12px;
 white-space:nowrap;
-font-size:13px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* PRODUCTS (2 per row - readable) */
-.products{
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:14px;
-}
-
-.card{
+/* 🔥 BOTTOM CATEGORY BAR */
+.bottomCat{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
 background:white;
-border-radius:14px;
-padding:12px;
-box-shadow:0 3px 8px rgba(0,0,0,0.1);
-display:flex;
-flex-direction:column;
-justify-content:space-between;
-}
-
-/* IMAGE */
-.imgSlider{
-width:100%;
-height:140px;
+padding:8px;
 display:flex;
 overflow-x:auto;
-scroll-snap-type:x mandatory;
+gap:8px;
+border-top:1px solid #ddd;
 }
 
-.imgSlider img{
-min-width:100%;
-height:140px;
-object-fit:contain;
-scroll-snap-align:start;
+.cat{
+padding:6px 12px;
+background:#eee;
+border-radius:15px;
+font-size:12px;
+white-space:nowrap;
+cursor:pointer;
 }
 
-/* TEXT */
-.card h4{
-font-size:15px;
-margin:6px 0;
-}
-
-.price{
-font-size:15px;
-font-weight:bold;
-color:green;
-}
-
-/* BUTTON */
-button{
-width:100%;
-padding:8px;
-font-size:13px;
-border-radius:8px;
-font-weight:bold;
+.cat.active{
 background:#ff5a5f;
 color:white;
-border:none;
 }
 
-/* SCROLLBAR HIDE */
-.shops::-webkit-scrollbar,
-.imgSlider::-webkit-scrollbar{
+/* HIDE SCROLLBAR */
+.bottomCat::-webkit-scrollbar,
+.shops::-webkit-scrollbar{
 display:none;
 }
 </style>
@@ -201,11 +186,6 @@ display:none;
 </div>
 
 <div class="section">
-<h3>Categories</h3>
-<div id="categories" class="categories"></div>
-</div>
-
-<div class="section">
 <h3>Shops</h3>
 <div id="shops" class="shops"></div>
 </div>
@@ -215,12 +195,14 @@ display:none;
 <div id="products" class="products"></div>
 </div>
 
+<!-- 🔥 CATEGORY BOTTOM -->
+<div id="categories" class="bottomCat"></div>
+
 <script type="module">
 
 import { db } from "/local-shop/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// STATE
 let allProducts = [];
 let allCategories = [];
 let allShops = [];
@@ -230,238 +212,114 @@ let selectedShop = null;
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// LOCATION
+/* LOCATION */
 function getLocation(){
-
-if(!navigator.geolocation){
-document.getElementById("location").innerText = "📍 Location not supported";
-return;
-}
-
 navigator.geolocation.getCurrentPosition(async (pos)=>{
-
-let lat = pos.coords.latitude;
-let lon = pos.coords.longitude;
-
-try{
-
-let res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+let res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
 let data = await res.json();
-
-let area =
-data.address.suburb ||
-data.address.village ||
-data.address.town ||
-data.address.city ||
-data.address.state;
-
-document.getElementById("location").innerText = "📍 Deliver to " + area;
-
-}catch{
-document.getElementById("location").innerText = "📍 Your Area";
-}
-
-},()=>{
-document.getElementById("location").innerText = "📍 Location permission denied";
+let area = data.address.city || data.address.state;
+document.getElementById("location").innerText = "📍 " + area;
 });
-
 }
-
 getLocation();
 
-// LOAD DATA
+/* LOAD */
 async function loadData(){
-
-const prodSnap = await getDocs(collection(db,"products"));
-allProducts = prodSnap.docs.map(d=>d.data());
-
-const catSnap = await getDocs(collection(db,"shops"));
-allCategories = catSnap.docs.map(d=>d.data());
-
-const shopSnap = await getDocs(collection(db,"localshop-details"));
-allShops = shopSnap.docs.map(d=>d.data());
+allProducts = (await getDocs(collection(db,"products"))).docs.map(d=>d.data());
+allCategories = (await getDocs(collection(db,"shops"))).docs.map(d=>d.data());
+allShops = (await getDocs(collection(db,"localshop-details"))).docs.map(d=>d.data());
 
 renderCategories();
 renderShops();
 renderProducts();
 }
-
 loadData();
 
-// CATEGORIES
+/* CATEGORY */
 function renderCategories(){
+const c = document.getElementById("categories");
+c.innerHTML = "";
 
-const container = document.getElementById("categories");
-container.innerHTML = "";
+c.innerHTML += `<div class="cat ${!selectedCategory?'active':''}" onclick="selectCategory(null)">All</div>`;
 
-// ALL
-container.innerHTML += `
-<div class="cat ${!selectedCategory?'active':''}" onclick="selectCategory(null)">
-<img src="https://cdn-icons-png.flaticon.com/512/1828/1828859.png">
-<span>All</span>
-</div>
-`;
-
-allCategories.forEach(c=>{
-container.innerHTML += `
-<div class="cat ${selectedCategory===c.category?'active':''}" 
-onclick="selectCategory('${c.category}')">
-
-<img src="${c.image || 'https://via.placeholder.com/80'}">
-
-<span>${c.category}</span>
-
-</div>
-`;
+allCategories.forEach(x=>{
+c.innerHTML += `<div class="cat ${selectedCategory===x.category?'active':''}" onclick="selectCategory('${x.category}')">${x.category}</div>`;
 });
 }
 
 window.selectCategory = (cat)=>{
 selectedCategory = cat;
 selectedShop = null;
-
 renderCategories();
 renderShops();
 renderProducts();
-}
+};
 
-// SHOPS
+/* SHOPS */
 function renderShops(){
+let c = document.getElementById("shops");
+c.innerHTML = "";
 
-const container = document.getElementById("shops");
-container.innerHTML = "";
+let f = selectedCategory ? allShops.filter(s=>s.category===selectedCategory) : allShops;
 
-let filtered = allShops;
-
-if(selectedCategory){
-filtered = filtered.filter(s=>s.category === selectedCategory);
-}
-
-filtered.forEach(s=>{
-container.innerHTML += `
-<div class="shop" onclick="selectShop('${s.shopName}')">
-${s.shopName}
-</div>
-`;
+f.forEach(s=>{
+c.innerHTML += `<div class="shop" onclick="selectShop('${s.shopName}')">${s.shopName}</div>`;
 });
 }
 
-window.selectShop = (shop)=>{
-selectedShop = shop;
+window.selectShop = (s)=>{
+selectedShop = s;
 renderProducts();
-}
+};
 
-// PRODUCTS
+/* PRODUCTS */
 function renderProducts(){
+let c = document.getElementById("products");
+c.innerHTML = "";
 
-const container = document.getElementById("products");
-container.innerHTML = "";
+let f = allProducts;
 
-let filtered = allProducts;
+if(selectedCategory) f = f.filter(p=>p.category===selectedCategory);
+if(selectedShop) f = f.filter(p=>p.shopName===selectedShop);
 
-if(selectedCategory){
-filtered = filtered.filter(p=>p.category === selectedCategory);
-}
+f.forEach(p=>{
+let imgs = p.images?.map(i=>`<img src="${i}">`).join("") || `<img src="https://via.placeholder.com/150">`;
 
-if(selectedShop){
-filtered = filtered.filter(p=>p.shopName === selectedShop);
-}
-
-filtered.forEach(p=>{
-
-let imagesHTML = "";
-
-if(p.images && p.images.length){
-p.images.forEach(img=>{
-imagesHTML += `<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">`;
-});
-}else{
-imagesHTML = `<img src="https://via.placeholder.com/150">`;
-}
-
-container.innerHTML += `
+c.innerHTML += `
 <div class="card">
-
-<div class="imgSlider">
-${imagesHTML}
-</div>
-
+<div class="imgSlider">${imgs}</div>
 <h4>${p.name}</h4>
 <p class="price">₹${p.price}</p>
-
 <button onclick="addToCart('${p.name}',${p.price})">Add</button>
-
-</div>
-`;
+</div>`;
 });
 }
 
-// SEARCH
-window.searchProducts = function(){
-
-const text = document.getElementById("search").value.toLowerCase();
-
-let filtered = allProducts.filter(p =>
-p.name.toLowerCase().includes(text)
-);
-
+/* SEARCH */
+window.searchProducts = ()=>{
+let t = document.getElementById("search").value.toLowerCase();
+let f = allProducts.filter(p=>p.name.toLowerCase().includes(t));
 document.getElementById("products").innerHTML = "";
-
-filtered.forEach(p=>{
-
-let imagesHTML = "";
-
-if(p.images && p.images.length){
-p.images.forEach(img=>{
-imagesHTML += `<img src="${img.replace('/upload/','/upload/f_auto,q_auto,w_300/')}">`;
+f.forEach(p=>{
+document.getElementById("products").innerHTML += `<div class="card"><h4>${p.name}</h4></div>`;
 });
-}else{
-imagesHTML = `<img src="https://via.placeholder.com/150">`;
-}
+};
 
-document.getElementById("products").innerHTML += `
-<div class="card">
-
-<div class="imgSlider">
-${imagesHTML}
-</div>
-
-<h4>${p.name}</h4>
-<p class="price">₹${p.price}</p>
-
-<button onclick="addToCart('${p.name}',${p.price})">Add</button>
-
-</div>
-`;
-});
-}
-
-// CART
-window.addToCart = function(name,price){
-
-let found = cart.find(c=>c.name === name);
-
-if(found){
-found.qty++;
-}else{
-cart.push({name,price,qty:1});
-}
-
+/* CART */
+window.addToCart = (n,p)=>{
+let f = cart.find(c=>c.name===n);
+f ? f.qty++ : cart.push({name:n,price:p,qty:1});
 localStorage.setItem("cart", JSON.stringify(cart));
 updateCart();
-}
+};
 
 function updateCart(){
-let total = 0;
-cart.forEach(c=> total += c.price * c.qty);
-document.getElementById("total").innerText = total;
+let t=0; cart.forEach(c=>t+=c.price*c.qty);
+document.getElementById("total").innerText=t;
 }
-
 updateCart();
 
-window.openCart = function(){
-window.location.href = "customer/cart.html";
-}
+window.openCart = ()=> location.href="customer/cart.html";
 
 </script>
 
