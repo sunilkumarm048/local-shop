@@ -22,7 +22,6 @@ top:0;
 z-index:1000;
 }
 
-/* TOP BAR */
 .topBar{
 display:flex;
 justify-content:space-between;
@@ -34,7 +33,7 @@ font-size:14px;
 font-weight:bold;
 }
 
-/* CART TOP BUTTON */
+/* CART BUTTON */
 .cartTop{
 background:black;
 color:white;
@@ -66,26 +65,39 @@ h3{
 margin:10px 0;
 }
 
-/* CATEGORIES */
+/* 🔥 BLINKIT STYLE CATEGORY GRID */
 .categories{
-display:flex;
-overflow-x:auto;
-gap:10px;
-padding-bottom:5px;
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:12px;
 }
 
 .cat{
-padding:8px 14px;
-background:white;
-border-radius:20px;
-white-space:nowrap;
-font-size:13px;
-box-shadow:0 2px 5px rgba(0,0,0,0.1);
+background:#eef3f3;
+border-radius:16px;
+padding:10px;
+text-align:center;
+cursor:pointer;
+transition:0.2s;
 }
 
-.cat.active{
-background:#ff5a5f;
-color:white;
+.cat img{
+width:100%;
+height:70px;
+object-fit:contain;
+margin-bottom:6px;
+}
+
+.cat span{
+font-size:12px;
+font-weight:600;
+color:#333;
+display:block;
+line-height:1.2;
+}
+
+.cat:active{
+transform:scale(0.95);
 }
 
 /* SHOPS */
@@ -104,39 +116,27 @@ font-size:13px;
 box-shadow:0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* PRODUCTS GRID */
+/* PRODUCTS (2 per row - readable) */
 .products{
 display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:12px;
+grid-template-columns:repeat(2,1fr);
+gap:14px;
 }
 
-/* Tablet */
-@media(min-width:600px){
-.products{
-grid-template-columns:repeat(4,1fr);
-}
-}
-
-/* Desktop */
-@media(min-width:1000px){
-.products{
-grid-template-columns:repeat(5,1fr);
-}
-}
-
-/* CARD */
 .card{
 background:white;
-border-radius:12px;
-padding:10px;
-box-shadow:0 2px 6px rgba(0,0,0,0.1);
+border-radius:14px;
+padding:12px;
+box-shadow:0 3px 8px rgba(0,0,0,0.1);
+display:flex;
+flex-direction:column;
+justify-content:space-between;
 }
 
 /* IMAGE */
 .imgSlider{
 width:100%;
-height:100px;
+height:140px;
 display:flex;
 overflow-x:auto;
 scroll-snap-type:x mandatory;
@@ -144,36 +144,36 @@ scroll-snap-type:x mandatory;
 
 .imgSlider img{
 min-width:100%;
-height:100px;
+height:140px;
 object-fit:contain;
-border-radius:8px;
 scroll-snap-align:start;
 }
 
 /* TEXT */
 .card h4{
-font-size:13px;
-margin:5px 0;
+font-size:15px;
+margin:6px 0;
 }
 
 .price{
-color:green;
+font-size:15px;
 font-weight:bold;
-font-size:13px;
+color:green;
 }
 
 /* BUTTON */
 button{
+width:100%;
+padding:8px;
+font-size:13px;
+border-radius:8px;
+font-weight:bold;
 background:#ff5a5f;
 color:white;
 border:none;
-padding:6px;
-border-radius:6px;
-font-size:12px;
 }
 
-/* HIDE SCROLLBAR */
-.categories::-webkit-scrollbar,
+/* SCROLLBAR HIDE */
 .shops::-webkit-scrollbar,
 .imgSlider::-webkit-scrollbar{
 display:none;
@@ -220,7 +220,7 @@ display:none;
 import { db } from "/local-shop/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// GLOBAL STATE
+// STATE
 let allProducts = [];
 let allCategories = [];
 let allShops = [];
@@ -230,7 +230,7 @@ let selectedShop = null;
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-// 📍 LOCATION FIX
+// LOCATION
 function getLocation(){
 
 if(!navigator.geolocation){
@@ -269,7 +269,7 @@ document.getElementById("location").innerText = "📍 Location permission denied
 
 getLocation();
 
-// 🔥 LOAD DATA
+// LOAD DATA
 async function loadData(){
 
 const prodSnap = await getDocs(collection(db,"products"));
@@ -288,20 +288,29 @@ renderProducts();
 
 loadData();
 
-// 🎯 CATEGORIES
+// CATEGORIES
 function renderCategories(){
 
 const container = document.getElementById("categories");
 container.innerHTML = "";
 
 // ALL
-container.innerHTML += `<div class="cat ${!selectedCategory?'active':''}" onclick="selectCategory(null)">All</div>`;
+container.innerHTML += `
+<div class="cat ${!selectedCategory?'active':''}" onclick="selectCategory(null)">
+<img src="https://cdn-icons-png.flaticon.com/512/1828/1828859.png">
+<span>All</span>
+</div>
+`;
 
 allCategories.forEach(c=>{
 container.innerHTML += `
 <div class="cat ${selectedCategory===c.category?'active':''}" 
 onclick="selectCategory('${c.category}')">
-${c.category}
+
+<img src="${c.image || 'https://via.placeholder.com/80'}">
+
+<span>${c.category}</span>
+
 </div>
 `;
 });
@@ -316,7 +325,7 @@ renderShops();
 renderProducts();
 }
 
-// 🏪 SHOPS
+// SHOPS
 function renderShops(){
 
 const container = document.getElementById("shops");
@@ -342,7 +351,7 @@ selectedShop = shop;
 renderProducts();
 }
 
-// 🛒 PRODUCTS
+// PRODUCTS
 function renderProducts(){
 
 const container = document.getElementById("products");
@@ -387,7 +396,7 @@ ${imagesHTML}
 });
 }
 
-// 🔍 SEARCH
+// SEARCH
 window.searchProducts = function(){
 
 const text = document.getElementById("search").value.toLowerCase();
@@ -427,7 +436,7 @@ ${imagesHTML}
 });
 }
 
-// 🛒 CART
+// CART
 window.addToCart = function(name,price){
 
 let found = cart.find(c=>c.name === name);
