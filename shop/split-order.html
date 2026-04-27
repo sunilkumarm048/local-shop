@@ -1,209 +1,754 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Split Orders</title>
+<meta charset="UTF-8">
+<title>Split Orders · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{font-family:Arial;background:#eef1f5;padding:20px;}
-.order{background:white;padding:15px;margin-bottom:15px;border-radius:10px;}
-button{margin:5px;padding:6px 10px;border:none;border-radius:5px;color:white;cursor:pointer;}
-.accept{background:green;}
-.ready{background:blue;}
-.reject{background:red;}
-.badge{background:#ddd;padding:3px 8px;border-radius:5px;font-size:12px;margin-left:5px;}
-.empty{color:#666;margin-top:20px;}
-.info{color:#888;font-size:13px;}
-</style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
+}
+body{padding-bottom:30px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{
+  display:flex;align-items:center;gap:12px;
+  max-width:1100px;margin:0 auto;
+}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{
+  font-size:18px;font-weight:800;color:#1f1f1f;
+  display:flex;align-items:center;gap:6px;
+}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
+
+/* Info banner explaining split orders */
+.infoBanner{
+  max-width:1100px;
+  margin:12px auto 0;
+  background:#fff;
+  border-radius:12px;
+  padding:12px 14px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.bannerIcon{
+  width:40px;height:40px;
+  background:#fff5d6;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.bannerText{flex:1;line-height:1.3;min-width:0;}
+.bannerTitle{font-size:13px;font-weight:700;color:#1f1f1f;}
+.bannerSub{font-size:12px;color:#666;margin-top:2px;}
+
+/* ============ FILTER TABS ============ */
+.tabs{
+  display:flex;gap:8px;
+  padding:12px 12px 4px;
+  max-width:1100px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
+
+.tab{
+  padding:8px 16px;
+  background:#fff;border:1px solid #e5e5e5;border-radius:22px;
+  font-size:13px;font-weight:600;color:#444;
+  white-space:nowrap;flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
+  transition:all .15s;
+}
+.tab.active{background:#0C831F;color:#fff;border-color:#0C831F;}
+.tabCount{
+  background:rgba(0,0,0,.08);color:inherit;
+  padding:1px 7px;border-radius:10px;
+  font-size:11px;font-weight:700;
+}
+.tab.active .tabCount{background:rgba(255,255,255,.25);color:#fff;}
+
+/* ============ MAIN ============ */
+.container{
+  max-width:1100px;margin:0 auto;
+  padding:6px 12px 0;
+}
+
+/* ============ ORDER CARD ============ */
+.orderCard{
+  background:#fff;border-radius:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  overflow:hidden;
+  border:1px solid #ececec;
+  position:relative;
+}
+.orderCard.fresh{
+  border-color:#F0B91D;
+  box-shadow:0 0 0 3px rgba(240,185,29,.18);
+  animation:fresh 1.6s infinite;
+}
+@keyframes fresh{
+  0%,100%{box-shadow:0 0 0 3px rgba(240,185,29,.18);}
+  50%{box-shadow:0 0 0 5px rgba(240,185,29,.32);}
+}
+
+/* Diagonal stripe to mark split orders visually */
+.splitRibbon{
+  position:absolute;
+  top:10px;left:-32px;
+  background:#0C831F;color:#fff;
+  font-size:10px;font-weight:800;
+  padding:3px 36px;
+  letter-spacing:.5px;
+  transform:rotate(-45deg);
+  text-transform:uppercase;
+  z-index:2;
+  box-shadow:0 2px 4px rgba(0,0,0,.15);
+}
+
+.cardTop{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px 12px 50px;
+  border-bottom:1px solid #f4f4f4;
+  background:#fafafa;gap:10px;
+}
+.cardLeft{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.orderNum{
+  font-size:13px;font-weight:800;color:#1f1f1f;
+  letter-spacing:.3px;font-family:monospace;
+}
+.timeAgo{font-size:11px;color:#888;font-weight:500;}
+
+.statusPill{
+  padding:4px 10px;border-radius:20px;
+  font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.4px;
+  white-space:nowrap;
+}
+.pill-pending {background:#fff5d6;color:#8a6500;}
+.pill-accepted{background:#dcf3e1;color:#0C831F;}
+.pill-ready   {background:#dbe9ff;color:#1857c1;}
+.pill-taken   {background:#f0f0f0;color:#888;}
+
+/* PARENT LINK INFO */
+.parentLink{
+  padding:8px 14px;
+  background:#fff5d6;
+  border-bottom:1px solid #f0e3a8;
+  font-size:11px;
+  color:#8a6500;
+  font-weight:600;
+  display:flex;align-items:center;gap:6px;
+}
+.parentLink b{font-family:monospace;font-weight:800;}
+
+/* CUSTOMER */
+.custStrip{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;
+  border-bottom:1px solid #f4f4f4;
+}
+.custAvatar{
+  width:38px;height:38px;border-radius:50%;
+  background:#fff5d6;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:#8a6500;
+  flex-shrink:0;
+}
+.custInfo{flex:1;min-width:0;line-height:1.3;}
+.custName{
+  font-size:14px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.custMeta{
+  font-size:12px;color:#666;margin-top:2px;
+  display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+
+.callBtn{
+  width:38px;height:38px;border-radius:50%;
+  background:#dcf3e1;color:#0C831F;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;text-decoration:none;
+}
+.callBtn:active{transform:scale(.94);}
+
+/* ITEMS */
+.itemsArea{padding:10px 14px;}
+.itemsHeader{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:8px;
+}
+.itemsTitle{
+  font-size:12px;font-weight:700;color:#555;
+  text-transform:uppercase;letter-spacing:.3px;
+}
+
+.itemRow{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px dashed #f0f0f0;
+}
+.itemRow:last-child{border-bottom:none;}
+
+.itemBullet{
+  width:8px;height:8px;border-radius:50%;
+  background:#0C831F;flex-shrink:0;
+}
+
+.itemName{flex:1;font-size:13px;font-weight:500;color:#1f1f1f;line-height:1.3;}
+.itemQty{font-size:12px;color:#777;font-weight:600;margin-right:4px;}
+.itemPrice{font-size:13px;font-weight:700;color:#1f1f1f;}
+
+.totalRow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;
+  background:#fafafa;
+  border-top:1px solid #f0f0f0;
+  font-size:13px;
+}
+.totalLabel{font-weight:600;color:#444;}
+.totalAmount{font-weight:800;color:#1f1f1f;font-size:15px;}
+
+/* ACTIONS */
+.actions{
+  display:flex;gap:8px;
+  padding:10px 14px 12px;
+  border-top:1px solid #f4f4f4;
+  flex-wrap:wrap;
+}
+.actionBtn{
+  flex:1;min-width:90px;
+  padding:11px 12px;border-radius:10px;
+  font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  letter-spacing:.2px;transition:all .12s;
+}
+.actionBtn:active{transform:scale(.97);}
+
+.btn-accept{background:#0C831F;color:#fff;}
+.btn-accept:hover{background:#0a6e1a;}
+.btn-reject{background:#fff;color:#d23030;border:1.5px solid #ffd2d2;}
+.btn-reject:hover{background:#fff5f5;}
+.btn-ready{background:#1857c1;color:#fff;}
+.btn-ready:hover{background:#144aa3;}
+.btn-disabled{background:#f0f0f0;color:#888;cursor:default;flex:1;}
+
+.takenInfo{
+  flex:1;text-align:center;
+  font-size:12px;color:#888;font-style:italic;padding:11px;
+}
+
+/* EMPTY STATE */
+.empty{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;margin-top:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;line-height:1.5;}
+
+/* SKELETON */
+.skel{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.skelLine{
+  height:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:6px;margin-bottom:10px;
+}
+.skelLine.short{width:50%;}
+.skelLine.med{width:75%;}
+@keyframes shimmer{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* MODAL */
+.modalBg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:2000;
+}
+.modalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary  {flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger   {flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:420px;}
+}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:10px 20px 0;}
+}
+
+@media(min-width:900px){
+  #orders{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+  .orderCard{margin-bottom:0;}
+}
+</style>
 </head>
+
 <body>
 
-<h2>✂️ Split Orders</h2>
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">✂️ Split Orders</div>
+      <div class="pageSub" id="headerSub">Connecting…</div>
+    </div>
+  </div>
 
-<button onclick="goBack()">⬅ Back</button>
+  <div class="infoBanner">
+    <div class="bannerIcon">💡</div>
+    <div class="bannerText">
+      <div class="bannerTitle">What are split orders?</div>
+      <div class="bannerSub">Items another shop couldn't fulfil. Pick up extras and earn more!</div>
+    </div>
+  </div>
 
-<div id="orders"></div>
+  <!-- FILTER TABS -->
+  <div class="tabs">
+    <div class="tab active" data-filter="all">All <span class="tabCount" id="cntAll">0</span></div>
+    <div class="tab" data-filter="pending">⏳ Available <span class="tabCount" id="cntPending">0</span></div>
+    <div class="tab" data-filter="accepted">👨‍🍳 My Splits <span class="tabCount" id="cntAccepted">0</span></div>
+    <div class="tab" data-filter="ready">📦 Ready <span class="tabCount" id="cntReady">0</span></div>
+  </div>
+</header>
+
+<!-- ============ MAIN ============ -->
+<main class="container">
+  <div id="orders">
+    <div class="skel">
+      <div class="skelLine med"></div>
+      <div class="skelLine short"></div>
+      <div class="skelLine"></div>
+    </div>
+    <div class="skel">
+      <div class="skelLine med"></div>
+      <div class="skelLine short"></div>
+      <div class="skelLine"></div>
+    </div>
+  </div>
+</main>
+
+<!-- TOAST + MODAL -->
+<div id="toast" class="toast"></div>
+
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon" id="modalIcon">❓</div>
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalMsg">This action cannot be undone.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeModal()">Cancel</button>
+      <button class="btnPrimary" id="modalConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
-
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-collection, onSnapshot, doc, updateDoc, getDoc, runTransaction
+  collection, onSnapshot, doc, updateDoc, getDoc, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
+const headerSub = document.getElementById("headerSub");
+const toast     = document.getElementById("toast");
 
-onAuthStateChanged(auth, async(user)=>{
+let currentFilter = "all";
+let allOrdersCache = [];
+let myShopEmail = null;
 
-if(!user){
-alert("Login required");
-location.href="login.html";
-return;
-}
-
-const shopEmail = user.email;
-
-// 🔄 LISTEN SPLIT ORDERS
-onSnapshot(collection(db,"split-orders"), snap=>{
-ordersDiv.innerHTML="";
-render(snap);
+/* ---------- TABS ---------- */
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    currentFilter = tab.dataset.filter;
+    renderFromCache();
+  });
 });
 
-// 🎨 RENDER
-function render(snapshot){
-
-let hasData = false;
-
-snapshot.forEach(docSnap=>{
-
-const order = docSnap.data();
-const id = docSnap.id;
-
-// ❌ skip completed
-if(order.status==="Delivered" || order.status==="Rejected") return;
-
-// 🔥 LOCK LOGIC (SAME AS MAIN)
-if(order.assigned && order.shopEmail !== shopEmail) return;
-
-hasData = true;
-
-// ITEMS
-let itemsHTML = order.items?.map(item=>`
-<div>• ${item.name} ₹${item.price}</div>
-`).join("") || "";
-
-// BUTTONS
-let buttons="";
-
-// 🟡 Pending
-if(order.status==="Pending"){
-buttons=`
-<button class="accept" onclick="accept('${id}')">Accept</button>
-<button class="reject" onclick="reject('${id}')">Reject</button>
-`;
+/* ---------- TOAST ---------- */
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-// 🔵 Accepted
-else if(order.status==="Accepted"){
-
-if(order.shopEmail !== shopEmail){
-buttons=`<span class="info">Taken by another shop</span>`;
-}else{
-buttons=`
-<button class="ready" onclick="ready('${id}','${order.parentOrderId}')">Ready</button>
-`;
+/* ---------- MODAL ---------- */
+let confirmCb = null;
+function openModal({icon="❓", title, msg, confirmText="Confirm", danger=false, onConfirm}){
+  document.getElementById("modalIcon").textContent  = icon;
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent   = msg;
+  const btn = document.getElementById("modalConfirmBtn");
+  btn.textContent = confirmText;
+  btn.className = danger ? "btnDanger" : "btnPrimary";
+  confirmCb = onConfirm;
+  document.getElementById("confirmModal").classList.add("show");
 }
-
-}
-
-// 🟢 Ready
-else if(order.status==="Ready"){
-buttons=`<button class="ready">Ready ✔</button>`;
-}
-
-// UI
-ordersDiv.innerHTML+=`
-<div class="order">
-<b>${order.name}</b> <span class="badge">Split</span><br>
-📞 ${order.phone}<br>
-📍 ${order.address}<br><br>
-
-Total: ₹${order.total}<br>
-Status: ${order.status}<br><br>
-
-${itemsHTML}
-${buttons}
-</div>
-`;
-
+window.closeModal = ()=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  confirmCb = null;
+};
+document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
+  if(confirmCb) confirmCb();
+  closeModal();
+});
+document.getElementById("confirmModal").addEventListener("click",(e)=>{
+  if(e.target.id === "confirmModal") closeModal();
 });
 
-// EMPTY STATE
-if(!hasData){
-ordersDiv.innerHTML = `<p class="empty">No split orders available</p>`;
+/* ---------- HELPERS ---------- */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
+function timeAgo(t){
+  if(!t) return "";
+  const d = t.toDate ? t.toDate() : new Date(t);
+  const sec = Math.floor((Date.now()-d.getTime())/1000);
+  if(sec < 60) return "just now";
+  if(sec < 3600) return Math.floor(sec/60) + "m ago";
+  if(sec < 86400) return Math.floor(sec/3600) + "h ago";
+  return Math.floor(sec/86400) + "d ago";
+}
+function statusKey(s){
+  switch((s||"").toLowerCase()){
+    case "pending": return "pending";
+    case "accepted": return "accepted";
+    case "ready": return "ready";
+    case "out for delivery": return "out";
+    default: return "pending";
+  }
 }
 
-}
+/* ---------- AUTH GUARD ---------- */
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    showToast("Login required", true);
+    setTimeout(()=> location.href = "login.html", 800);
+    return;
+  }
+  myShopEmail = user.email;
 
-// ✅ ACCEPT (LOCK WITH TRANSACTION)
-window.accept = async(id)=>{
+  /* LIVE LISTENER on split-orders */
+  onSnapshot(collection(db,"split-orders"), (snap)=>{
+    allOrdersCache = [];
+    snap.forEach(docSnap=>{
+      const d = docSnap.data();
+      d.__id = docSnap.id;
 
-const ref = doc(db,"split-orders",id);
+      // skip closed
+      if(d.status === "Delivered" || d.status === "Rejected") return;
 
-try{
+      // lock logic — same as your original
+      if(d.assigned && d.shopEmail !== myShopEmail) return;
 
-await runTransaction(db, async (transaction)=>{
+      allOrdersCache.push(d);
+    });
 
-const snap = await transaction.get(ref);
-
-if(!snap.exists()) throw "Order not found";
-
-const order = snap.data();
-
-if(order.assigned){
-alert("❌ Already taken by another shop");
-return;
-}
-
-transaction.update(ref,{
-assigned:true,
-shopEmail: auth.currentUser.email,
-status:"Accepted"
+    updateCounts();
+    renderFromCache();
+  }, (err)=>{
+    console.error(err);
+    headerSub.textContent = "Connection error";
+    showToast("Could not load split orders", true);
+  });
 });
 
-});
+/* ---------- COUNTS ---------- */
+function updateCounts(){
+  let pending=0, accepted=0, ready=0;
+  allOrdersCache.forEach(o=>{
+    const k = statusKey(o.status);
+    if(k === "pending") pending++;
+    else if(k === "accepted") accepted++;
+    else if(k === "ready") ready++;
+  });
+  const total = pending + accepted + ready;
+  document.getElementById("cntAll").textContent      = total;
+  document.getElementById("cntPending").textContent  = pending;
+  document.getElementById("cntAccepted").textContent = accepted;
+  document.getElementById("cntReady").textContent    = ready;
 
-}catch(e){
-console.error(e);
+  headerSub.textContent = total === 0 ? "No active split orders"
+    : `${total} split order${total>1?"s":""} active`;
 }
 
+/* ---------- RENDER ---------- */
+function renderFromCache(){
+  ordersDiv.innerHTML = "";
+
+  let visible = allOrdersCache.filter(o=>{
+    if(currentFilter === "all") return true;
+    return statusKey(o.status) === currentFilter;
+  });
+
+  /* sort: pending first (newest), then accepted, then ready */
+  const order = {pending:0, accepted:1, ready:2, out:3};
+  visible.sort((a,b)=>{
+    const da = order[statusKey(a.status)] ?? 9;
+    const db_ = order[statusKey(b.status)] ?? 9;
+    if(da !== db_) return da - db_;
+    const ta = a.time?.toDate ? a.time.toDate().getTime() : 0;
+    const tb = b.time?.toDate ? b.time.toDate().getTime() : 0;
+    return tb - ta;
+  });
+
+  if(visible.length === 0){
+    let icon="✂️", title="No split orders", msg="When other shops can't fulfil all items, the extras appear here for you to pick up.";
+    if(currentFilter === "pending"){ icon="⏳"; title="No splits available"; msg="Available splits from other shops will appear here."; }
+    else if(currentFilter === "accepted"){ icon="👨‍🍳"; title="No active splits"; msg="Splits you've accepted appear here while you prepare them."; }
+    else if(currentFilter === "ready"){ icon="📦"; title="Nothing ready yet"; msg="Mark splits ready and they'll show here."; }
+    ordersDiv.innerHTML = `<div class="empty"><div class="icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`;
+    return;
+  }
+
+  let html = "";
+  visible.forEach(order=>{
+    const id = order.__id;
+    const status = order.status || "Pending";
+    const sk = statusKey(status);
+    const fresh = sk === "pending" ? "fresh" : "";
+    const initial = (order.name || "?").trim().charAt(0).toUpperCase();
+    const orderShort = "#" + id.slice(-6).toUpperCase();
+    const parentShort = order.parentOrderId ? order.parentOrderId.slice(-6).toUpperCase() : null;
+    const total = order.total || 0;
+
+    /* items */
+    let itemsHtml = "";
+    if(Array.isArray(order.items)){
+      order.items.forEach((it)=>{
+        const qty = it.qty || 1;
+        const lineT = (it.price || 0) * qty;
+        itemsHtml += `
+          <div class="itemRow">
+            <div class="itemBullet"></div>
+            <div class="itemName">${escapeHtml(it.name || "Item")}</div>
+            <div class="itemQty">× ${qty}</div>
+            <div class="itemPrice">₹${lineT}</div>
+          </div>`;
+      });
+    }
+
+    /* actions */
+    let actionsHtml = "";
+    if(sk === "pending"){
+      actionsHtml = `
+        <button class="actionBtn btn-reject" onclick="rejectSplit('${id}')">Reject</button>
+        <button class="actionBtn btn-accept" onclick="acceptSplit('${id}')">Accept Split ✓</button>`;
+    }else if(sk === "accepted"){
+      if(order.shopEmail !== myShopEmail){
+        actionsHtml = `<div class="takenInfo">Taken by another shop</div>`;
+      }else{
+        actionsHtml = `<button class="actionBtn btn-ready" onclick="markReady('${id}','${order.parentOrderId||""}')">Mark Ready ✓</button>`;
+      }
+    }else if(sk === "ready"){
+      actionsHtml = `<button class="actionBtn btn-disabled">📦 Ready · Same delivery as parent</button>`;
+    }
+
+    html += `
+      <div class="orderCard ${fresh}">
+        <div class="splitRibbon">SPLIT</div>
+
+        <div class="cardTop">
+          <div class="cardLeft">
+            <div class="orderNum">${orderShort}</div>
+            <div class="timeAgo">· ${timeAgo(order.time)}</div>
+          </div>
+          <div class="statusPill pill-${sk}">${escapeHtml(status)}</div>
+        </div>
+
+        ${parentShort ? `
+        <div class="parentLink">
+          🔗 Linked to parent order <b>#${parentShort}</b>
+        </div>` : ``}
+
+        <div class="custStrip">
+          <div class="custAvatar">${initial}</div>
+          <div class="custInfo">
+            <div class="custName">${escapeHtml(order.name || "Customer")}</div>
+            <div class="custMeta">📍 ${escapeHtml(order.address || "")}</div>
+          </div>
+          ${order.phone ? `<a class="callBtn" href="tel:${escapeHtml(order.phone)}">📞</a>` : ""}
+        </div>
+
+        <div class="itemsArea">
+          <div class="itemsHeader">
+            <div class="itemsTitle">Items (${order.items?.length || 0})</div>
+          </div>
+          ${itemsHtml}
+        </div>
+
+        <div class="totalRow">
+          <span class="totalLabel">Split Total</span>
+          <span class="totalAmount">₹${total}</span>
+        </div>
+
+        <div class="actions">${actionsHtml}</div>
+      </div>`;
+  });
+
+  ordersDiv.innerHTML = html;
+}
+
+/* ---------- ACCEPT (transaction lock) ---------- */
+window.acceptSplit = (id)=>{
+  openModal({
+    icon:"✂️",
+    title:"Accept this split order?",
+    msg:"You'll prepare these items and hand them to the same delivery partner as the parent order.",
+    confirmText:"Yes, Accept",
+    onConfirm: async ()=>{
+      const ref = doc(db,"split-orders",id);
+      try{
+        await runTransaction(db, async (transaction)=>{
+          const snap = await transaction.get(ref);
+          if(!snap.exists()) throw new Error("Order not found");
+          const order = snap.data();
+          if(order.assigned){
+            throw new Error("Already taken by another shop");
+          }
+          transaction.update(ref, {
+            assigned: true,
+            shopEmail: auth.currentUser.email,
+            status: "Accepted"
+          });
+        });
+        showToast("✓ Split order accepted");
+      }catch(e){
+        console.error(e);
+        showToast(e.message || "Could not accept", true);
+      }
+    }
+  });
 };
 
-// ❌ REJECT
-window.reject = async(id)=>{
-await updateDoc(doc(db,"split-orders",id),{
-status:"Rejected"
-});
+/* ---------- REJECT ---------- */
+window.rejectSplit = (id)=>{
+  openModal({
+    icon:"⚠️",
+    title:"Reject this split order?",
+    msg:"This split won't be available for you again. Other shops can still take it.",
+    confirmText:"Yes, Reject",
+    danger:true,
+    onConfirm: async ()=>{
+      try{
+        await updateDoc(doc(db,"split-orders",id), {status:"Rejected"});
+        showToast("Split rejected");
+      }catch(e){
+        showToast("Could not reject", true);
+      }
+    }
+  });
 };
 
-// 🔥 READY (LINK SAME DELIVERY)
-window.ready = async(id,parentId)=>{
-
-try{
-
-const mainRef = doc(db,"orders",parentId);
-const mainSnap = await getDoc(mainRef);
-
-let deliveryBoy = null;
-
-if(mainSnap.exists()){
-const mainOrder = mainSnap.data();
-deliveryBoy = mainOrder.deliveryBoy || null;
-}
-
-await updateDoc(doc(db,"split-orders",id),{
-status:"Ready",
-deliveryStatus:"Ready",
-deliveryBoy: deliveryBoy
-});
-
-alert("✅ Ready (same delivery)");
-
-}catch(err){
-console.error(err);
-alert("Error updating order");
-}
-
+/* ---------- READY (links delivery boy from parent) ---------- */
+window.markReady = (id, parentId)=>{
+  openModal({
+    icon:"📦",
+    title:"Mark split as ready?",
+    msg:"The delivery partner from the parent order will pick this up too — same trip, same customer.",
+    confirmText:"Yes, Ready",
+    onConfirm: async ()=>{
+      try{
+        let deliveryBoy = null;
+        if(parentId){
+          const mainSnap = await getDoc(doc(db,"orders",parentId));
+          if(mainSnap.exists()){
+            deliveryBoy = mainSnap.data().deliveryBoy || null;
+          }
+        }
+        await updateDoc(doc(db,"split-orders",id), {
+          status:"Ready",
+          deliveryStatus:"Ready",
+          deliveryBoy: deliveryBoy
+        });
+        showToast("✓ Ready · Same delivery as parent");
+      }catch(err){
+        console.error(err);
+        showToast("Could not update", true);
+      }
+    }
+  });
 };
 
-// 🔙 BACK
-window.goBack=()=>{
-history.back();
-};
-
-});
-
+/* ---------- NAV ---------- */
+window.goBack = ()=> history.length > 1 ? history.back() : (location.href = "dashboard.html");
 </script>
+
 </body>
 </html>
