@@ -1,264 +1,792 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Checkout</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Checkout · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-body{
-font-family:Arial;
-background:#f5f5f5;
-margin:0;
-padding:20px;
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
 }
 
-.box{
-background:white;
-padding:20px;
-border-radius:12px;
-box-shadow:0 6px 18px rgba(0,0,0,0.1);
-max-width:420px;
-margin:auto;
+body{padding-bottom:90px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;
+  top:0;
+  z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
 
-input,textarea{
-width:100%;
-padding:10px;
-margin:8px 0;
-border-radius:6px;
-border:1px solid #ccc;
+.topBar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:900px;
+  margin:0 auto;
 }
 
-button{
-width:100%;
-padding:12px;
-background:#ff5a5f;
-color:white;
-border:none;
-border-radius:6px;
-font-size:16px;
-cursor:pointer;
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:700;
+  flex-shrink:0;
+  color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{font-size:13px;color:#3a3a3a;margin-top:2px;}
+
+/* ============ DELIVERY BANNER ============ */
+.deliveryBanner{
+  max-width:900px;
+  margin:12px auto 0;
+  background:#fff;
+  border-radius:12px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
 
-.item{
-padding:8px 0;
-border-bottom:1px solid #eee;
+.bannerIcon{
+  width:42px;height:42px;
+  background:#fff5d6;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
 }
 
-.total{
-font-size:18px;
-margin-top:10px;
-font-weight:bold;
+.bannerText{flex:1;line-height:1.25;}
+.bannerTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
+.bannerSub{font-size:12px;color:#666;margin-top:2px;}
+
+/* ============ MAIN ============ */
+.container{
+  max-width:900px;
+  margin:0 auto;
+  padding:14px 12px 0;
 }
 
+.section{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+
+.sectionHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.sectionTitle{
+  font-size:15px;
+  font-weight:700;
+  color:#1f1f1f;
+}
+
+.itemCount{font-size:12px;color:#666;font-weight:500;}
+
+/* ============ ITEM LIST (compact) ============ */
+.miniItem{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid #f4f4f4;
+  font-size:13px;
+}
+.miniItem:last-child{border-bottom:none;padding-bottom:0;}
+.miniItem:first-child{padding-top:0;}
+
+.miniDot{
+  width:8px;height:8px;border-radius:50%;
+  background:#0C831F;flex-shrink:0;
+}
+
+.miniName{flex:1;color:#1f1f1f;font-weight:500;}
+.miniQty{color:#777;font-size:12px;margin-right:4px;}
+.miniPrice{font-weight:700;color:#1f1f1f;}
+
+/* ============ BILL ============ */
+.billRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  font-size:13px;
+  color:#3a3a3a;
+}
+.billRow b{font-weight:600;color:#1f1f1f;}
+
+.billDivider{
+  border-top:1px dashed #e0e0e0;
+  margin:8px 0;
+}
+
+.billTotal{
+  font-size:15px;
+  font-weight:800;
+  color:#1f1f1f;
+  padding-top:6px;
+}
+
+.freeTag{color:#0C831F;font-weight:700;}
+.strike{text-decoration:line-through;color:#999;margin-right:4px;font-weight:400;}
+
+/* ============ FORM ============ */
+.field{
+  margin-bottom:12px;
+}
+
+.field:last-child{margin-bottom:0;}
+
+.field label{
+  display:block;
+  font-size:12px;
+  font-weight:600;
+  color:#555;
+  margin-bottom:6px;
+  letter-spacing:.2px;
+}
+
+.input,
+.textarea{
+  width:100%;
+  padding:12px 14px;
+  border:1.5px solid #e5e5e5;
+  border-radius:10px;
+  font-size:14px;
+  font-family:inherit;
+  background:#fafafa;
+  color:#1f1f1f;
+  outline:none;
+  transition:border-color .15s, background .15s;
+}
+
+.input:focus,
+.textarea:focus{
+  border-color:#0C831F;
+  background:#fff;
+}
+
+.textarea{
+  resize:vertical;
+  min-height:80px;
+  line-height:1.4;
+}
+
+.phoneWrap{
+  display:flex;
+  align-items:stretch;
+  border:1.5px solid #e5e5e5;
+  border-radius:10px;
+  background:#fafafa;
+  overflow:hidden;
+  transition:border-color .15s, background .15s;
+}
+.phoneWrap.focused{border-color:#0C831F;background:#fff;}
+
+.phonePrefix{
+  padding:12px 12px 12px 14px;
+  font-size:14px;
+  font-weight:600;
+  color:#555;
+  border-right:1.5px solid #e5e5e5;
+  background:#f0f0f0;
+  display:flex;align-items:center;
+}
+
+.phoneInput{
+  flex:1;
+  border:none;
+  background:transparent;
+  padding:12px 14px;
+  font-size:14px;
+  font-family:inherit;
+  outline:none;
+  width:100%;
+  min-width:0;
+}
+
+.error{
+  color:#d23030;
+  font-size:12px;
+  margin-top:4px;
+  display:none;
+  font-weight:500;
+}
+.error.show{display:block;}
+
+.locateBtn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 12px;
+  background:#fff5d6;
+  color:#8a6500;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  margin-top:8px;
+  border:1px dashed #e5c14d;
+  width:fit-content;
+}
+.locateBtn:active{transform:scale(.97);}
+
+/* ============ PAYMENT METHOD ============ */
+.payOption{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px;
+  border:1.5px solid #0C831F;
+  border-radius:10px;
+  background:#f0fbf2;
+}
+
+.payIcon{
+  width:36px;height:36px;
+  background:#fff;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+
+.payText{flex:1;line-height:1.3;}
+.payTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
+.paySub{font-size:12px;color:#0C831F;font-weight:600;margin-top:2px;}
+
+.payCheck{
+  width:22px;height:22px;
+  border-radius:50%;
+  background:#0C831F;
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;
+  flex-shrink:0;
+}
+
+/* ============ EMPTY STATE ============ */
 .empty{
-text-align:center;
-color:gray;
-padding:20px;
+  text-align:center;
+  padding:60px 20px;
+  background:#fff;
+  border-radius:14px;
+  margin-top:20px;
+}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:18px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;margin-bottom:20px;}
+.shopBtn{
+  background:#0C831F;color:#fff;
+  padding:12px 26px;border-radius:10px;
+  font-size:14px;font-weight:700;letter-spacing:.3px;
+}
+.shopBtn:active{transform:scale(.97);}
+
+/* ============ STICKY ORDER BAR ============ */
+.orderBar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#0C831F;color:#fff;
+  padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  z-index:999;
+  box-shadow:0 -2px 12px rgba(0,0,0,.15);
+  cursor:pointer;
+  transition:opacity .2s, transform .2s;
+}
+.orderBar.hidden{opacity:0;transform:translateY(100%);pointer-events:none;}
+.orderBar.loading{opacity:.85;cursor:wait;}
+
+.obLeft{display:flex;flex-direction:column;line-height:1.2;}
+.obAmount{font-size:17px;font-weight:800;}
+.obLabel{font-size:12px;font-weight:500;opacity:.9;margin-top:2px;}
+
+.obRight{
+  display:flex;align-items:center;gap:6px;
+  font-size:14px;font-weight:700;
+}
+
+.spinner{
+  width:16px;height:16px;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+  display:none;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.orderBar.loading .spinner{display:inline-block;}
+.orderBar.loading .arrow{display:none;}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;
+  bottom:100px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;
+  color:#fff;
+  padding:12px 20px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;
+  pointer-events:none;
+  transition:all .25s;
+  z-index:1001;
+  max-width:90%;
+  text-align:center;
+}
+.toast.show{
+  opacity:1;
+  transform:translateX(-50%) translateY(0);
+}
+
+/* ============ DESKTOP ============ */
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
+  .section{padding:18px;}
+  .sectionTitle{font-size:16px;}
+  .orderBar{padding:14px 24px;}
+  .obAmount{font-size:18px;}
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div class="box">
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">Checkout</div>
+      <div class="pageSub" id="headerSub">Complete your order</div>
+    </div>
+  </div>
 
-<h2>🧾 Checkout</h2>
+  <div class="deliveryBanner" id="deliveryBanner" style="display:none;">
+    <div class="bannerIcon">⚡</div>
+    <div class="bannerText">
+      <div class="bannerTitle">Delivery in 15 minutes</div>
+      <div class="bannerSub">Shipment of <span id="bannerCount">0</span> items</div>
+    </div>
+  </div>
+</header>
 
-<div id="cartItems"></div>
+<!-- ============ MAIN ============ -->
+<main class="container" id="mainArea"></main>
 
-<div class="total">
-Total: ₹<span id="total">0</span>
+<!-- ============ ORDER BAR ============ -->
+<div id="orderBar" class="orderBar hidden" onclick="placeOrder()">
+  <div class="obLeft">
+    <div class="obAmount">₹<span id="payAmount">0</span></div>
+    <div class="obLabel">TOTAL · <span id="payCount">0</span> items</div>
+  </div>
+  <div class="obRight">
+    <span id="orderBtnText">Place Order</span>
+    <span class="arrow">→</span>
+    <span class="spinner"></span>
+  </div>
 </div>
 
-<hr>
+<!-- ============ TOAST ============ -->
+<div id="toast" class="toast"></div>
 
-<input id="name" placeholder="Your Name">
-<input id="phone" placeholder="Phone Number">
-<textarea id="address" placeholder="Address"></textarea>
-
-<button onclick="placeOrder()">Place Order</button>
-
-</div>
-
+<!-- ============ FIREBASE LOGIC ============ -->
 <script type="module">
-
 import { db } from "../js/firebase.js";
 import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🛒 LOAD CART
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
-let cartDiv = document.getElementById("cartItems");
+let isPlacing = false;
+let userLocation = null;
 
-let total = 0;
+const HANDLING_FEE = 5;
+const DELIVERY_FEE = 0; // free
+const FREE_DELIVERY_OVER = 199;
 
-// SHOW CART
-if(cart.length === 0){
-cartDiv.innerHTML = `<div class="empty">🛒 Cart is empty</div>`;
-}else{
-cart.forEach(item=>{
-let t = item.price * item.qty;
-total += t;
+const mainArea       = document.getElementById("mainArea");
+const headerSub      = document.getElementById("headerSub");
+const deliveryBanner = document.getElementById("deliveryBanner");
+const bannerCount    = document.getElementById("bannerCount");
+const orderBar       = document.getElementById("orderBar");
+const payAmount      = document.getElementById("payAmount");
+const payCount       = document.getElementById("payCount");
+const orderBtnText   = document.getElementById("orderBtnText");
+const toast          = document.getElementById("toast");
 
-cartDiv.innerHTML += `
-<div class="item">
-${item.name} x${item.qty} = ₹${t}
-</div>
-`;
-});
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
 }
 
-document.getElementById("total").innerText = total;
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2600);
+}
 
-// 🌍 GET LOCATION
+/* ---------- COMPUTE TOTALS ---------- */
+function computeBill(){
+  let itemTotal = 0, qty = 0;
+  cart.forEach(i=>{
+    itemTotal += i.price * i.qty;
+    qty += i.qty;
+  });
+  const deliveryFee = itemTotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
+  const handling    = HANDLING_FEE;
+  const grandTotal  = itemTotal + deliveryFee + handling;
+  return { itemTotal, deliveryFee, handling, grandTotal, qty };
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  if(cart.length === 0){
+    renderEmpty();
+    return;
+  }
+
+  const { itemTotal, deliveryFee, handling, grandTotal, qty } = computeBill();
+
+  /* Item rows */
+  let itemsHtml = "";
+  cart.forEach(item=>{
+    const lineTotal = item.price * item.qty;
+    itemsHtml += `
+      <div class="miniItem">
+        <div class="miniDot"></div>
+        <div class="miniName">${escapeHtml(item.name)}</div>
+        <div class="miniQty">× ${item.qty}</div>
+        <div class="miniPrice">₹${lineTotal}</div>
+      </div>`;
+  });
+
+  /* Header */
+  headerSub.textContent = `${qty} item${qty>1?"s":""} · ₹${grandTotal}`;
+  bannerCount.textContent = qty;
+  deliveryBanner.style.display = "flex";
+
+  mainArea.innerHTML = `
+    <!-- ITEMS -->
+    <div class="section">
+      <div class="sectionHeader">
+        <div class="sectionTitle">Order Summary</div>
+        <div class="itemCount">${qty} item${qty>1?"s":""}</div>
+      </div>
+      ${itemsHtml}
+    </div>
+
+    <!-- BILL -->
+    <div class="section">
+      <div class="sectionTitle" style="margin-bottom:10px;">Bill details</div>
+
+      <div class="billRow">
+        <span>🧾 Item total</span>
+        <span><b>₹${itemTotal}</b></span>
+      </div>
+
+      <div class="billRow">
+        <span>🛵 Delivery charge</span>
+        <span>
+          ${deliveryFee === 0
+            ? `<span class="strike">₹25</span><span class="freeTag">FREE</span>`
+            : `<b>₹${deliveryFee}</b>`}
+        </span>
+      </div>
+
+      <div class="billRow">
+        <span>🛍️ Handling charge</span>
+        <span><b>₹${handling}</b></span>
+      </div>
+
+      <div class="billDivider"></div>
+
+      <div class="billRow billTotal">
+        <span>To Pay</span>
+        <span>₹${grandTotal}</span>
+      </div>
+    </div>
+
+    <!-- DELIVERY ADDRESS -->
+    <div class="section">
+      <div class="sectionTitle" style="margin-bottom:14px;">📍 Delivery details</div>
+
+      <div class="field">
+        <label for="name">Full name</label>
+        <input class="input" id="name" placeholder="e.g. Rahul Kumar" autocomplete="name">
+        <div class="error" id="errName">Please enter your name</div>
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone number</label>
+        <div class="phoneWrap" id="phoneWrap">
+          <span class="phonePrefix">+91</span>
+          <input class="phoneInput" id="phone" placeholder="10-digit mobile number"
+            inputmode="numeric" maxlength="10" autocomplete="tel">
+        </div>
+        <div class="error" id="errPhone">Please enter a valid 10-digit number</div>
+      </div>
+
+      <div class="field">
+        <label for="address">Complete address</label>
+        <textarea class="textarea" id="address" placeholder="House / flat no, building, street, area, landmark" autocomplete="street-address"></textarea>
+        <div class="error" id="errAddress">Please enter your address</div>
+        <button class="locateBtn" onclick="useCurrentLocation()">
+          📍 <span id="locText">Use current location</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PAYMENT -->
+    <div class="section">
+      <div class="sectionTitle" style="margin-bottom:12px;">💳 Payment method</div>
+      <div class="payOption">
+        <div class="payIcon">💵</div>
+        <div class="payText">
+          <div class="payTitle">Cash on Delivery</div>
+          <div class="paySub">Pay when your order arrives</div>
+        </div>
+        <div class="payCheck">✓</div>
+      </div>
+    </div>
+  `;
+
+  /* Wire up phone focus styling */
+  const phone = document.getElementById("phone");
+  const phoneWrap = document.getElementById("phoneWrap");
+  phone.addEventListener("focus", ()=> phoneWrap.classList.add("focused"));
+  phone.addEventListener("blur",  ()=> phoneWrap.classList.remove("focused"));
+  phone.addEventListener("input", ()=>{
+    phone.value = phone.value.replace(/\D/g,"").slice(0,10);
+  });
+
+  /* Sticky bar */
+  payAmount.textContent = grandTotal;
+  payCount.textContent  = qty;
+  orderBar.classList.remove("hidden");
+}
+
+function renderEmpty(){
+  headerSub.textContent = "Your cart is empty";
+  deliveryBanner.style.display = "none";
+  orderBar.classList.add("hidden");
+  mainArea.innerHTML = `
+    <div class="empty">
+      <div class="icon">🛒</div>
+      <h3>Nothing to checkout</h3>
+      <p>Your cart is empty.<br>Add some items first!</p>
+      <button class="shopBtn" onclick="goBack()">Go to Shop</button>
+    </div>
+  `;
+}
+
+/* ---------- LOCATION ---------- */
 function getLocation(){
-return new Promise((resolve)=>{
-navigator.geolocation.getCurrentPosition(pos=>{
-
-resolve({
-lat: pos.coords.latitude,
-lng: pos.coords.longitude
-});
-
-},()=>{
-resolve(null);
-},{
-enableHighAccuracy:true,
-timeout:5000
-});
-});
+  return new Promise((resolve)=>{
+    if(!navigator.geolocation){ resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      ()  => resolve(null),
+      { enableHighAccuracy:true, timeout:8000 }
+    );
+  });
 }
 
-// 📏 ACCURATE DISTANCE (KM)
-function getDistance(lat1, lon1, lat2, lon2){
-
-const R = 6371;
-
-const dLat = (lat2-lat1) * Math.PI/180;
-const dLon = (lon2-lon1) * Math.PI/180;
-
-const a =
-Math.sin(dLat/2)**2 +
-Math.cos(lat1*Math.PI/180) *
-Math.cos(lat2*Math.PI/180) *
-Math.sin(dLon/2)**2;
-
-const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-return R * c;
-}
-
-// 🚀 PLACE ORDER
-window.placeOrder = async function(){
-
-let name = document.getElementById("name").value.trim();
-let phone = document.getElementById("phone").value.trim();
-let address = document.getElementById("address").value.trim();
-
-if(!name || !phone || !address){
-alert("⚠️ Please fill all details");
-return;
-}
-
-if(cart.length === 0){
-alert("🛒 Cart is empty");
-return;
-}
-
-// 📍 GET LOCATION
-const location = await getLocation();
-
-if(!location){
-alert("⚠️ Please allow location access");
-return;
-}
-
-// 🔥 GET SHOPS
-const snapshot = await getDocs(collection(db,"localshop-details"));
-
-let nearestShop = null;
-let minDist = Infinity;
-
-snapshot.forEach(doc=>{
-let s = doc.data();
-
-if(s.lat && s.lng){
-
-let dist = getDistance(
-location.lat,
-location.lng,
-s.lat,
-s.lng
-);
-
-if(dist < minDist){
-minDist = dist;
-nearestShop = s;
-}
-
-}
-});
-
-// ❌ NO SHOP
-if(!nearestShop){
-alert("❌ No nearby shop found");
-return;
-}
-
-// 💾 SAVE ORDER
-const docRef = await addDoc(collection(db,"orders"),{
-
-// 👤 CUSTOMER
-name,
-phone,
-address,
-
-// 📍 LOCATION (IMPORTANT FIX)
-lat: location.lat,
-lng: location.lng,
-
-// 🏪 SHOP
-shopEmail: nearestShop.email,
-shopName: nearestShop.shopName,
-shopLat: nearestShop.lat,
-shopLng: nearestShop.lng,
-
-// 🛒 ORDER
-items: cart,
-total: total,
-
-// 📦 STATUS
-status:"Pending",
-deliveryStatus:"Waiting",
-deliveryBoy:null,
-
-// 💰 EARNINGS
-shopEarning: total * 0.9,
-deliveryEarning: total * 0.1,
-platformFee: total * 0.05,
-
-// ⏱ TIME
-time:new Date()
-
-});
-
-// CLEAR CART
-localStorage.removeItem("cart");
-
-// SAVE ORDER ID
-localStorage.setItem("lastOrderId", docRef.id);
-
-alert("✅ Order placed successfully!");
-
-// REDIRECT
-window.location.href = "tracking.html?orderId=" + docRef.id;
-
+window.useCurrentLocation = async ()=>{
+  const locText = document.getElementById("locText");
+  locText.textContent = "Getting location…";
+  const loc = await getLocation();
+  if(!loc){
+    locText.textContent = "Use current location";
+    showToast("Couldn't get location. Please allow access.", true);
+    return;
+  }
+  userLocation = loc;
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${loc.lat}&lon=${loc.lng}&format=json`);
+    const data = await res.json();
+    const a = data.address || {};
+    const parts = [
+      a.house_number, a.road, a.suburb || a.neighbourhood,
+      a.village || a.town || a.city, a.state, a.postcode
+    ].filter(Boolean);
+    document.getElementById("address").value = parts.join(", ") || data.display_name || "";
+    locText.textContent = "✓ Location added";
+    setTimeout(()=> locText.textContent = "Update location", 2000);
+  }catch(e){
+    locText.textContent = "✓ Location captured";
+  }
 };
 
+/* ---------- DISTANCE ---------- */
+function getDistance(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180) *
+            Math.cos(lat2*Math.PI/180) *
+            Math.sin(dLon/2)**2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+/* ---------- PLACE ORDER ---------- */
+window.placeOrder = async ()=>{
+  if(isPlacing) return;
+  if(cart.length === 0){ showToast("Your cart is empty", true); return; }
+
+  const name    = document.getElementById("name").value.trim();
+  const phone   = document.getElementById("phone").value.trim();
+  const address = document.getElementById("address").value.trim();
+
+  /* Validate */
+  let valid = true;
+  document.getElementById("errName").classList.toggle("show", !name);
+  document.getElementById("errPhone").classList.toggle("show", phone.length !== 10);
+  document.getElementById("errAddress").classList.toggle("show", !address);
+  if(!name || phone.length !== 10 || !address){
+    showToast("Please fill all delivery details", true);
+    return;
+  }
+
+  /* Lock UI */
+  isPlacing = true;
+  orderBar.classList.add("loading");
+  orderBtnText.textContent = "Placing order…";
+
+  try{
+    /* Location */
+    let location = userLocation || await getLocation();
+    if(!location){
+      showToast("Please allow location access to find nearest shop", true);
+      isPlacing = false;
+      orderBar.classList.remove("loading");
+      orderBtnText.textContent = "Place Order";
+      return;
+    }
+
+    /* Find nearest shop */
+    const snapshot = await getDocs(collection(db, "localshop-details"));
+    let nearestShop = null, minDist = Infinity;
+
+    snapshot.forEach(doc=>{
+      const s = doc.data();
+      if(s.lat && s.lng){
+        const dist = getDistance(location.lat, location.lng, s.lat, s.lng);
+        if(dist < minDist){ minDist = dist; nearestShop = s; }
+      }
+    });
+
+    if(!nearestShop){
+      showToast("No nearby shop found", true);
+      isPlacing = false;
+      orderBar.classList.remove("loading");
+      orderBtnText.textContent = "Place Order";
+      return;
+    }
+
+    /* Compute totals */
+    const { itemTotal, grandTotal } = computeBill();
+
+    /* Save order — same field structure as before for compatibility */
+    const docRef = await addDoc(collection(db, "orders"), {
+      // 👤 customer
+      name, phone, address,
+
+      // 📍 location
+      lat: location.lat,
+      lng: location.lng,
+
+      // 🏪 shop
+      shopEmail: nearestShop.email,
+      shopName:  nearestShop.shopName,
+      shopLat:   nearestShop.lat,
+      shopLng:   nearestShop.lng,
+
+      // 🛒 order
+      items: cart,
+      total: itemTotal,        // item total (kept for backward-compat)
+      grandTotal: grandTotal,  // amount user pays
+      handlingFee: HANDLING_FEE,
+      deliveryFee: itemTotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE,
+
+      // 📦 status
+      status: "Pending",
+      deliveryStatus: "Waiting",
+      deliveryBoy: null,
+
+      // 💰 earnings (on item total, same as before)
+      shopEarning:     itemTotal * 0.9,
+      deliveryEarning: itemTotal * 0.1,
+      platformFee:     itemTotal * 0.05,
+
+      // ⏱ time
+      time: new Date()
+    });
+
+    /* Clean up + redirect */
+    localStorage.removeItem("cart");
+    localStorage.setItem("lastOrderId", docRef.id);
+
+    orderBtnText.textContent = "✓ Order placed!";
+    showToast("Order placed successfully");
+
+    setTimeout(()=>{
+      window.location.href = "tracking.html?orderId=" + docRef.id;
+    }, 800);
+
+  }catch(err){
+    console.error(err);
+    showToast("Something went wrong. Try again.", true);
+    isPlacing = false;
+    orderBar.classList.remove("loading");
+    orderBtnText.textContent = "Place Order";
+  }
+};
+
+/* ---------- NAV ---------- */
+window.goBack = ()=> window.location.href = "cart.html";
+
+/* INIT */
+render();
 </script>
 
 </body>
