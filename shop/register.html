@@ -1,204 +1,871 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Register Shop</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Register Shop · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#f5f5f5;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
+  min-height:100vh;
 }
 
-.container{
-background:white;
-padding:25px;
-border-radius:12px;
-width:320px;
-box-shadow:0 6px 20px rgba(0,0,0,0.1);
-text-align:center;
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
-input,select{
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:8px;
-border:1px solid #ccc;
+/* ============ HERO ============ */
+.hero{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:24px 16px 50px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:"";
+  position:absolute;
+  top:-40px;right:-40px;
+  width:180px;height:180px;
+  background:rgba(255,255,255,.18);
+  border-radius:50%;
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  bottom:-30px;left:-50px;
+  width:140px;height:140px;
+  background:rgba(255,255,255,.1);
+  border-radius:50%;
 }
 
-button{
-width:100%;
-padding:12px;
-background:#ff5a5f;
-color:white;
-border:none;
-border-radius:8px;
-cursor:pointer;
+.heroBar{
+  display:flex;align-items:center;gap:12px;
+  max-width:480px;margin:0 auto 20px;
+  position:relative;z-index:1;
+}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+
+.heroContent{
+  max-width:480px;
+  margin:0 auto;
+  text-align:center;
+  position:relative;
+  z-index:1;
+}
+.brandLogo{
+  width:64px;height:64px;
+  background:#fff;
+  border-radius:20px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;
+  margin:0 auto 12px;
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
+}
+.brandTitle{
+  font-size:20px;font-weight:800;
+  color:#1f1f1f;
+  margin-bottom:4px;
+  letter-spacing:-.3px;
+}
+.brandSub{
+  font-size:13px;font-weight:500;
+  color:#3a3a3a;
+  line-height:1.4;
 }
 
-#msg{
-margin-top:10px;
-font-weight:bold;
+/* ============ FORM ============ */
+.formWrap{
+  flex:1;
+  padding:0 12px;
+  margin-top:-30px;
+  position:relative;
+  z-index:2;
+  padding-bottom:30px;
+}
+
+.formCard{
+  background:#fff;
+  border-radius:20px;
+  max-width:480px;
+  margin:0 auto;
+  box-shadow:0 8px 28px rgba(0,0,0,.08);
+  overflow:hidden;
+}
+
+/* ============ BENEFITS STRIP ============ */
+.benefitsStrip{
+  display:flex;
+  background:linear-gradient(135deg,#dcf3e1 0%,#fff5d6 100%);
+  padding:14px 16px;
+  gap:12px;
+  align-items:center;
+  border-bottom:1px solid #f0f0f0;
+}
+.benefitItem{
+  flex:1;
+  text-align:center;
+  line-height:1.2;
+}
+.benefitIcon{font-size:20px;margin-bottom:3px;}
+.benefitText{
+  font-size:11px;font-weight:700;
+  color:#1f1f1f;
+}
+.benefitSep{
+  width:1px;height:30px;
+  background:rgba(0,0,0,.1);
+  flex-shrink:0;
+}
+
+/* ============ FORM SECTIONS ============ */
+.formBody{padding:18px 18px 20px;}
+
+.sectionLabel{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:800;
+  color:#0C831F;
+  letter-spacing:.5px;
+  text-transform:uppercase;
+  margin:6px 0 10px;
+}
+.sectionLabel:first-child{margin-top:0;}
+.sectionLabel::before{
+  content:"";
+  width:18px;height:2px;background:#0C831F;
+  border-radius:1px;
+}
+
+/* ============ FIELDS ============ */
+.field{margin-bottom:12px;}
+
+.fieldLabel{
+  display:block;
+  font-size:12px;font-weight:600;
+  color:#555;letter-spacing:.2px;
+  margin-bottom:5px;
+}
+
+.inputWrap{
+  position:relative;
+  display:flex;align-items:stretch;
+  border:1.5px solid #e5e5e5;
+  border-radius:10px;
+  background:#fafafa;
+  overflow:hidden;
+  transition:all .15s;
+}
+.inputWrap.focused{border-color:#0C831F;background:#fff;}
+.inputWrap.error{border-color:#d23030;background:#fff5f5;}
+
+.inputIcon{
+  padding:0 10px;
+  display:flex;align-items:center;
+  font-size:15px;color:#888;
+  flex-shrink:0;
+  background:#f0f0f0;
+  border-right:1.5px solid #e5e5e5;
+  min-width:42px;justify-content:center;
+}
+.inputWrap.focused .inputIcon{
+  color:#0C831F;background:#dcf3e1;border-right-color:#dcf3e1;
+}
+
+.inputField{
+  flex:1;
+  border:none;
+  background:transparent;
+  padding:12px 14px;
+  font-size:14px;font-weight:500;
+  font-family:inherit;
+  color:#1f1f1f;
+  outline:none;
+  width:100%;
+  min-width:0;
+}
+
+/* SELECT */
+.selectField{
+  flex:1;
+  border:none;
+  background:transparent;
+  padding:12px 38px 12px 14px;
+  font-size:14px;font-weight:500;
+  font-family:inherit;
+  color:#1f1f1f;
+  outline:none;
+  width:100%;
+  min-width:0;
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;
+  background-position:right 14px center;
+}
+.selectField:disabled{
+  color:#999;cursor:not-allowed;
+}
+
+.eyeBtn{
+  background:transparent;
+  padding:0 14px;
+  font-size:15px;color:#888;
+  flex-shrink:0;
+}
+.eyeBtn:hover{color:#1f1f1f;}
+
+.errorText{
+  display:none;
+  font-size:11px;color:#d23030;
+  font-weight:500;
+  margin-top:4px;padding-left:2px;
+}
+.errorText.show{display:block;}
+
+.helperText{
+  font-size:11px;color:#888;
+  font-weight:500;
+  margin-top:4px;padding-left:2px;
+}
+
+/* ============ LOCATION CAPTURE ============ */
+.locationField{
+  background:#fff5d6;
+  border:1.5px dashed #f0d76a;
+  border-radius:10px;
+  padding:12px 14px;
+  margin-bottom:12px;
+}
+.locationField.captured{
+  background:#dcf3e1;
+  border:1.5px solid #0C831F;
+}
+
+.locationTop{
+  display:flex;align-items:flex-start;gap:10px;
+}
+.locationIcon{
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(255,255,255,.6);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.locationField.captured .locationIcon{background:#fff;}
+
+.locationText{flex:1;line-height:1.3;min-width:0;}
+.locationTitle{
+  font-size:13px;font-weight:700;color:#1f1f1f;
+  margin-bottom:2px;
+}
+.locationSub{
+  font-size:11px;color:#666;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.locationField.captured .locationTitle{color:#0C831F;}
+
+.locationBtn{
+  background:#fff;
+  color:#8a6500;
+  border:1.5px solid #f0d76a;
+  padding:6px 12px;border-radius:8px;
+  font-size:11px;font-weight:700;
+  flex-shrink:0;
+}
+.locationField.captured .locationBtn{
+  border-color:#0C831F;
+  color:#0C831F;
+}
+.locationBtn:active{transform:scale(.94);}
+
+/* ============ SUBMIT ============ */
+.submitBtn{
+  width:100%;
+  background:#0C831F;
+  color:#fff;
+  padding:14px;
+  border-radius:12px;
+  font-size:15px;font-weight:800;
+  letter-spacing:.4px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:6px;
+  transition:all .12s;
+  position:relative;
+}
+.submitBtn:active{transform:scale(.98);}
+.submitBtn:hover{background:#0a6e1a;}
+.submitBtn:disabled{
+  background:#a0d3a8;
+  cursor:not-allowed;
+}
+.submitBtn.loading .submitText{visibility:hidden;}
+.submitBtn .spinner{
+  position:absolute;
+  width:18px;height:18px;
+  border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  display:none;
+  animation:spin .7s linear infinite;
+}
+.submitBtn.loading .spinner{display:block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* PROGRESS STATUS during signup */
+.progressNote{
+  background:#fff5d6;
+  border-radius:8px;
+  padding:8px 12px;
+  font-size:12px;font-weight:600;
+  color:#8a6500;
+  text-align:center;
+  margin-top:10px;
+  display:none;
+}
+.progressNote.show{display:block;}
+
+/* ============ TERMS ============ */
+.terms{
+  font-size:11px;color:#888;
+  text-align:center;
+  margin-top:12px;line-height:1.5;
+}
+.terms a{color:#0C831F;text-decoration:none;font-weight:600;}
+
+/* ============ LOGIN LINK ============ */
+.loginLink{
+  background:#f8f8f8;
+  border-radius:0 0 20px 20px;
+  padding:14px;
+  text-align:center;
+  font-size:13px;color:#555;
+}
+.loginLink a{
+  color:#0C831F;
+  font-weight:700;
+  text-decoration:none;
+  margin-left:4px;
+}
+.loginLink a:hover{text-decoration:underline;}
+
+.footer{
+  text-align:center;
+  font-size:11px;color:#999;
+  padding:14px;
+  flex-shrink:0;
+}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ============ SUCCESS MODAL ============ */
+.modalBg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;
+  z-index:2000;
+  padding:20px;
+}
+.modalBg.show{display:flex;animation:fadeIn .25s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:380px;
+  border-radius:18px;
+  padding:30px 24px 24px;text-align:center;
+  animation:scaleIn .3s ease;
+}
+@keyframes scaleIn{
+  from{transform:scale(.85);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+
+.successIcon{
+  width:80px;height:80px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#0C831F,#0fa029);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;
+  font-size:42px;
+  color:#fff;
+  box-shadow:0 8px 22px rgba(12,131,31,.3);
+  animation:popIn .5s ease;
+}
+@keyframes popIn{
+  0%{transform:scale(0);}
+  60%{transform:scale(1.15);}
+  100%{transform:scale(1);}
+}
+
+.modal h3{
+  font-size:20px;font-weight:800;
+  color:#1f1f1f;margin-bottom:6px;
+}
+.modal p{
+  font-size:13px;color:#666;
+  line-height:1.5;margin-bottom:18px;
+}
+
+.btnPrimary{
+  width:100%;
+  background:#0C831F;color:#fff;
+  padding:13px;border-radius:10px;
+  font-size:14px;font-weight:700;
+}
+
+@media(min-width:768px){
+  .hero{padding:30px 24px 60px;}
+  .brandLogo{width:72px;height:72px;font-size:36px;}
+  .brandTitle{font-size:22px;}
+  .formBody{padding:24px 24px 24px;}
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
-<h2>🏪 Register Shop</h2>
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="heroBar">
+      <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    </div>
+    <div class="heroContent">
+      <div class="brandLogo">🏪</div>
+      <div class="brandTitle">Open your Shop</div>
+      <div class="brandSub">Reach more customers · Manage orders · Grow your business</div>
+    </div>
+  </header>
 
-<input id="name" placeholder="Shop Name">
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
+  <!-- ============ FORM ============ -->
+  <main class="formWrap">
+    <div class="formCard">
 
-<!-- 🔥 DYNAMIC SHOP DROPDOWN -->
-<select id="shopSelect">
-<option>Loading shops...</option>
-</select>
+      <!-- Benefits strip -->
+      <div class="benefitsStrip">
+        <div class="benefitItem">
+          <div class="benefitIcon">🛍️</div>
+          <div class="benefitText">Sell online</div>
+        </div>
+        <div class="benefitSep"></div>
+        <div class="benefitItem">
+          <div class="benefitIcon">📈</div>
+          <div class="benefitText">Grow sales</div>
+        </div>
+        <div class="benefitSep"></div>
+        <div class="benefitItem">
+          <div class="benefitIcon">⚡</div>
+          <div class="benefitText">Quick setup</div>
+        </div>
+      </div>
 
-<input id="location" placeholder="Location (Area name)">
+      <div class="formBody">
 
-<button onclick="register()">Register</button>
+        <!-- ============ SHOP INFO ============ -->
+        <div class="sectionLabel">Shop Information</div>
 
-<p id="msg"></p>
+        <div class="field">
+          <label class="fieldLabel" for="name">Shop name</label>
+          <div class="inputWrap" id="nameWrap">
+            <span class="inputIcon">🏪</span>
+            <input class="inputField" id="name" type="text" placeholder="e.g. Sharma Kirana Store" autocomplete="organization">
+          </div>
+          <div class="errorText" id="nameError">Please enter your shop name</div>
+        </div>
+
+        <div class="field">
+          <label class="fieldLabel" for="shopSelect">Shop category</label>
+          <div class="inputWrap" id="categoryWrap">
+            <span class="inputIcon">📂</span>
+            <select class="selectField" id="shopSelect" disabled>
+              <option>Loading categories…</option>
+            </select>
+          </div>
+          <div class="errorText" id="categoryError">Please select a category</div>
+        </div>
+
+        <!-- ============ ACCOUNT ============ -->
+        <div class="sectionLabel">Account Details</div>
+
+        <div class="field">
+          <label class="fieldLabel" for="email">Email address</label>
+          <div class="inputWrap" id="emailWrap">
+            <span class="inputIcon">📧</span>
+            <input class="inputField" id="email" type="email" placeholder="shop@example.com"
+              autocomplete="email" inputmode="email">
+          </div>
+          <div class="errorText" id="emailError">Please enter a valid email</div>
+        </div>
+
+        <div class="field">
+          <label class="fieldLabel" for="password">Create password</label>
+          <div class="inputWrap" id="passwordWrap">
+            <span class="inputIcon">🔒</span>
+            <input class="inputField" id="password" type="password" placeholder="Minimum 6 characters"
+              autocomplete="new-password">
+            <button class="eyeBtn" type="button" onclick="togglePassword()" aria-label="Show" id="eyeBtn">👁️</button>
+          </div>
+          <div class="errorText" id="passwordError">Password must be at least 6 characters</div>
+          <div class="helperText">Use at least 6 characters</div>
+        </div>
+
+        <!-- ============ LOCATION ============ -->
+        <div class="sectionLabel">Shop Location</div>
+
+        <div class="field">
+          <label class="fieldLabel" for="locationText">Area / locality</label>
+          <div class="inputWrap" id="locationTextWrap">
+            <span class="inputIcon">📍</span>
+            <input class="inputField" id="locationText" type="text" placeholder="e.g. Saheed Nagar, Bhubaneswar" autocomplete="address-level2">
+          </div>
+          <div class="errorText" id="locationTextError">Area name is required</div>
+        </div>
+
+        <div class="locationField" id="locationField">
+          <div class="locationTop">
+            <div class="locationIcon">🌐</div>
+            <div class="locationText">
+              <div class="locationTitle" id="locationTitle">Capture GPS location</div>
+              <div class="locationSub" id="locationSub">Required so customers nearby can find your shop</div>
+            </div>
+            <button class="locationBtn" onclick="captureLocation()" id="locationBtn">Capture</button>
+          </div>
+        </div>
+
+        <!-- ============ SUBMIT ============ -->
+        <button class="submitBtn" id="submitBtn" onclick="register()">
+          <span class="submitText">Create Shop Account</span>
+          <span class="spinner"></span>
+        </button>
+
+        <!-- Progress note while signing up -->
+        <div class="progressNote" id="progressNote">⏳ Creating your shop…</div>
+
+        <div class="terms">
+          By registering, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.
+        </div>
+      </div>
+
+      <!-- Login link -->
+      <div class="loginLink">
+        Already have a shop?<a href="login.html">Sign in</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    Local Shop · Merchant Portal v2.0
+  </footer>
 
 </div>
 
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<!-- SUCCESS MODAL -->
+<div class="modalBg" id="successModal">
+  <div class="modal">
+    <div class="successIcon">✓</div>
+    <h3>Shop registered! 🎉</h3>
+    <p>Your shop is live. Add products to your catalog and start receiving orders today.</p>
+    <button class="btnPrimary" onclick="goToDashboard()">Go to Dashboard</button>
+  </div>
+</div>
+
+<!-- FIREBASE LOGIC -->
 <script type="module">
-
 import { auth, db } from "/local-shop/js/firebase.js";
-import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { addDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  addDoc, collection, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 📍 GET LOCATION
-function getLocation(){
-return new Promise((resolve)=>{
-navigator.geolocation.getCurrentPosition(pos=>{
-resolve({
-lat: pos.coords.latitude,
-lng: pos.coords.longitude
-});
-},()=>{
-resolve({lat:0,lng:0});
-});
-});
-}
-
-// 🏪 LOAD SHOPS INTO DROPDOWN
-async function loadShops(){
-
-const select = document.getElementById("shopSelect");
-
-const snap = await getDocs(collection(db,"shops"));
-
-select.innerHTML = "";
-
-snap.forEach(doc=>{
-
-let data = doc.data();
-
-if(data.name){
-
-let option = document.createElement("option");
-
-option.value = data.name;       // store shop name
-option.innerText = data.name;   // show shop name
-
-select.appendChild(option);
-
-}
-
-});
-
-// fallback
-if(select.innerHTML === ""){
-select.innerHTML = "<option>No shops found</option>";
-}
-
-}
-
-// 🚀 REGISTER FUNCTION
-window.register = async function(){
-
-const msg = document.getElementById("msg");
-
-const name = document.getElementById("name").value.trim();
-const email = document.getElementById("email").value.trim();
-const pass = document.getElementById("password").value.trim();
-const selectedShop = document.getElementById("shopSelect").value;
-const locationText = document.getElementById("location").value.trim();
-
-if(!name || !email || !pass || !locationText){
-alert("⚠️ Fill all fields");
-return;
-}
-
-try{
-
-msg.innerText = "📍 Getting location...";
-
-const loc = await getLocation();
-
-msg.innerText = "⏳ Creating account...";
-
-// 🔐 AUTH
-const userCred = await createUserWithEmailAndPassword(auth,email,pass);
-
-msg.innerText = "💾 Saving shop data...";
-
-// 🔥 SAVE TO localshop-details
-await addDoc(collection(db,"localshop-details"),{
-
-shopName: name,
-email: email,
-
-// 👉 using selected shop as category/type
-category: selectedShop,
-
-location: locationText,
-
-lat: loc.lat,
-lng: loc.lng,
-
-icon: "🏪",
-ownerUid: userCred.user.uid,
-createdAt: new Date()
-
-});
-
-msg.innerText = "✅ Registered Successfully";
-
-// SAVE LOCAL
-localStorage.setItem("shopName", name);
-localStorage.setItem("shopEmail", email);
-localStorage.setItem("shopCategory", selectedShop);
-
-// REDIRECT
-setTimeout(()=>{
-window.location.href="dashboard.html";
-},1200);
-
-}catch(e){
-
-msg.innerText = "❌ Error: " + e.message;
-alert(e.message);
-
-}
-
+/* References */
+const fields = {
+  name:         { input: document.getElementById("name"),         wrap: document.getElementById("nameWrap"),         err: document.getElementById("nameError") },
+  email:        { input: document.getElementById("email"),        wrap: document.getElementById("emailWrap"),        err: document.getElementById("emailError") },
+  password:     { input: document.getElementById("password"),     wrap: document.getElementById("passwordWrap"),     err: document.getElementById("passwordError") },
+  locationText: { input: document.getElementById("locationText"), wrap: document.getElementById("locationTextWrap"), err: document.getElementById("locationTextError") },
+  category:     { input: document.getElementById("shopSelect"),   wrap: document.getElementById("categoryWrap"),     err: document.getElementById("categoryError") },
 };
 
-// 🔥 LOAD SHOPS ON PAGE LOAD
-loadShops();
+const submitBtn   = document.getElementById("submitBtn");
+const eyeBtn      = document.getElementById("eyeBtn");
+const toast       = document.getElementById("toast");
+const successModal= document.getElementById("successModal");
+const locationField = document.getElementById("locationField");
+const locationTitle = document.getElementById("locationTitle");
+const locationSub   = document.getElementById("locationSub");
+const locationBtn   = document.getElementById("locationBtn");
+const progressNote  = document.getElementById("progressNote");
 
+let userLocation = null;
+
+/* ---------- TOAST ---------- */
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#0C831F";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2800);
+}
+
+/* ---------- AUTO-REDIRECT IF LOGGED IN ---------- */
+onAuthStateChanged(auth, (user)=>{
+  if(user && localStorage.getItem("shopEmail")){
+    location.href = "dashboard.html";
+  }
+});
+
+/* ---------- INPUT FOCUS / VALIDATION ---------- */
+Object.values(fields).forEach(({input, wrap, err})=>{
+  input.addEventListener("focus", ()=>{
+    wrap.classList.add("focused");
+    wrap.classList.remove("error");
+  });
+  input.addEventListener("blur", ()=> wrap.classList.remove("focused"));
+  input.addEventListener("input", ()=>{
+    wrap.classList.remove("error");
+    err.classList.remove("show");
+  });
+  input.addEventListener("change", ()=>{
+    wrap.classList.remove("error");
+    err.classList.remove("show");
+  });
+});
+
+/* ---------- TOGGLE PASSWORD ---------- */
+let pwVisible = false;
+window.togglePassword = ()=>{
+  pwVisible = !pwVisible;
+  fields.password.input.type = pwVisible ? "text" : "password";
+  eyeBtn.textContent = pwVisible ? "🙈" : "👁️";
+};
+
+/* ---------- LOAD CATEGORIES ---------- */
+async function loadCategories(){
+  const select = fields.category.input;
+  try{
+    const snap = await getDocs(collection(db, "shops"));
+    const cats = [];
+    snap.forEach(doc=>{
+      const data = doc.data();
+      if(data.name){
+        cats.push(data.name);
+      }
+    });
+
+    if(cats.length === 0){
+      select.innerHTML = `<option value="">No categories available</option>`;
+      select.disabled = true;
+      return;
+    }
+
+    select.innerHTML = `<option value="" disabled selected>Choose a category…</option>` +
+      cats.map(c => `<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join("");
+    select.disabled = false;
+  }catch(e){
+    console.error(e);
+    select.innerHTML = `<option value="">Could not load — try again</option>`;
+    select.disabled = true;
+  }
+}
+loadCategories();
+
+/* ---------- LOCATION ---------- */
+window.captureLocation = ()=>{
+  if(!navigator.geolocation){
+    showToast("Geolocation not supported on this device", true);
+    return;
+  }
+  locationBtn.textContent = "Locating…";
+  locationBtn.disabled = true;
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+
+    /* Reverse geocode to fill area field if empty */
+    try{
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLocation.lat}&lon=${userLocation.lng}&format=json`);
+      const data = await res.json();
+      const a = data.address || {};
+      const place = a.suburb || a.neighbourhood || a.village || a.town || a.city || a.state || "Captured";
+
+      // Auto-fill area name if user hasn't entered one
+      if(!fields.locationText.input.value.trim()){
+        const fullArea = [a.suburb || a.neighbourhood, a.city || a.town || a.village]
+          .filter(Boolean).join(", ");
+        if(fullArea) fields.locationText.input.value = fullArea;
+      }
+
+      locationField.classList.add("captured");
+      locationTitle.textContent = "✓ GPS captured";
+      locationSub.textContent = "📍 " + place;
+    }catch(e){
+      locationField.classList.add("captured");
+      locationTitle.textContent = "✓ GPS captured";
+      locationSub.textContent = `📍 ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`;
+    }
+    locationBtn.textContent = "Update";
+    locationBtn.disabled = false;
+  }, ()=>{
+    locationBtn.textContent = "Try again";
+    locationBtn.disabled = false;
+    showToast("Couldn't get location. Please allow access.", true);
+  }, { enableHighAccuracy:true, timeout:10000 });
+};
+
+/* ---------- VALIDATION ---------- */
+function isValidEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
+
+function setError(key, msg){
+  fields[key].wrap.classList.add("error");
+  fields[key].err.textContent = msg;
+  fields[key].err.classList.add("show");
+}
+
+function validateAll(){
+  const v = {
+    name:         fields.name.input.value.trim(),
+    email:        fields.email.input.value.trim(),
+    password:     fields.password.input.value,
+    locationText: fields.locationText.input.value.trim(),
+    category:     fields.category.input.value
+  };
+
+  let valid = true;
+
+  if(!v.name){ setError("name", "Please enter your shop name"); valid = false; }
+  if(!v.category){ setError("category", "Please select a category"); valid = false; }
+  if(!isValidEmail(v.email)){
+    setError("email", v.email ? "Please enter a valid email" : "Please enter your email"); valid = false;
+  }
+  if(v.password.length < 6){
+    setError("password", "Password must be at least 6 characters"); valid = false;
+  }
+  if(!v.locationText){ setError("locationText", "Area name is required"); valid = false; }
+
+  return valid ? v : false;
+}
+
+/* ---------- HELPERS ---------- */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
+function escapeAttr(str){
+  return String(str).replace(/"/g, "&quot;");
+}
+
+/* ---------- REGISTER ---------- */
+window.register = async ()=>{
+  const v = validateAll();
+  if(!v){
+    showToast("Please fix the errors above", true);
+    return;
+  }
+  if(!userLocation){
+    showToast("Please capture GPS location first", true);
+    locationField.scrollIntoView({behavior:"smooth", block:"center"});
+    return;
+  }
+
+  /* Loading state */
+  submitBtn.classList.add("loading");
+  submitBtn.disabled = true;
+  progressNote.classList.add("show");
+  progressNote.textContent = "⏳ Creating your account…";
+
+  try{
+    /* Create Firebase user */
+    const userCred = await createUserWithEmailAndPassword(auth, v.email, v.password);
+    progressNote.textContent = "💾 Saving your shop details…";
+
+    /* Save shop profile */
+    await addDoc(collection(db, "localshop-details"), {
+      shopName:  v.name,
+      email:     v.email,
+      category:  v.category,
+      location:  v.locationText,
+      lat:       userLocation.lat,
+      lng:       userLocation.lng,
+      icon:      "🏪",
+      ownerUid:  userCred.user.uid,
+      verified:  true,
+      createdAt: new Date()
+    });
+
+    /* Save to localStorage */
+    localStorage.setItem("shopName",     v.name);
+    localStorage.setItem("shopEmail",    v.email);
+    localStorage.setItem("shopCategory", v.category);
+
+    /* Show success modal */
+    progressNote.classList.remove("show");
+    submitBtn.classList.remove("loading");
+    submitBtn.disabled = false;
+    successModal.classList.add("show");
+
+  }catch(e){
+    submitBtn.classList.remove("loading");
+    submitBtn.disabled = false;
+    progressNote.classList.remove("show");
+
+    let msg = "Registration failed. Please try again.";
+    const code = e.code || "";
+    if(code.includes("email-already-in-use"))   msg = "A shop with this email already exists";
+    else if(code.includes("invalid-email"))     msg = "Email format is invalid";
+    else if(code.includes("weak-password"))     msg = "Password is too weak (min 6 chars)";
+    else if(code.includes("network"))           msg = "Network error. Check your connection.";
+    else if(code.includes("operation-not-allowed")) msg = "Email/password sign-up is disabled";
+
+    showToast(msg, true);
+
+    if(code.includes("email-already-in-use")){
+      setError("email", "Email already registered");
+      fields.email.input.focus();
+    }else if(code.includes("weak-password")){
+      setError("password", "Password is too weak");
+      fields.password.input.focus();
+    }
+  }
+};
+
+window.goToDashboard = ()=> location.href = "dashboard.html";
+window.goBack        = ()=> location.href = "login.html";
 </script>
 
 </body>
