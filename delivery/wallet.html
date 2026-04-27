@@ -1,84 +1,836 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Wallet</title>
+<meta charset="UTF-8">
+<title>Wallet · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{font-family:Arial;background:#f5f5f5;padding:20px;text-align:center;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-.box{
-background:white;
-padding:20px;
-border-radius:10px;
-max-width:400px;
-margin:auto;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
+}
+body{padding-bottom:30px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{
+  display:flex;align-items:center;gap:12px;
+  max-width:700px;margin:0 auto;
+}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
+
+.helpBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.helpBtn:active{transform:scale(.94);}
+
+/* ============ BALANCE HERO ============ */
+.balanceHero{
+  max-width:700px;margin:14px auto 0;
+  padding:0 12px;
 }
 
-button{
-padding:10px;
-background:#ff5a5f;
-color:white;
-border:none;
-border-radius:6px;
-margin-top:10px;
-cursor:pointer;
+.balanceCard{
+  background:linear-gradient(135deg,#0C831F 0%,#0fa029 60%,#15b332 100%);
+  border-radius:18px;
+  padding:22px 20px;
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 8px 24px rgba(12,131,31,.25);
 }
+
+.balanceCard::before{
+  content:"";
+  position:absolute;
+  top:-40px;right:-30px;
+  width:160px;height:160px;
+  background:rgba(255,255,255,.08);
+  border-radius:50%;
+}
+.balanceCard::after{
+  content:"";
+  position:absolute;
+  bottom:-50px;left:-30px;
+  width:120px;height:120px;
+  background:rgba(255,255,255,.05);
+  border-radius:50%;
+}
+
+.balanceTop{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:14px;
+  position:relative;z-index:1;
+}
+
+.balanceLabel{
+  font-size:12px;font-weight:600;
+  opacity:.9;letter-spacing:.5px;
+  text-transform:uppercase;
+}
+
+.walletIcon{
+  width:42px;height:42px;
+  background:rgba(255,255,255,.2);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  backdrop-filter:blur(10px);
+}
+
+.balanceAmount{
+  font-size:38px;font-weight:800;
+  letter-spacing:-1px;
+  line-height:1.1;
+  position:relative;z-index:1;
+}
+.balanceAmount.loading{
+  display:inline-block;
+  width:120px;height:36px;
+  background:linear-gradient(90deg,rgba(255,255,255,.15) 25%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.15) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:8px;vertical-align:middle;
+}
+@keyframes shimmer{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+.balanceMeta{
+  font-size:12px;font-weight:500;
+  opacity:.85;margin-top:6px;
+  position:relative;z-index:1;
+}
+
+.withdrawBtn{
+  width:100%;
+  background:#fff;
+  color:#0C831F;
+  padding:14px;
+  border-radius:12px;
+  font-size:15px;font-weight:800;
+  letter-spacing:.3px;
+  margin-top:18px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  position:relative;z-index:1;
+  transition:transform .12s;
+}
+.withdrawBtn:active{transform:scale(.98);}
+.withdrawBtn:disabled{
+  background:rgba(255,255,255,.5);
+  color:rgba(12,131,31,.6);
+  cursor:not-allowed;
+}
+
+/* ============ STATS ROW ============ */
+.statsRow{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-top:12px;
+}
+.statBox{
+  background:#fff;
+  border-radius:12px;
+  padding:12px 8px;
+  text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.statValue{
+  font-size:16px;font-weight:800;color:#1f1f1f;
+  line-height:1.1;
+}
+.statLabel{
+  font-size:10px;color:#666;font-weight:500;
+  margin-top:4px;letter-spacing:.2px;
+  text-transform:uppercase;
+}
+
+/* ============ MAIN ============ */
+.container{
+  max-width:700px;margin:0 auto;
+  padding:14px 12px 0;
+}
+
+.section{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+
+.sectionHeader{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;
+}
+
+.sectionTitle{
+  font-size:14px;font-weight:700;color:#1f1f1f;
+}
+
+.sectionLink{
+  font-size:12px;color:#0C831F;font-weight:600;
+  cursor:pointer;
+}
+
+/* ============ TIPS / INFO ============ */
+.infoRow{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 0;
+}
+.infoRow:not(:last-child){border-bottom:1px solid #f4f4f4;}
+.infoIcon{
+  width:34px;height:34px;border-radius:50%;
+  background:#fff5d6;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.infoText{flex:1;line-height:1.4;}
+.infoTitle{font-size:13px;font-weight:600;color:#1f1f1f;}
+.infoSub{font-size:12px;color:#666;margin-top:2px;}
+
+/* ============ TXN ROW ============ */
+.txnRow{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;
+}
+.txnRow:not(:last-child){border-bottom:1px solid #f4f4f4;}
+
+.txnIcon{
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.txnIcon.pending {background:#fff5d6;color:#8a6500;}
+.txnIcon.approved{background:#dcf3e1;color:#0C831F;}
+.txnIcon.rejected{background:#fde0e0;color:#c41818;}
+
+.txnInfo{flex:1;min-width:0;line-height:1.3;}
+.txnTitle{
+  font-size:13px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.txnDate{font-size:11px;color:#888;margin-top:2px;}
+
+.txnAmount{
+  font-size:14px;font-weight:800;color:#1f1f1f;
+  flex-shrink:0;
+}
+
+.txnStatus{
+  font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:10px;
+  margin-top:2px;display:inline-block;
+  text-transform:uppercase;letter-spacing:.3px;
+}
+.txnStatus.pending {background:#fff5d6;color:#8a6500;}
+.txnStatus.approved{background:#dcf3e1;color:#0C831F;}
+.txnStatus.rejected{background:#fde0e0;color:#c41818;}
+
+/* ============ EMPTY ============ */
+.empty{
+  text-align:center;padding:24px 12px;
+}
+.empty .icon{font-size:36px;margin-bottom:6px;opacity:.6;}
+.empty p{font-size:12px;color:#888;line-height:1.4;}
+
+/* SKELETON */
+.skelLine{
+  height:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmerLight 1.4s infinite;
+  border-radius:6px;margin-bottom:8px;
+}
+@keyframes shimmerLight{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ============ WITHDRAW MODAL ============ */
+.modalBg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:2000;
+}
+.modalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:22px 20px 24px;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.modalHeader{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:14px;
+}
+.modalIcon{
+  width:42px;height:42px;border-radius:50%;
+  background:#dcf3e1;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.modalTitleBlock{flex:1;line-height:1.25;}
+.modalTitle{font-size:17px;font-weight:800;color:#1f1f1f;}
+.modalSub{font-size:12px;color:#666;margin-top:2px;}
+
+.modalBalance{
+  background:#f6f6f6;
+  border-radius:10px;
+  padding:10px 12px;
+  margin-bottom:14px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.modalBalance .lbl{font-size:12px;color:#666;font-weight:500;}
+.modalBalance .val{font-size:15px;font-weight:800;color:#1f1f1f;}
+
+.amountWrap{position:relative;margin-bottom:8px;}
+.amountInput{
+  width:100%;
+  padding:14px 14px 14px 38px;
+  border:1.5px solid #e5e5e5;
+  border-radius:10px;
+  font-size:18px;font-weight:700;
+  font-family:inherit;
+  background:#fafafa;
+  color:#1f1f1f;
+  outline:none;
+  transition:all .15s;
+}
+.amountInput:focus{border-color:#0C831F;background:#fff;}
+.rupeeSign{
+  position:absolute;
+  left:14px;top:50%;
+  transform:translateY(-50%);
+  font-size:18px;font-weight:700;color:#888;
+}
+
+.amountError{
+  font-size:12px;color:#d23030;font-weight:500;
+  margin-top:4px;
+  display:none;
+}
+.amountError.show{display:block;}
+
+/* Quick amount chips */
+.chipRow{
+  display:flex;gap:6px;
+  margin-bottom:16px;flex-wrap:wrap;
+}
+.chip{
+  flex:1;min-width:64px;
+  padding:8px;border-radius:8px;
+  background:#f6f6f6;
+  border:1.5px solid transparent;
+  font-size:12px;font-weight:700;color:#1f1f1f;
+  transition:all .12s;
+}
+.chip:active{transform:scale(.96);}
+.chip.active{
+  background:#dcf3e1;
+  border-color:#0C831F;
+  color:#0C831F;
+}
+
+.modalActions{display:flex;gap:10px;}
+.btnPrimary  {flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnPrimary:disabled{background:#a0d3a8;cursor:not-allowed;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:420px;}
+}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
+  .balanceAmount{font-size:42px;}
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="box">
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">💰 Wallet</div>
+      <div class="pageSub">Earnings & withdrawals</div>
+    </div>
+    <button class="helpBtn" onclick="showHelp()" aria-label="Help">?</button>
+  </div>
+</header>
 
-<h2>💰 Wallet</h2>
+<!-- ============ BALANCE HERO ============ -->
+<div class="balanceHero">
+  <div class="balanceCard">
+    <div class="balanceTop">
+      <div class="balanceLabel">Available Balance</div>
+      <div class="walletIcon">💳</div>
+    </div>
+    <div class="balanceAmount loading" id="balanceAmount"></div>
+    <div class="balanceMeta" id="balanceMeta">From your delivery earnings</div>
 
-<h3>Balance: ₹<span id="balance">0</span></h3>
+    <button class="withdrawBtn" id="withdrawBtn" onclick="openWithdraw()">
+      💸 Withdraw to Bank
+    </button>
+  </div>
 
-<button onclick="withdraw()">Withdraw</button>
+  <!-- Stats -->
+  <div class="statsRow">
+    <div class="statBox">
+      <div class="statValue" id="statToday">₹0</div>
+      <div class="statLabel">Today</div>
+    </div>
+    <div class="statBox">
+      <div class="statValue" id="statWeek">₹0</div>
+      <div class="statLabel">This Week</div>
+    </div>
+    <div class="statBox">
+      <div class="statValue" id="statTotal">₹0</div>
+      <div class="statLabel">Lifetime</div>
+    </div>
+  </div>
+</div>
 
+<!-- ============ MAIN ============ -->
+<main class="container">
+
+  <!-- Withdrawal History -->
+  <section class="section">
+    <div class="sectionHeader">
+      <div class="sectionTitle">Withdrawal Requests</div>
+    </div>
+    <div id="withdrawList">
+      <div style="padding:20px 0;">
+        <div class="skelLine" style="width:60%;"></div>
+        <div class="skelLine" style="width:40%;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Info / Tips -->
+  <section class="section">
+    <div class="sectionHeader">
+      <div class="sectionTitle">How withdrawals work</div>
+    </div>
+    <div class="infoRow">
+      <div class="infoIcon">⚡</div>
+      <div class="infoText">
+        <div class="infoTitle">Fast processing</div>
+        <div class="infoSub">Withdrawals are processed within 24 hours on business days.</div>
+      </div>
+    </div>
+    <div class="infoRow">
+      <div class="infoIcon">💵</div>
+      <div class="infoText">
+        <div class="infoTitle">Minimum ₹100</div>
+        <div class="infoSub">You can withdraw any amount between ₹100 and your available balance.</div>
+      </div>
+    </div>
+    <div class="infoRow">
+      <div class="infoIcon">🏦</div>
+      <div class="infoText">
+        <div class="infoTitle">Direct to bank</div>
+        <div class="infoSub">Funds are transferred to your registered bank account.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ TOAST ============ -->
+<div id="toast" class="toast"></div>
+
+<!-- ============ WITHDRAW MODAL ============ -->
+<div class="modalBg" id="withdrawModal">
+  <div class="modal">
+    <div class="modalHeader">
+      <div class="modalIcon">💸</div>
+      <div class="modalTitleBlock">
+        <div class="modalTitle">Withdraw money</div>
+        <div class="modalSub">Enter the amount you want to withdraw</div>
+      </div>
+    </div>
+
+    <div class="modalBalance">
+      <span class="lbl">Available balance</span>
+      <span class="val">₹<span id="modalBalance">0</span></span>
+    </div>
+
+    <div class="amountWrap">
+      <span class="rupeeSign">₹</span>
+      <input class="amountInput" id="amountInput" type="text" inputmode="numeric" placeholder="0" autocomplete="off">
+    </div>
+    <div class="amountError" id="amountError">Amount is invalid</div>
+
+    <div class="chipRow" id="chipRow"></div>
+
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeWithdraw()">Cancel</button>
+      <button class="btnPrimary" id="confirmBtn" onclick="confirmWithdraw()">Withdraw</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
-
 import { auth, db } from "../js/firebase.js";
-import { doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc, getDoc, addDoc, collection, query, where,
+  onSnapshot, orderBy, limit
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const balanceEl = document.getElementById("balance");
+const balanceAmount = document.getElementById("balanceAmount");
+const balanceMeta   = document.getElementById("balanceMeta");
+const withdrawBtn   = document.getElementById("withdrawBtn");
+const statToday     = document.getElementById("statToday");
+const statWeek      = document.getElementById("statWeek");
+const statTotal     = document.getElementById("statTotal");
+const withdrawList  = document.getElementById("withdrawList");
+const toast         = document.getElementById("toast");
 
-auth.onAuthStateChanged(async(user)=>{
+const MIN_WITHDRAW = 100;
+let myEmail = null;
+let availableBalance = 0;
 
-if(!user){
-location.href="login.html";
-return;
+/* ---------- TOAST ---------- */
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-const ref = doc(db,"delivery",user.email);
-const snap = await getDoc(ref);
-
-if(snap.exists()){
-balanceEl.innerText = snap.data().earnings || 0;
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
 }
 
+function fmtDate(t){
+  if(!t) return "";
+  const d = t.toDate ? t.toDate() : new Date(t);
+  const sec = Math.floor((Date.now()-d.getTime())/1000);
+  if(sec < 60)    return "just now";
+  if(sec < 3600)  return Math.floor(sec/60) + "m ago";
+  if(sec < 86400) return Math.floor(sec/3600) + "h ago";
+  if(sec < 604800)return Math.floor(sec/86400) + "d ago";
+  return d.toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+}
+
+/* ---------- AUTH ---------- */
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    showToast("Login required", true);
+    setTimeout(()=> location.href = "login.html", 800);
+    return;
+  }
+  myEmail = user.email;
+
+  await loadBalance();
+  loadStats();
+  loadWithdrawHistory();
 });
 
-window.withdraw = async function(){
+/* ---------- LOAD BALANCE ---------- */
+async function loadBalance(){
+  try{
+    const ref = doc(db, "delivery", myEmail);
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      availableBalance = Number(snap.data().earnings || 0);
+    }else{
+      availableBalance = 0;
+    }
+    balanceAmount.classList.remove("loading");
+    balanceAmount.textContent = "₹" + availableBalance.toLocaleString("en-IN");
+    balanceMeta.textContent = availableBalance > 0
+      ? "Withdraw anytime · processed in 24 hrs"
+      : "Complete deliveries to start earning";
 
-let amount = prompt("Enter amount");
+    // Disable withdraw button if balance < min
+    if(availableBalance < MIN_WITHDRAW){
+      withdrawBtn.disabled = true;
+      withdrawBtn.innerHTML = `💸 Min ₹${MIN_WITHDRAW} to withdraw`;
+    }
+  }catch(err){
+    console.error(err);
+    balanceAmount.classList.remove("loading");
+    balanceAmount.textContent = "₹0";
+    balanceMeta.textContent = "Could not load balance";
+  }
+}
 
-if(!amount) return;
+/* ---------- LOAD STATS (today/week/lifetime from delivered orders) ---------- */
+function loadStats(){
+  // Listen to orders where I'm the delivery boy
+  const q = query(collection(db,"orders"), where("deliveryBoyId","==", myEmail));
 
-await addDoc(collection(db,"withdrawRequests"),{
-email: auth.currentUser.email,
-amount: Number(amount),
-status:"Pending",
-time:new Date()
-});
+  onSnapshot(q, (snap)=>{
+    let today = 0, week = 0, total = 0;
 
-alert("✅ Withdraw request sent");
+    const now = new Date();
+    const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+    const weekStart  = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
+    snap.forEach(d=>{
+      const o = d.data();
+      const status = (o.status || "").toLowerCase();
+      const dStatus = (o.deliveryStatus || "").toLowerCase();
+      const isDone = status === "delivered" || dStatus === "delivered" || dStatus === "completed";
+      if(!isDone) return;
+
+      const earn = Number(o.deliveryEarning || 0);
+      const t = o.time?.toDate ? o.time.toDate() : new Date(o.time);
+
+      total += earn;
+      if(t >= todayStart) today += earn;
+      if(t >= weekStart)  week  += earn;
+    });
+
+    statToday.textContent = "₹" + Math.round(today);
+    statWeek.textContent  = "₹" + Math.round(week);
+    statTotal.textContent = "₹" + Math.round(total);
+  }, (err)=>{
+    console.error(err);
+  });
+}
+
+/* ---------- LOAD WITHDRAW HISTORY ---------- */
+function loadWithdrawHistory(){
+  try{
+    // Note: orderBy + where on different fields requires a composite index in Firestore
+    // If you don't have it, simplify to just where() and sort client-side
+    const q = query(collection(db,"withdrawRequests"), where("email","==", myEmail));
+
+    onSnapshot(q, (snap)=>{
+      const rows = [];
+      snap.forEach(d=> rows.push({...d.data(), __id:d.id}));
+
+      // Sort newest first
+      rows.sort((a,b)=>{
+        const ta = a.time?.toDate ? a.time.toDate().getTime() : 0;
+        const tb = b.time?.toDate ? b.time.toDate().getTime() : 0;
+        return tb - ta;
+      });
+
+      renderHistory(rows.slice(0, 10));
+    }, (err)=>{
+      console.error(err);
+      withdrawList.innerHTML = `
+        <div class="empty">
+          <div class="icon">⚠️</div>
+          <p>Could not load history</p>
+        </div>`;
+    });
+  }catch(err){
+    console.error(err);
+  }
+}
+
+function renderHistory(rows){
+  if(!rows || rows.length === 0){
+    withdrawList.innerHTML = `
+      <div class="empty">
+        <div class="icon">💳</div>
+        <p>No withdrawals yet.<br>Your withdrawal requests will appear here.</p>
+      </div>`;
+    return;
+  }
+
+  let html = "";
+  rows.forEach(r=>{
+    const status = (r.status || "Pending").toLowerCase();
+    const cls = status === "approved" ? "approved"
+              : status === "rejected" ? "rejected" : "pending";
+    const icon = status === "approved" ? "✓"
+               : status === "rejected" ? "✕" : "⏳";
+
+    html += `
+      <div class="txnRow">
+        <div class="txnIcon ${cls}">${icon}</div>
+        <div class="txnInfo">
+          <div class="txnTitle">Withdrawal request</div>
+          <div class="txnDate">${fmtDate(r.time)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div class="txnAmount">₹${Number(r.amount||0).toLocaleString("en-IN")}</div>
+          <span class="txnStatus ${cls}">${escapeHtml(r.status || "Pending")}</span>
+        </div>
+      </div>`;
+  });
+  withdrawList.innerHTML = html;
+}
+
+/* ---------- WITHDRAW MODAL ---------- */
+const modal      = document.getElementById("withdrawModal");
+const amountInput= document.getElementById("amountInput");
+const amountError= document.getElementById("amountError");
+const confirmBtn = document.getElementById("confirmBtn");
+const chipRow    = document.getElementById("chipRow");
+
+window.openWithdraw = ()=>{
+  if(availableBalance < MIN_WITHDRAW){
+    showToast(`Need at least ₹${MIN_WITHDRAW} to withdraw`, true);
+    return;
+  }
+  document.getElementById("modalBalance").textContent = availableBalance.toLocaleString("en-IN");
+  amountInput.value = "";
+  amountError.classList.remove("show");
+
+  // Generate quick-amount chips based on balance
+  const presets = [];
+  if(availableBalance >= 100)  presets.push(100);
+  if(availableBalance >= 500)  presets.push(500);
+  if(availableBalance >= 1000) presets.push(1000);
+  presets.push("ALL");
+
+  chipRow.innerHTML = presets.map(p=>{
+    const label = p === "ALL" ? `All (₹${availableBalance})` : `₹${p}`;
+    const val   = p === "ALL" ? availableBalance : p;
+    return `<button class="chip" data-val="${val}">${label}</button>`;
+  }).join("");
+
+  chipRow.querySelectorAll(".chip").forEach(c=>{
+    c.addEventListener("click", ()=>{
+      chipRow.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+      c.classList.add("active");
+      amountInput.value = c.dataset.val;
+      validateAmount();
+    });
+  });
+
+  modal.classList.add("show");
+  setTimeout(()=> amountInput.focus(), 280);
 };
 
+window.closeWithdraw = ()=>{
+  modal.classList.remove("show");
+};
+
+modal.addEventListener("click", (e)=>{
+  if(e.target.id === "withdrawModal") closeWithdraw();
+});
+
+amountInput.addEventListener("input", ()=>{
+  // Strip non-digits
+  amountInput.value = amountInput.value.replace(/\D/g, "");
+  // Clear chip selection if manual
+  chipRow.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
+  validateAmount();
+});
+
+function validateAmount(){
+  const amt = Number(amountInput.value);
+  if(!amt){
+    amountError.classList.remove("show");
+    confirmBtn.disabled = true;
+    return false;
+  }
+  if(amt < MIN_WITHDRAW){
+    amountError.textContent = `Minimum ₹${MIN_WITHDRAW}`;
+    amountError.classList.add("show");
+    confirmBtn.disabled = true;
+    return false;
+  }
+  if(amt > availableBalance){
+    amountError.textContent = `Maximum ₹${availableBalance}`;
+    amountError.classList.add("show");
+    confirmBtn.disabled = true;
+    return false;
+  }
+  amountError.classList.remove("show");
+  confirmBtn.disabled = false;
+  return true;
+}
+validateAmount();
+
+window.confirmWithdraw = async ()=>{
+  if(!validateAmount()) return;
+  const amount = Number(amountInput.value);
+
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = "Processing…";
+
+  try{
+    await addDoc(collection(db,"withdrawRequests"), {
+      email:  myEmail,
+      amount: amount,
+      status: "Pending",
+      time:   new Date()
+    });
+    closeWithdraw();
+    showToast(`✓ ₹${amount} withdrawal requested`);
+    confirmBtn.textContent = "Withdraw";
+  }catch(e){
+    console.error(e);
+    showToast("Could not submit. Try again.", true);
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = "Withdraw";
+  }
+};
+
+/* ---------- HELP ---------- */
+window.showHelp = ()=>{
+  showToast("Withdrawals are processed in 24 hrs to your registered bank account.");
+};
+
+/* ---------- NAV ---------- */
+window.goBack = ()=> location.href = "dashboard.html";
 </script>
 
 </body>
