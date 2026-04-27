@@ -1,67 +1,787 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Analytics</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<title>Analytics · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <style>
-body{font-family:Arial;background:#f5f5f5;padding:20px;}
-canvas{background:white;padding:10px;border-radius:10px;}
-</style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
+}
+body{padding-bottom:30px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{
+  display:flex;align-items:center;gap:12px;
+  max-width:1100px;margin:0 auto;
+}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
+
+/* ============ PERIOD TABS ============ */
+.periodTabs{
+  display:flex;gap:8px;
+  padding:12px 12px 4px;
+  max-width:1100px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
+}
+.periodTabs::-webkit-scrollbar{display:none;}
+
+.periodTab{
+  padding:8px 16px;
+  background:#fff;border:1px solid #e5e5e5;border-radius:22px;
+  font-size:13px;font-weight:600;color:#444;
+  white-space:nowrap;flex-shrink:0;
+  transition:all .15s;
+}
+.periodTab.active{background:#0C831F;color:#fff;border-color:#0C831F;}
+
+/* ============ MAIN ============ */
+.container{
+  max-width:1100px;margin:0 auto;
+  padding:6px 12px 0;
+}
+
+/* ============ HERO STATS ============ */
+.heroCard{
+  background:linear-gradient(135deg,#0C831F 0%,#0fa029 100%);
+  border-radius:14px;
+  padding:18px;
+  color:#fff;
+  margin-bottom:12px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(12,131,31,.25);
+}
+.heroCard::before{
+  content:"";
+  position:absolute;
+  top:-30px;right:-30px;
+  width:140px;height:140px;
+  background:rgba(255,255,255,.08);
+  border-radius:50%;
+}
+.heroLabel{
+  font-size:11px;font-weight:700;
+  letter-spacing:.6px;text-transform:uppercase;
+  opacity:.9;margin-bottom:6px;
+  position:relative;z-index:1;
+}
+.heroAmount{
+  font-size:38px;font-weight:800;
+  letter-spacing:-1px;line-height:1;
+  position:relative;z-index:1;
+}
+.heroAmount.loading{
+  display:inline-block;
+  width:140px;height:34px;
+  background:linear-gradient(90deg,rgba(255,255,255,.15) 25%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.15) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:8px;vertical-align:middle;
+}
+.heroDelta{
+  font-size:13px;font-weight:600;
+  margin-top:6px;opacity:.95;
+  position:relative;z-index:1;
+}
+.heroDelta.up::before{content:"↑ ";color:#a6f4b0;}
+.heroDelta.down::before{content:"↓ ";color:#ffb0b0;}
+@keyframes shimmer{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+/* ============ STATS GRID ============ */
+.statsGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-bottom:14px;
+}
+@media(min-width:600px){
+  .statsGrid{grid-template-columns:repeat(4,1fr);}
+}
+
+.statCard{
+  background:#fff;
+  border-radius:12px;
+  padding:14px 12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  position:relative;
+  overflow:hidden;
+}
+.statCard::before{
+  content:"";
+  position:absolute;
+  top:-15px;right:-15px;
+  width:60px;height:60px;
+  border-radius:50%;
+  opacity:.1;
+}
+.statCard.deliveries::before{background:#1857c1;}
+.statCard.average::before  {background:#F0B91D;}
+.statCard.bestday::before  {background:#6b21a8;}
+.statCard.distance::before {background:#0C831F;}
+
+.statIcon{font-size:18px;margin-bottom:4px;}
+.statValue{font-size:18px;font-weight:800;color:#1f1f1f;line-height:1.1;}
+.statLabel{font-size:11px;color:#666;font-weight:500;margin-top:3px;letter-spacing:.2px;}
+
+.statValue.loading{
+  display:inline-block;width:50px;height:16px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:4px;vertical-align:middle;
+}
+
+/* ============ SECTION ============ */
+.section{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.sectionHeader{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;
+}
+.sectionTitle{font-size:15px;font-weight:700;color:#1f1f1f;}
+.sectionMeta{font-size:11px;color:#888;font-weight:500;}
+
+/* ============ CHART CONTAINER ============ */
+.chartWrap{
+  position:relative;
+  height:240px;
+  width:100%;
+}
+.chartWrap.small{height:200px;}
+@media(min-width:768px){
+  .chartWrap{height:280px;}
+}
+
+/* ============ DOUBLE COLUMN ============ */
+@media(min-width:900px){
+  .twoCol{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .twoCol .section{margin-bottom:0;}
+}
+
+/* ============ EMPTY ============ */
+.empty{
+  text-align:center;
+  padding:40px 20px;
+  color:#777;
+}
+.empty .icon{font-size:48px;margin-bottom:10px;opacity:.5;}
+.empty h3{font-size:15px;font-weight:700;color:#444;margin-bottom:4px;}
+.empty p{font-size:13px;color:#888;line-height:1.4;}
+
+/* ============ INSIGHTS ============ */
+.insightCard{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px;
+  background:#fff5d6;
+  border-radius:10px;
+  margin-top:10px;
+}
+.insightIcon{
+  width:36px;height:36px;border-radius:50%;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.insightText{flex:1;line-height:1.4;}
+.insightTitle{font-size:13px;font-weight:700;color:#8a6500;}
+.insightSub{font-size:12px;color:#8a6500;opacity:.85;margin-top:2px;}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:10px 20px 0;}
+  .heroAmount{font-size:42px;}
+}
+</style>
 </head>
 
 <body>
 
-<h2>📊 Earnings Analytics</h2>
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">📊 Analytics</div>
+      <div class="pageSub" id="headerSub">Your delivery performance</div>
+    </div>
+  </div>
 
-<canvas id="chart"></canvas>
+  <!-- PERIOD TABS -->
+  <div class="periodTabs">
+    <button class="periodTab" data-days="7">Last 7 days</button>
+    <button class="periodTab active" data-days="30">Last 30 days</button>
+    <button class="periodTab" data-days="90">Last 90 days</button>
+    <button class="periodTab" data-days="all">All time</button>
+  </div>
+</header>
+
+<!-- ============ MAIN ============ -->
+<main class="container">
+
+  <!-- HERO -->
+  <div class="heroCard">
+    <div class="heroLabel">Total Earnings</div>
+    <div class="heroAmount loading" id="heroAmount"></div>
+    <div class="heroDelta" id="heroDelta">Across selected period</div>
+  </div>
+
+  <!-- STATS GRID -->
+  <div class="statsGrid">
+    <div class="statCard deliveries">
+      <div class="statIcon">📦</div>
+      <div class="statValue loading" id="statDeliveries"></div>
+      <div class="statLabel">Deliveries</div>
+    </div>
+    <div class="statCard average">
+      <div class="statIcon">💸</div>
+      <div class="statValue loading" id="statAvg"></div>
+      <div class="statLabel">Avg per delivery</div>
+    </div>
+    <div class="statCard bestday">
+      <div class="statIcon">🏆</div>
+      <div class="statValue loading" id="statBest"></div>
+      <div class="statLabel">Best day</div>
+    </div>
+    <div class="statCard distance">
+      <div class="statIcon">⚡</div>
+      <div class="statValue loading" id="statActive"></div>
+      <div class="statLabel">Active days</div>
+    </div>
+  </div>
+
+  <!-- DAILY EARNINGS CHART -->
+  <section class="section">
+    <div class="sectionHeader">
+      <div class="sectionTitle">Daily earnings</div>
+      <div class="sectionMeta" id="dailyMeta">Loading…</div>
+    </div>
+    <div class="chartWrap" id="dailyWrap">
+      <canvas id="dailyChart"></canvas>
+    </div>
+  </section>
+
+  <!-- TWO-COLUMN ON DESKTOP -->
+  <div class="twoCol">
+
+    <!-- DAY OF WEEK -->
+    <section class="section">
+      <div class="sectionHeader">
+        <div class="sectionTitle">By day of week</div>
+        <div class="sectionMeta">Earnings split</div>
+      </div>
+      <div class="chartWrap small" id="dowWrap">
+        <canvas id="dowChart"></canvas>
+      </div>
+    </section>
+
+    <!-- HOUR OF DAY -->
+    <section class="section">
+      <div class="sectionHeader">
+        <div class="sectionTitle">Peak hours</div>
+        <div class="sectionMeta">Deliveries by hour</div>
+      </div>
+      <div class="chartWrap small" id="hourWrap">
+        <canvas id="hourChart"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- INSIGHT -->
+  <section class="section" id="insightSection" style="display:none;">
+    <div class="sectionTitle">💡 Insights</div>
+    <div id="insightsList"></div>
+  </section>
+
+</main>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
 
 <script type="module">
-
 import { auth, db } from "../js/firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-auth.onAuthStateChanged(async(user)=>{
+const heroAmount     = document.getElementById("heroAmount");
+const heroDelta      = document.getElementById("heroDelta");
+const statDeliveries = document.getElementById("statDeliveries");
+const statAvg        = document.getElementById("statAvg");
+const statBest       = document.getElementById("statBest");
+const statActive     = document.getElementById("statActive");
+const dailyMeta      = document.getElementById("dailyMeta");
+const headerSub      = document.getElementById("headerSub");
+const insightSection = document.getElementById("insightSection");
+const insightsList   = document.getElementById("insightsList");
+const toast          = document.getElementById("toast");
 
-if(!user) return;
+let myEmail = null;
+let allOrders = [];
+let currentDays = 30;
+let dailyChart=null, dowChart=null, hourChart=null;
 
-const snapshot = await getDocs(collection(db,"orders"));
+const DAYS_LABEL = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-let data = {};
-
-snapshot.forEach(doc=>{
-
-let o = doc.data();
-
-if(o.deliveryBoy === user.email && o.deliveryStatus === "Delivered"){
-
-let date = new Date(o.time.seconds * 1000).toLocaleDateString();
-
-data[date] = (data[date] || 0) + (o.deliveryEarning || 0);
-
+/* ---------- TOAST ---------- */
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-});
-
-const labels = Object.keys(data);
-const values = Object.values(data);
-
-new Chart(document.getElementById("chart"),{
-type:"bar",
-data:{
-labels,
-datasets:[{
-label:"Daily Earnings",
-data:values
-}]
+function setStat(el, val){
+  el.classList.remove("loading");
+  el.textContent = val;
 }
+function setHero(val){
+  heroAmount.classList.remove("loading");
+  heroAmount.textContent = val;
+}
+
+/* ---------- TABS ---------- */
+document.querySelectorAll(".periodTab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".periodTab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    currentDays = tab.dataset.days === "all" ? "all" : parseInt(tab.dataset.days, 10);
+    rebuild();
+  });
 });
 
+/* ---------- AUTH ---------- */
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    showToast("Login required", true);
+    setTimeout(()=> location.href = "login.html", 800);
+    return;
+  }
+  myEmail = user.email;
+
+  await loadOrders();
+  rebuild();
 });
 
+/* ---------- LOAD ALL DELIVERED ORDERS ---------- */
+async function loadOrders(){
+  try{
+    // Try with deliveryBoyId first (your dashboard's field)
+    const snap1 = await getDocs(query(collection(db,"orders"), where("deliveryBoyId","==", myEmail)));
+    snap1.forEach(d=>{
+      const o = d.data(); o.__id = d.id;
+      const status  = (o.status || "").toLowerCase();
+      const dStatus = (o.deliveryStatus || "").toLowerCase();
+      if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+        allOrders.push(o);
+      }
+    });
+
+    // Also handle legacy field 'deliveryBoy' (your old analytics code used this)
+    const snap2 = await getDocs(query(collection(db,"orders"), where("deliveryBoy","==", myEmail)));
+    snap2.forEach(d=>{
+      // skip if already added
+      if(allOrders.some(o => o.__id === d.id)) return;
+      const o = d.data(); o.__id = d.id;
+      const status  = (o.status || "").toLowerCase();
+      const dStatus = (o.deliveryStatus || "").toLowerCase();
+      if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+        allOrders.push(o);
+      }
+    });
+
+    // Also include split-orders
+    try{
+      const snap3 = await getDocs(query(collection(db,"split-orders"), where("deliveryBoyId","==", myEmail)));
+      snap3.forEach(d=>{
+        const o = d.data(); o.__id = "split_" + d.id;
+        const status  = (o.status || "").toLowerCase();
+        const dStatus = (o.deliveryStatus || "").toLowerCase();
+        if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+          allOrders.push(o);
+        }
+      });
+    }catch(e){ /* split-orders may not exist */ }
+
+  }catch(err){
+    console.error(err);
+    showToast("Could not load analytics", true);
+  }
+}
+
+/* ---------- FILTER BY PERIOD ---------- */
+function filterByPeriod(){
+  if(currentDays === "all") return allOrders;
+  const cutoff = Date.now() - currentDays * 24 * 60 * 60 * 1000;
+  return allOrders.filter(o=>{
+    const t = o.time?.toDate ? o.time.toDate().getTime() : new Date(o.time).getTime();
+    return t >= cutoff;
+  });
+}
+
+/* ---------- REBUILD UI ---------- */
+function rebuild(){
+  const filtered = filterByPeriod();
+
+  /* Aggregate */
+  let totalEarn = 0;
+  const byDay   = {};   // ISO date -> earnings
+  const byDow   = [0,0,0,0,0,0,0];   // 0=Sunday … 6=Saturday
+  const byHour  = Array(24).fill(0); // count of deliveries per hour
+  const dayDates = new Set();
+
+  filtered.forEach(o=>{
+    const earn = Number(o.deliveryEarning || 0);
+    const t = o.time?.toDate ? o.time.toDate() : new Date(o.time);
+    if(isNaN(t.getTime())) return;
+
+    totalEarn += earn;
+
+    const dateKey = t.toISOString().slice(0,10); // YYYY-MM-DD
+    byDay[dateKey] = (byDay[dateKey] || 0) + earn;
+    dayDates.add(dateKey);
+
+    byDow[t.getDay()] += earn;
+    byHour[t.getHours()] += 1;
+  });
+
+  const totalDeliveries = filtered.length;
+  const avgPerDelivery  = totalDeliveries ? (totalEarn / totalDeliveries) : 0;
+
+  /* Best day */
+  let bestDay = null, bestAmount = 0;
+  Object.entries(byDay).forEach(([k,v])=>{
+    if(v > bestAmount){ bestAmount = v; bestDay = k; }
+  });
+
+  /* Update period label */
+  const periodLabel = currentDays === "all" ? "All time"
+                    : `Last ${currentDays} days`;
+  headerSub.textContent = periodLabel;
+  dailyMeta.textContent = periodLabel;
+  heroDelta.className = "heroDelta";
+  heroDelta.textContent = totalDeliveries === 0
+    ? "No deliveries yet"
+    : `${totalDeliveries} deliver${totalDeliveries>1?"ies":"y"} · ${periodLabel.toLowerCase()}`;
+
+  /* Render hero & stats */
+  setHero("₹" + Math.round(totalEarn).toLocaleString("en-IN"));
+  setStat(statDeliveries, totalDeliveries);
+  setStat(statAvg, "₹" + Math.round(avgPerDelivery));
+  setStat(statBest, bestAmount > 0 ? "₹" + Math.round(bestAmount) : "—");
+  setStat(statActive, dayDates.size);
+
+  /* Charts */
+  renderDailyChart(filtered, byDay);
+  renderDowChart(byDow);
+  renderHourChart(byHour);
+
+  /* Insights */
+  renderInsights({totalDeliveries, totalEarn, byDow, byHour, byDay, bestDay, bestAmount});
+
+  /* Empty handling for charts */
+  if(totalDeliveries === 0){
+    showEmptyCharts();
+  }
+}
+
+/* ---------- EMPTY ---------- */
+function showEmptyCharts(){
+  document.getElementById("dailyWrap").innerHTML = `
+    <div class="empty"><div class="icon">📈</div>
+    <h3>No data yet</h3>
+    <p>Complete deliveries to see your earnings here.</p></div>`;
+  document.getElementById("dowWrap").innerHTML = `<div class="empty"><div class="icon">📊</div></div>`;
+  document.getElementById("hourWrap").innerHTML = `<div class="empty"><div class="icon">🕐</div></div>`;
+}
+
+/* ---------- DAILY EARNINGS CHART ---------- */
+function renderDailyChart(filtered, byDay){
+  const wrap = document.getElementById("dailyWrap");
+  if(filtered.length === 0) return;
+  // Reset canvas in case empty state replaced it
+  if(!document.getElementById("dailyChart")){
+    wrap.innerHTML = `<canvas id="dailyChart"></canvas>`;
+  }
+  const ctx = document.getElementById("dailyChart");
+
+  // Build full date range (so days with zero earnings still show as gaps)
+  let startTs;
+  if(currentDays === "all"){
+    const keys = Object.keys(byDay).sort();
+    startTs = keys.length ? new Date(keys[0]).getTime() : Date.now();
+  }else{
+    startTs = Date.now() - (currentDays-1) * 24 * 60 * 60 * 1000;
+  }
+  const endTs = Date.now();
+
+  const labels = [], values = [];
+  for(let t = new Date(startTs); t <= new Date(endTs); t.setDate(t.getDate()+1)){
+    const key = t.toISOString().slice(0,10);
+    const date = new Date(t);
+    labels.push(date.toLocaleDateString("en-IN", {day:"numeric", month:"short"}));
+    values.push(Math.round(byDay[key] || 0));
+  }
+
+  // Limit to ~30 visible labels max — show every Nth label only when too many
+  const skip = Math.max(1, Math.ceil(labels.length / 12));
+  const displayLabels = labels.map((l,i)=> i % skip === 0 ? l : "");
+
+  if(dailyChart) dailyChart.destroy();
+  dailyChart = new Chart(ctx, {
+    type:"bar",
+    data:{
+      labels: displayLabels,
+      datasets:[{
+        label:"Earnings",
+        data: values,
+        backgroundColor:"rgba(12,131,31,0.85)",
+        hoverBackgroundColor:"#0fa029",
+        borderRadius:6,
+        borderSkipped:false,
+        maxBarThickness: 28
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#1f1f1f",
+          padding:10, cornerRadius:8,
+          titleFont:{family:"Inter", weight:"700"},
+          bodyFont:{family:"Inter"},
+          callbacks:{
+            title:(items)=> labels[items[0].dataIndex],
+            label:(item)=> "₹" + item.parsed.y.toLocaleString("en-IN")
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{family:"Inter", size:11}, color:"#888"}},
+        y:{
+          beginAtZero:true,
+          grid:{color:"#f0f0f0"},
+          ticks:{
+            font:{family:"Inter", size:11}, color:"#888",
+            callback:(v)=> "₹" + v
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ---------- DAY OF WEEK CHART ---------- */
+function renderDowChart(byDow){
+  const wrap = document.getElementById("dowWrap");
+  if(!document.getElementById("dowChart")){
+    wrap.innerHTML = `<canvas id="dowChart"></canvas>`;
+  }
+  if(dowChart) dowChart.destroy();
+  if(byDow.every(v=>v===0)) return;
+
+  const ctx = document.getElementById("dowChart");
+  dowChart = new Chart(ctx, {
+    type:"bar",
+    data:{
+      labels: DAYS_LABEL,
+      datasets:[{
+        label:"Earnings",
+        data: byDow.map(v=> Math.round(v)),
+        backgroundColor:["#dbe9ff","#dcf3e1","#fff5d6","#e8d6f7","#ffe8d1","#ffe0e0","#d6f0ff"],
+        borderRadius:6,
+        borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#1f1f1f", padding:10, cornerRadius:8,
+          titleFont:{family:"Inter", weight:"700"},
+          bodyFont:{family:"Inter"},
+          callbacks:{
+            label:(item)=> "₹" + item.parsed.y.toLocaleString("en-IN")
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{family:"Inter", size:11}, color:"#666"}},
+        y:{beginAtZero:true, grid:{color:"#f0f0f0"}, ticks:{font:{family:"Inter", size:10}, color:"#888", callback:(v)=>"₹"+v}}
+      }
+    }
+  });
+}
+
+/* ---------- HOUR OF DAY CHART ---------- */
+function renderHourChart(byHour){
+  const wrap = document.getElementById("hourWrap");
+  if(!document.getElementById("hourChart")){
+    wrap.innerHTML = `<canvas id="hourChart"></canvas>`;
+  }
+  if(hourChart) hourChart.destroy();
+  if(byHour.every(v=>v===0)) return;
+
+  const ctx = document.getElementById("hourChart");
+  const labels = byHour.map((_,h)=> (h%4===0) ? `${h}:00` : "");
+  hourChart = new Chart(ctx, {
+    type:"line",
+    data:{
+      labels,
+      datasets:[{
+        label:"Deliveries",
+        data: byHour,
+        borderColor:"#0C831F",
+        backgroundColor:"rgba(12,131,31,.12)",
+        fill:true,
+        tension:.4,
+        pointRadius:0,
+        pointHoverRadius:5,
+        pointHoverBackgroundColor:"#0C831F",
+        borderWidth:2.5
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#1f1f1f", padding:10, cornerRadius:8,
+          titleFont:{family:"Inter", weight:"700"},
+          bodyFont:{family:"Inter"},
+          callbacks:{
+            title:(items)=> {
+              const h = items[0].dataIndex;
+              return `${h}:00 – ${(h+1)%24}:00`;
+            },
+            label:(item)=> `${item.parsed.y} deliveries`
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{family:"Inter", size:10}, color:"#888", autoSkip:false}},
+        y:{beginAtZero:true, grid:{color:"#f0f0f0"}, ticks:{font:{family:"Inter", size:10}, color:"#888", precision:0}}
+      }
+    }
+  });
+}
+
+/* ---------- INSIGHTS ---------- */
+function renderInsights({totalDeliveries, byDow, byHour, byDay, bestDay, bestAmount}){
+  if(totalDeliveries === 0){
+    insightSection.style.display = "none";
+    return;
+  }
+  insightSection.style.display = "block";
+
+  const insights = [];
+
+  // Best day of week
+  let topDow = 0, topDowAmt = 0;
+  byDow.forEach((v,i)=>{
+    if(v > topDowAmt){ topDowAmt = v; topDow = i; }
+  });
+  if(topDowAmt > 0){
+    insights.push({
+      icon:"📅",
+      title:`${DAYS_LABEL[topDow]}s are your best day`,
+      sub:`You earn the most on ${DAYS_LABEL[topDow]}s — try to be online!`
+    });
+  }
+
+  // Peak hour
+  let peakHr = 0, peakCount = 0;
+  byHour.forEach((v,h)=>{
+    if(v > peakCount){ peakCount = v; peakHr = h; }
+  });
+  if(peakCount > 0){
+    insights.push({
+      icon:"🕐",
+      title:`Peak hour: ${peakHr}:00 – ${(peakHr+1)%24}:00`,
+      sub:`Most of your deliveries happen at this time.`
+    });
+  }
+
+  // Best day record
+  if(bestDay && bestAmount > 0){
+    const niceDate = new Date(bestDay).toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+    insights.push({
+      icon:"🏆",
+      title:`Record: ₹${Math.round(bestAmount)} on ${niceDate}`,
+      sub:`Your highest single-day earnings!`
+    });
+  }
+
+  insightsList.innerHTML = insights.map(i=>`
+    <div class="insightCard">
+      <div class="insightIcon">${i.icon}</div>
+      <div class="insightText">
+        <div class="insightTitle">${i.title}</div>
+        <div class="insightSub">${i.sub}</div>
+      </div>
+    </div>`).join("");
+}
+
+/* ---------- NAV ---------- */
+window.goBack = ()=> location.href = "dashboard.html";
 </script>
 
 </body>
