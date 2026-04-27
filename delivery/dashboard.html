@@ -1,314 +1,1181 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-
-<title>Delivery Dashboard</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<meta charset="UTF-8">
+<title>Delivery Dashboard · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-body{font-family:Arial;margin:0;background:#f5f5f5;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
+}
+body{padding-bottom:30px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
 .header{
-background:#ff5a5f;color:white;padding:15px;text-align:center;
-font-size:18px;font-weight:bold;
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{
+  display:flex;align-items:center;gap:12px;
+  max-width:1100px;margin:0 auto;
 }
 
-#sidebar{
-position:fixed;left:-250px;top:0;width:250px;height:100%;
-background:#222;color:white;padding:20px;transition:0.3s;z-index:999;
+.menuBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.menuBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{
+  font-size:17px;font-weight:800;color:#1f1f1f;
+  display:flex;align-items:center;gap:6px;
+}
+.pageSub{
+  font-size:12px;color:#3a3a3a;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-#sidebar button{
-width:100%;margin:10px 0;padding:10px;border:none;border-radius:6px;
+/* ONLINE TOGGLE */
+.onlineToggle{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.5);
+  padding:7px 12px;border-radius:20px;
+  font-size:12px;font-weight:800;
+  flex-shrink:0;color:#1f1f1f;
+  letter-spacing:.3px;
+  cursor:pointer;
+  transition:all .15s;
+}
+.onlineToggle.offline{background:rgba(255,255,255,.3);color:#888;}
+.onlineToggle:active{transform:scale(.95);}
+
+.onlineDot{
+  width:8px;height:8px;border-radius:50%;
+  background:#0C831F;
+  box-shadow:0 0 0 0 rgba(12,131,31,.6);
+  animation:livePulse 1.6s infinite;
+}
+.onlineToggle.offline .onlineDot{background:#999;animation:none;}
+@keyframes livePulse{
+  0%{box-shadow:0 0 0 0 rgba(12,131,31,.6);}
+  70%{box-shadow:0 0 0 8px rgba(12,131,31,0);}
+  100%{box-shadow:0 0 0 0 rgba(12,131,31,0);}
 }
 
-.menuBtn{position:fixed;top:10px;left:10px;z-index:1000;}
+/* ============ SIDEBAR ============ */
+.sidebarBg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  z-index:1500;
+  display:none;
+  opacity:0;
+  transition:opacity .25s;
+}
+.sidebarBg.show{display:block;opacity:1;}
 
-.main{margin-left:60px;padding:15px;}
+.sidebar{
+  position:fixed;
+  top:0;left:0;
+  width:280px;max-width:85vw;
+  height:100%;
+  background:#fff;
+  z-index:1600;
+  transform:translateX(-100%);
+  transition:transform .28s ease;
+  display:flex;flex-direction:column;
+  box-shadow:2px 0 16px rgba(0,0,0,.15);
+}
+.sidebar.show{transform:translateX(0);}
 
-#newOrder{
-background:white;padding:20px;border-radius:12px;
-box-shadow:0 4px 12px rgba(0,0,0,0.1);margin-bottom:20px;
+.sbHeader{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:24px 20px;
+  display:flex;align-items:center;gap:12px;
+}
+.sbAvatar{
+  width:50px;height:50px;border-radius:50%;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+.sbInfo{flex:1;min-width:0;line-height:1.2;}
+.sbName{
+  font-size:16px;font-weight:800;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sbEmail{
+  font-size:12px;color:#3a3a3a;margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-.order{
-background:white;padding:15px;margin-bottom:15px;
-border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.1);
+.sbNav{flex:1;padding:14px 12px;overflow-y:auto;}
+.sbItem{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 14px;
+  border-radius:10px;
+  font-size:14px;font-weight:600;color:#1f1f1f;
+  cursor:pointer;
+  transition:background .15s;
+  margin-bottom:2px;
+}
+.sbItem:hover{background:#f4f4f4;}
+.sbItem:active{background:#ececec;}
+.sbItem .ic{
+  font-size:18px;
+  width:28px;text-align:center;
+  flex-shrink:0;
+}
+.sbItem .arrow{margin-left:auto;color:#bbb;font-size:14px;}
+
+.sbDanger{color:#d23030;}
+
+.sbFooter{
+  padding:14px 20px;
+  border-top:1px solid #f0f0f0;
+  font-size:11px;color:#999;text-align:center;
 }
 
-button{
-margin:5px;padding:8px 12px;border:none;border-radius:5px;
-color:white;cursor:pointer;
+/* ============ MAIN ============ */
+.container{
+  max-width:1100px;margin:0 auto;
+  padding:14px 12px 0;
 }
 
-.accept{background:green;}
-.reject{background:red;}
-.start{background:orange;}
-.complete{background:blue;}
+/* ============ STATS BAR ============ */
+.statsBar{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:14px;
+}
+.statBox{
+  background:#fff;
+  border-radius:12px;
+  padding:12px 10px;
+  text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.statValue{
+  font-size:18px;font-weight:800;color:#1f1f1f;line-height:1;
+}
+.statLabel{
+  font-size:11px;color:#666;font-weight:500;
+  margin-top:4px;letter-spacing:.2px;
+}
 
-.map{height:200px;margin-top:10px;border-radius:10px;}
+/* ============ NEW ORDER BANNER (incoming) ============ */
+.newOrderBanner{
+  background:linear-gradient(135deg,#0C831F 0%,#0fa029 100%);
+  color:#fff;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:14px;
+  box-shadow:0 6px 20px rgba(12,131,31,.3);
+  animation:newOrderPulse 2s infinite;
+  position:relative;
+  overflow:hidden;
+}
+@keyframes newOrderPulse{
+  0%,100%{box-shadow:0 6px 20px rgba(12,131,31,.3);}
+  50%{box-shadow:0 8px 28px rgba(12,131,31,.55);}
+}
+
+.newOrderBanner::before{
+  content:"";
+  position:absolute;
+  top:-30px;right:-30px;
+  width:120px;height:120px;
+  background:rgba(255,255,255,.08);
+  border-radius:50%;
+}
+
+.noTop{
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:800;
+  letter-spacing:1px;
+  margin-bottom:10px;
+  position:relative;z-index:1;
+}
+.noTop::before{
+  content:"";
+  width:8px;height:8px;border-radius:50%;
+  background:#fff;
+  animation:dotPulse 1s infinite;
+}
+@keyframes dotPulse{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.5;transform:scale(.7);}
+}
+
+.noEarning{
+  font-size:32px;font-weight:800;
+  margin-bottom:2px;
+  position:relative;z-index:1;
+}
+.noDist{
+  font-size:13px;opacity:.95;font-weight:500;
+  margin-bottom:14px;
+  position:relative;z-index:1;
+}
+
+.noDetails{
+  background:rgba(255,255,255,.15);
+  border-radius:10px;
+  padding:10px 12px;
+  margin-bottom:14px;
+  position:relative;z-index:1;
+}
+.noLine{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;
+  margin-bottom:6px;
+}
+.noLine:last-child{margin-bottom:0;}
+.noLine .ic{font-size:14px;flex-shrink:0;width:18px;}
+.noLine span{flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.noActions{
+  display:flex;gap:8px;
+  position:relative;z-index:1;
+}
+.noBtn{
+  flex:1;padding:13px;border-radius:10px;
+  font-size:14px;font-weight:800;
+  letter-spacing:.3px;
+  transition:all .12s;
+}
+.noBtn:active{transform:scale(.97);}
+.noAccept{background:#fff;color:#0C831F;}
+.noReject{
+  background:transparent;color:#fff;
+  border:1.5px solid rgba(255,255,255,.5);
+}
+
+/* ============ EMPTY NEW ORDER ============ */
+.noOrderBox{
+  background:#fff;
+  border-radius:14px;
+  padding:24px 20px;
+  text-align:center;
+  margin-bottom:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border:2px dashed #e5e5e5;
+}
+.noOrderBox .icon{font-size:42px;margin-bottom:8px;opacity:.5;}
+.noOrderBox h4{
+  font-size:14px;font-weight:700;color:#444;
+  margin-bottom:4px;
+}
+.noOrderBox p{font-size:12px;color:#888;line-height:1.4;}
+.noOrderBox.offline{
+  border-color:#ffd2d2;
+  background:#fff5f5;
+}
+.noOrderBox.offline .icon{opacity:.7;}
+.noOrderBox.offline h4{color:#d23030;}
+
+.sectionTitle{
+  font-size:14px;font-weight:700;color:#555;
+  margin:0 4px 10px;
+  letter-spacing:.3px;
+  text-transform:uppercase;
+}
+
+/* ============ ACTIVE ORDER CARD ============ */
+.orderCard{
+  background:#fff;border-radius:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  overflow:hidden;
+  border:1px solid #ececec;
+}
+
+.cardTop{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;
+  background:#fafafa;
+  border-bottom:1px solid #f4f4f4;
+  gap:10px;
+}
+.orderNum{
+  font-size:13px;font-weight:800;color:#1f1f1f;
+  font-family:monospace;letter-spacing:.3px;
+}
+.statusPill{
+  padding:4px 10px;border-radius:20px;
+  font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.4px;
+  white-space:nowrap;
+}
+.pill-step0{background:#fff5d6;color:#8a6500;}
+.pill-step1{background:#dbe9ff;color:#1857c1;}
+.pill-step2{background:#dcf3e1;color:#0C831F;}
+
+/* JOURNEY STEPS */
+.journey{
+  display:flex;
+  padding:14px;
+  gap:8px;
+  align-items:flex-start;
+}
+.jStep{
+  flex:1;
+  text-align:center;
+  position:relative;
+}
+.jLine{
+  position:absolute;
+  top:14px;left:55%;right:-45%;
+  height:2px;background:#e5e5e5;
+  z-index:0;
+}
+.jStep:last-child .jLine{display:none;}
+
+.jDot{
+  width:30px;height:30px;border-radius:50%;
+  background:#fff;
+  border:2px solid #e5e5e5;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;
+  margin:0 auto 6px;
+  position:relative;z-index:1;
+  color:#bbb;
+}
+.jStep.done .jDot{background:#0C831F;border-color:#0C831F;color:#fff;}
+.jStep.done .jLine{background:#0C831F;}
+.jStep.active .jDot{
+  background:#fff;border-color:#0C831F;color:#0C831F;
+  box-shadow:0 0 0 4px rgba(12,131,31,.15);
+}
+.jStep.active .jDot::after{
+  content:"";
+  width:8px;height:8px;border-radius:50%;
+  background:#0C831F;
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  animation:pulseDot 1.4s infinite;
+}
+@keyframes pulseDot{
+  0%,100%{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  50%{opacity:.4;transform:translate(-50%,-50%) scale(.7);}
+}
+
+.jLabel{
+  font-size:11px;font-weight:600;color:#666;
+  line-height:1.2;
+}
+.jStep.done .jLabel,
+.jStep.active .jLabel{color:#1f1f1f;font-weight:700;}
+
+/* TARGET INFO */
+.targetBox{
+  margin:0 14px 14px;
+  background:#fff5d6;
+  border:1px solid #f0d76a;
+  border-radius:10px;
+  padding:12px;
+}
+.targetLabel{
+  font-size:10px;font-weight:800;color:#8a6500;
+  text-transform:uppercase;letter-spacing:.5px;
+  margin-bottom:4px;
+}
+.targetName{
+  font-size:14px;font-weight:700;color:#1f1f1f;
+  margin-bottom:3px;
+}
+.targetAddr{
+  font-size:12px;color:#666;line-height:1.4;
+}
+.targetActions{
+  display:flex;gap:8px;
+  margin-top:10px;
+}
+.tgBtn{
+  flex:1;padding:9px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.tgCall{background:#dcf3e1;color:#0C831F;border:1px solid #b3e5bf;}
+.tgNav{background:#1f1f1f;color:#fff;}
+.tgBtn:active{transform:scale(.96);}
+
+/* MAP */
+.mapWrap{
+  height:200px;margin:0 14px 14px;
+  border-radius:10px;overflow:hidden;
+  background:#e9e9e9;
+}
+
+/* CARD ACTIONS */
+.cardActions{
+  display:flex;gap:8px;
+  padding:10px 14px 12px;
+  border-top:1px solid #f4f4f4;
+  flex-wrap:wrap;
+}
+.actionBtn{
+  flex:1;min-width:120px;
+  padding:13px;border-radius:10px;
+  font-size:14px;font-weight:800;
+  letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .12s;
+}
+.actionBtn:active{transform:scale(.97);}
+.btn-pickup{background:#1857c1;color:#fff;}
+.btn-pickup:hover{background:#144aa3;}
+.btn-onway{background:#F0B91D;color:#1f1f1f;}
+.btn-onway:hover{background:#d9a516;}
+.btn-deliver{background:#0C831F;color:#fff;}
+.btn-deliver:hover{background:#0a6e1a;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* MODAL */
+.modalBg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:2000;
+}
+.modalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary  {flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger   {flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:420px;}
+}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .container{padding:18px 20px 0;}
+}
+
+/* Leaflet popup */
+.leaflet-popup-content-wrapper{border-radius:8px;}
+.leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
 </style>
-
 </head>
 
 <body>
 
-<div class="menuBtn">
-<button onclick="toggleMenu()">☰</button>
-</div>
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <button class="menuBtn" onclick="toggleMenu()" aria-label="Menu">☰</button>
+    <div class="titleBlock">
+      <div class="pageTitle">🚚 Delivery</div>
+      <div class="pageSub" id="headerSub">Loading…</div>
+    </div>
+    <div class="onlineToggle" id="onlineToggle" onclick="toggleOnline()">
+      <span class="onlineDot"></span>
+      <span id="onlineLabel">ONLINE</span>
+    </div>
+  </div>
+</header>
 
-<div id="sidebar">
-<h3>🚚 Delivery Panel</h3>
-<button onclick="goWallet()">💰 Wallet</button>
-<button onclick="goAnalytics()">📊 Analytics</button>
-<button onclick="logout()" style="background:red;">🚪 Logout</button>
-</div>
+<!-- ============ SIDEBAR ============ -->
+<div class="sidebarBg" id="sidebarBg" onclick="toggleMenu()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sbHeader">
+    <div class="sbAvatar">🚚</div>
+    <div class="sbInfo">
+      <div class="sbName" id="sbName">Delivery Partner</div>
+      <div class="sbEmail" id="sbEmail">—</div>
+    </div>
+  </div>
+  <nav class="sbNav">
+    <div class="sbItem" onclick="goWallet()">
+      <div class="ic">💰</div>
+      <div>Wallet & Earnings</div>
+      <div class="arrow">›</div>
+    </div>
+    <div class="sbItem" onclick="goAnalytics()">
+      <div class="ic">📊</div>
+      <div>Analytics</div>
+      <div class="arrow">›</div>
+    </div>
+    <div class="sbItem" onclick="goHistory()">
+      <div class="ic">📜</div>
+      <div>Delivery History</div>
+      <div class="arrow">›</div>
+    </div>
+    <div class="sbItem" onclick="goProfile()">
+      <div class="ic">👤</div>
+      <div>My Profile</div>
+      <div class="arrow">›</div>
+    </div>
+    <div class="sbItem sbDanger" onclick="logout()">
+      <div class="ic">🚪</div>
+      <div>Logout</div>
+    </div>
+  </nav>
+  <div class="sbFooter">Local Shop · Delivery v2.0</div>
+</aside>
 
-<div class="header">🚚 Smart Delivery Dashboard</div>
+<!-- ============ MAIN ============ -->
+<main class="container">
 
-<div class="main">
-<div id="newOrder">No new order</div>
-<div id="orders"></div>
+  <!-- Stats -->
+  <div class="statsBar">
+    <div class="statBox">
+      <div class="statValue" id="statDeliveries">0</div>
+      <div class="statLabel">Today's deliveries</div>
+    </div>
+    <div class="statBox">
+      <div class="statValue" id="statEarning">₹0</div>
+      <div class="statLabel">Today's earning</div>
+    </div>
+    <div class="statBox">
+      <div class="statValue" id="statActive">0</div>
+      <div class="statLabel">Active</div>
+    </div>
+  </div>
+
+  <!-- New order area -->
+  <div id="newOrder">
+    <div class="noOrderBox">
+      <div class="icon">📦</div>
+      <h4>Looking for orders…</h4>
+      <p>You'll be notified when a new order is ready for pickup.</p>
+    </div>
+  </div>
+
+  <!-- Active orders -->
+  <div class="sectionTitle" id="activeTitle" style="display:none;">My Active Orders</div>
+  <div id="orders"></div>
+
+</main>
+
+<!-- TOAST + MODAL -->
+<div id="toast" class="toast"></div>
+
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon" id="modalIcon">❓</div>
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalMsg">This action cannot be undone.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeModal()">Cancel</button>
+      <button class="btnPrimary" id="modalConfirmBtn">Confirm</button>
+    </div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
-
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, onSnapshot, doc, updateDoc, getDoc, getDocs } 
-from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  collection, onSnapshot, doc, updateDoc, getDoc, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const ordersDiv = document.getElementById("orders");
-const newOrderDiv = document.getElementById("newOrder");
+const newOrderArea = document.getElementById("newOrder");
+const ordersDiv    = document.getElementById("orders");
+const activeTitle  = document.getElementById("activeTitle");
+const headerSub    = document.getElementById("headerSub");
+const toast        = document.getElementById("toast");
 
-let notifySound = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+let myEmail = null;
+let isOnline = localStorage.getItem("isOnline") !== "false";
+let watchId  = null;
+let currentUserDoc = null;
 
-// SIDEBAR
+const ordersCache = { orders: [], "split-orders": [] };
+const renderedMaps = {};
+let knownOrderIds = new Set();
+let firstLoadDone = false;
+
+const audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+audio.volume = 0.7;
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
+
+function getDistance(lat1, lon1, lat2, lon2){
+  if(!lat1 || !lat2) return null;
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+            Math.sin(dLon/2)**2;
+  const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R*c;
+}
+
+/* ---------- TOAST ---------- */
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+
+/* ---------- MODAL ---------- */
+let confirmCb = null;
+function openModal({icon="❓", title, msg, confirmText="Confirm", danger=false, onConfirm}){
+  document.getElementById("modalIcon").textContent  = icon;
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent   = msg;
+  const btn = document.getElementById("modalConfirmBtn");
+  btn.textContent = confirmText;
+  btn.className = danger ? "btnDanger" : "btnPrimary";
+  confirmCb = onConfirm;
+  document.getElementById("confirmModal").classList.add("show");
+}
+window.closeModal = ()=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  confirmCb = null;
+};
+document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
+  if(confirmCb) confirmCb();
+  closeModal();
+});
+document.getElementById("confirmModal").addEventListener("click",(e)=>{
+  if(e.target.id === "confirmModal") closeModal();
+});
+
+/* ---------- SIDEBAR ---------- */
 window.toggleMenu = ()=>{
-let menu=document.getElementById("sidebar");
-menu.style.left=(menu.style.left==="0px")?"-250px":"0px";
+  document.getElementById("sidebar").classList.toggle("show");
+  document.getElementById("sidebarBg").classList.toggle("show");
+};
+window.goWallet    = ()=> location.href = "wallet.html";
+window.goAnalytics = ()=> location.href = "analytics.html";
+window.goHistory   = ()=> location.href = "delivery-history.html";
+window.goProfile   = ()=> location.href = "profile.html";
+
+window.logout = ()=>{
+  openModal({
+    icon:"🚪",
+    title:"Logout?",
+    msg:"You'll stop receiving new orders until you log in again.",
+    confirmText:"Yes, Logout",
+    danger:true,
+    onConfirm: async ()=>{
+      try{
+        if(watchId !== null) navigator.geolocation.clearWatch(watchId);
+        await signOut(auth);
+        showToast("Logged out");
+        setTimeout(()=> location.href = "login.html", 600);
+      }catch(e){ showToast("Logout failed", true); }
+    }
+  });
 };
 
-window.goWallet=()=>location.href="wallet.html";
-window.goAnalytics=()=>location.href="analytics.html";
-window.logout=()=>{signOut(auth);location.href="login.html";};
+/* ---------- ONLINE TOGGLE ---------- */
+function updateOnlineUI(){
+  const t = document.getElementById("onlineToggle");
+  const lbl = document.getElementById("onlineLabel");
+  if(isOnline){
+    t.classList.remove("offline");
+    lbl.textContent = "ONLINE";
+  }else{
+    t.classList.add("offline");
+    lbl.textContent = "OFFLINE";
+  }
+  // Refresh new-order display
+  renderNewOrder();
+}
 
-// 📍 LOCATION + LIVE UPDATE (HIGH ACCURACY)
+window.toggleOnline = ()=>{
+  isOnline = !isOnline;
+  localStorage.setItem("isOnline", isOnline);
+  updateOnlineUI();
+  showToast(isOnline ? "✓ You're now ONLINE" : "You're now OFFLINE");
+};
+
+/* ---------- LOCATION TRACKING ---------- */
 function startLiveLocation(){
-navigator.geolocation.watchPosition(async(pos)=>{
+  if(!navigator.geolocation){ return; }
 
-window.myLat = pos.coords.latitude;
-window.myLng = pos.coords.longitude;
+  watchId = navigator.geolocation.watchPosition(async (pos)=>{
+    window.myLat = pos.coords.latitude;
+    window.myLng = pos.coords.longitude;
 
-// update delivery profile
-await updateDoc(doc(db,"delivery",auth.currentUser.email),{
-lat: window.myLat,
-lng: window.myLng
-});
+    try{
+      // Update delivery profile
+      await updateDoc(doc(db,"delivery", myEmail), {
+        lat: window.myLat, lng: window.myLng
+      });
 
-// update all active orders
-const ordersSnap = await getDocs(collection(db,"orders"));
-
-ordersSnap.forEach(async(docSnap)=>{
-let o = docSnap.data();
-
-if(o.deliveryBoyId === auth.currentUser.email){
-await updateDoc(doc(db,"orders",docSnap.id),{
-deliveryLat: window.myLat,
-deliveryLng: window.myLng
-});
-}
-});
-
-},
-(err)=>{console.log(err);},
-{
-enableHighAccuracy:true,
-maximumAge:0,
-timeout:5000
-});
-}
-
-// AUTH
-onAuthStateChanged(auth,(user)=>{
-
-if(!user){
-alert("Login required");
-location.href="login.html";
-return;
+      // Update active orders only (those assigned to me, not delivered)
+      const tasks = [];
+      [...ordersCache.orders, ...ordersCache["split-orders"]].forEach(o=>{
+        if(o.deliveryBoyId === myEmail && o.deliveryStatus !== "Delivered"){
+          tasks.push(updateDoc(doc(db, o.__col, o.__id), {
+            deliveryLat: window.myLat,
+            deliveryLng: window.myLng
+          }));
+        }
+      });
+      await Promise.allSettled(tasks);
+    }catch(err){
+      // silent
+    }
+  }, (err)=>{
+    console.log("Geolocation error:", err);
+  }, {
+    enableHighAccuracy:true,
+    maximumAge:0,
+    timeout:15000
+  });
 }
 
-startLiveLocation();
+/* ---------- AUTH ---------- */
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    showToast("Login required", true);
+    setTimeout(()=> location.href = "login.html", 800);
+    return;
+  }
+  myEmail = user.email;
 
-listen("orders");
-listen("split-orders");
+  /* Profile fetch */
+  try{
+    const snap = await getDoc(doc(db,"delivery", myEmail));
+    if(snap.exists()){
+      currentUserDoc = snap.data();
+      document.getElementById("sbName").textContent = currentUserDoc.name || "Delivery Partner";
+      document.getElementById("sbEmail").textContent = myEmail;
+    }else{
+      document.getElementById("sbEmail").textContent = myEmail;
+    }
+  }catch(e){ /* silent */ }
 
+  updateOnlineUI();
+  startLiveLocation();
+
+  /* Listen on both collections */
+  listen("orders");
+  listen("split-orders");
+});
+
+/* ---------- COLLECTION LISTENER ---------- */
 function listen(col){
+  onSnapshot(collection(db, col), (snap)=>{
+    const list = [];
+    let foundNewReady = false;
 
-onSnapshot(collection(db,col),(snapshot)=>{
+    snap.forEach(docSnap=>{
+      const d = docSnap.data();
+      d.__id  = docSnap.id;
+      d.__col = col;
+      list.push(d);
 
-ordersDiv.innerHTML="";
-let newOrderShown=false;
+      // detect new ready orders for sound
+      if(firstLoadDone && d.deliveryStatus === "Ready" && !d.deliveryBoyId
+         && !knownOrderIds.has(d.__id)){
+        foundNewReady = true;
+      }
+      knownOrderIds.add(d.__id);
+    });
 
-snapshot.forEach(docSnap=>{
+    ordersCache[col] = list;
+    if(foundNewReady && isOnline){
+      try{ audio.currentTime = 0; audio.play().catch(()=>{}); }catch(e){}
+    }
+    firstLoadDone = true;
 
-const order = docSnap.data();
-const id = docSnap.id;
-
-if(order.deliveryStatus==="Delivered") return;
-
-// NEW ORDER
-if(order.deliveryStatus==="Ready" && !order.deliveryBoyId && !newOrderShown){
-
-notifySound.play();
-
-newOrderDiv.innerHTML=`
-<h3>🆕 New Order</h3>
-<b>${order.name}</b><br>
-📍 ${order.address}<br>
-💰 ₹${order.total}<br><br>
-
-<button class="accept" onclick="acceptOrder('${id}','${col}')">Accept</button>
-<button class="reject" onclick="rejectOrder('${id}','${col}')">Reject</button>
-`;
-
-newOrderShown=true;
+    renderNewOrder();
+    renderActiveOrders();
+    renderStats();
+  }, (err)=>{
+    console.error(err);
+    showToast("Connection error", true);
+  });
 }
 
-// MY ORDER
-if(order.deliveryBoyId === user.email){
+/* ---------- STATS ---------- */
+function renderStats(){
+  const all = [...ordersCache.orders, ...ordersCache["split-orders"]];
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
 
-let step = order.pickupStep || 0;
+  let active = 0, deliveredToday = 0, earningToday = 0;
+  all.forEach(o=>{
+    if(o.deliveryBoyId !== myEmail) return;
+    if(o.deliveryStatus === "Delivered" || o.status === "Delivered"){
+      const t = o.time?.toDate ? o.time.toDate() : new Date(o.time);
+      if(t >= todayStart){
+        deliveredToday++;
+        earningToday += (o.deliveryEarning || 0);
+      }
+    }else{
+      active++;
+    }
+  });
 
-// ✅ FIXED ROUTING LOGIC
-let targetLat, targetLng;
+  document.getElementById("statDeliveries").textContent = deliveredToday;
+  document.getElementById("statEarning").textContent    = "₹" + Math.round(earningToday);
+  document.getElementById("statActive").textContent     = active;
 
-if(step < 2){
-targetLat = order.shopLat;
-targetLng = order.shopLng;
-}else{
-targetLat = order.lat;
-targetLng = order.lng;
+  headerSub.textContent = active === 0
+    ? (isOnline ? "Looking for orders" : "You're offline")
+    : `${active} active order${active>1?"s":""}`;
 }
 
-ordersDiv.innerHTML+=`
-<div class="order">
+/* ---------- RENDER NEW ORDER ---------- */
+function renderNewOrder(){
+  if(!isOnline){
+    newOrderArea.innerHTML = `
+      <div class="noOrderBox offline">
+        <div class="icon">😴</div>
+        <h4>You're offline</h4>
+        <p>Go online to start receiving new orders.</p>
+      </div>`;
+    return;
+  }
 
-<b>${order.name}</b><br>
-📍 Step: ${step}<br>
+  // Find nearest available ready order from BOTH collections
+  const all = [...ordersCache.orders, ...ordersCache["split-orders"]];
+  let candidate = null, candidateDist = Infinity;
 
-<button class="start" onclick="nextStep('${id}','${col}',${step})">Next Step</button>
+  all.forEach(o=>{
+    if(o.deliveryStatus !== "Ready") return;
+    if(o.deliveryBoyId) return;
+    const dist = getDistance(window.myLat, window.myLng, o.shopLat, o.shopLng);
+    if(dist !== null && dist < candidateDist){
+      candidate = o; candidateDist = dist;
+    }else if(!candidate){
+      candidate = o;
+    }
+  });
 
-${step>=2 ? `<button class="complete" onclick="markDelivered('${id}','${col}')">Delivered</button>` : ""}
+  if(!candidate){
+    newOrderArea.innerHTML = `
+      <div class="noOrderBox">
+        <div class="icon">📦</div>
+        <h4>Looking for orders…</h4>
+        <p>You'll be notified when a new order is ready for pickup.</p>
+      </div>`;
+    return;
+  }
 
-<button onclick="openNavigation(${targetLat},${targetLng})">🧭 Navigate</button>
+  const o = candidate;
+  const earning = Math.round(o.deliveryEarning || (o.total * 0.1) || 0);
+  const distText = candidateDist !== Infinity
+    ? candidateDist.toFixed(1) + " km away"
+    : "Nearby";
 
-<div id="map_${id}" class="map"></div>
+  newOrderArea.innerHTML = `
+    <div class="newOrderBanner">
+      <div class="noTop">NEW ORDER</div>
+      <div class="noEarning">₹${earning}</div>
+      <div class="noDist">📍 ${distText} · Total ₹${o.total||0}</div>
 
-</div>
-`;
+      <div class="noDetails">
+        <div class="noLine"><div class="ic">🏪</div><span>${escapeHtml(o.shopName||"Pickup shop")}</span></div>
+        <div class="noLine"><div class="ic">🏠</div><span>${escapeHtml(o.address||"Customer address")}</span></div>
+      </div>
 
-setTimeout(()=>{
-
-let map=L.map(`map_${id}`).setView([targetLat,targetLng],13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-// 🏪 Shop
-L.marker([order.shopLat,order.shopLng]).addTo(map).bindPopup("Shop");
-
-// 🏠 Customer
-L.marker([order.lat,order.lng]).addTo(map).bindPopup("Customer");
-
-// 🚚 Delivery boy
-if(window.myLat){
-L.marker([window.myLat,window.myLng]).addTo(map).bindPopup("You");
+      <div class="noActions">
+        <button class="noBtn noReject" onclick="rejectNewOrder('${o.__id}','${o.__col}')">Skip</button>
+        <button class="noBtn noAccept" onclick="acceptNewOrder('${o.__id}','${o.__col}')">Accept ✓</button>
+      </div>
+    </div>`;
 }
 
-},100);
+/* ---------- RENDER ACTIVE ORDERS ---------- */
+function renderActiveOrders(){
+  const all = [...ordersCache.orders, ...ordersCache["split-orders"]]
+    .filter(o => o.deliveryBoyId === myEmail
+              && o.deliveryStatus !== "Delivered"
+              && o.status !== "Delivered");
 
+  if(all.length === 0){
+    ordersDiv.innerHTML = "";
+    activeTitle.style.display = "none";
+    return;
+  }
+
+  activeTitle.style.display = "block";
+
+  let html = "";
+  all.forEach(o=>{
+    const id = o.__id, col = o.__col;
+    const step = o.pickupStep || 0;
+    const orderShort = "#" + id.slice(-6).toUpperCase();
+    const custLat = o.customerLat ?? o.lat;
+    const custLng = o.customerLng ?? o.lng;
+
+    let stepLabel = "Heading to shop", pillCls = "pill-step0";
+    if(step === 1){ stepLabel = "Picked up · On the way"; pillCls = "pill-step1"; }
+    else if(step >= 2){ stepLabel = "At customer"; pillCls = "pill-step2"; }
+
+    /* Target info */
+    let targetLat, targetLng, targetLabel, targetName, targetAddr, targetPhone;
+    if(step < 2){
+      targetLat = o.shopLat; targetLng = o.shopLng;
+      targetLabel = "PICKUP FROM";
+      targetName = o.shopName || "Shop";
+      targetAddr = "Pick up the order";
+      targetPhone = o.shopPhone || "";
+    }else{
+      targetLat = custLat; targetLng = custLng;
+      targetLabel = "DELIVER TO";
+      targetName = o.name || "Customer";
+      targetAddr = o.address || "";
+      targetPhone = o.phone || "";
+    }
+
+    /* Action button by step */
+    let actionBtn = "";
+    if(step === 0){
+      actionBtn = `<button class="actionBtn btn-pickup" onclick="nextStep('${id}','${col}',0)">📦 Picked Up</button>`;
+    }else if(step === 1){
+      actionBtn = `<button class="actionBtn btn-onway" onclick="nextStep('${id}','${col}',1)">🛵 On the way to customer</button>`;
+    }else{
+      actionBtn = `<button class="actionBtn btn-deliver" onclick="markDelivered('${id}','${col}')">✓ Mark Delivered</button>`;
+    }
+
+    html += `
+      <div class="orderCard">
+        <div class="cardTop">
+          <div class="orderNum">${orderShort}${col==="split-orders" ? " · SPLIT" : ""}</div>
+          <div class="statusPill ${pillCls}">${stepLabel}</div>
+        </div>
+
+        <!-- Journey -->
+        <div class="journey">
+          <div class="jStep ${step>0?"done":"active"}">
+            <div class="jLine"></div>
+            <div class="jDot">${step>0?"":"1"}</div>
+            <div class="jLabel">Pickup</div>
+          </div>
+          <div class="jStep ${step>1?"done":(step===1?"active":"")}">
+            <div class="jLine"></div>
+            <div class="jDot">${step>1?"":"2"}</div>
+            <div class="jLabel">On the way</div>
+          </div>
+          <div class="jStep ${step>=2?"active":""}">
+            <div class="jDot">${step>=2?"":"3"}</div>
+            <div class="jLabel">Delivered</div>
+          </div>
+        </div>
+
+        <!-- Target box -->
+        <div class="targetBox">
+          <div class="targetLabel">${targetLabel}</div>
+          <div class="targetName">${escapeHtml(targetName)}</div>
+          ${targetAddr ? `<div class="targetAddr">📍 ${escapeHtml(targetAddr)}</div>` : ""}
+          <div class="targetActions">
+            ${targetPhone ? `<a class="tgBtn tgCall" href="tel:${escapeHtml(targetPhone)}">📞 Call</a>` : ""}
+            <button class="tgBtn tgNav" onclick="openNavigation(${targetLat},${targetLng})">🧭 Navigate</button>
+          </div>
+        </div>
+
+        <!-- Map -->
+        <div class="mapWrap"><div id="map_${id}" style="height:100%;"></div></div>
+
+        <!-- Action -->
+        <div class="cardActions">${actionBtn}</div>
+      </div>`;
+  });
+
+  ordersDiv.innerHTML = html;
+
+  /* Render maps */
+  setTimeout(()=>{
+    all.forEach(o=>{
+      const id = o.__id;
+      const step = o.pickupStep || 0;
+      const custLat = o.customerLat ?? o.lat;
+      const custLng = o.customerLng ?? o.lng;
+
+      const targetLat = step < 2 ? o.shopLat : custLat;
+      const targetLng = step < 2 ? o.shopLng : custLng;
+      if(!targetLat || !targetLng) return;
+
+      const el = document.getElementById(`map_${id}`);
+      if(!el) return;
+
+      // Reuse if same map exists, otherwise create
+      if(renderedMaps[id]){
+        try{ renderedMaps[id].remove(); }catch(e){}
+      }
+
+      const map = L.map(el, {zoomControl:false}).setView([targetLat, targetLng], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+
+      const points = [];
+      if(o.shopLat && o.shopLng){
+        L.marker([o.shopLat, o.shopLng], {icon:emojiIcon("🏪","#fff5d6")}).addTo(map).bindPopup("Shop");
+        points.push([o.shopLat, o.shopLng]);
+      }
+      if(custLat && custLng){
+        L.marker([custLat, custLng], {icon:emojiIcon("🏠","#dbe9ff")}).addTo(map).bindPopup("Customer");
+        points.push([custLat, custLng]);
+      }
+      if(window.myLat && window.myLng){
+        L.marker([window.myLat, window.myLng], {icon:emojiIcon("🛵","#dcf3e1")}).addTo(map).bindPopup("You");
+        points.push([window.myLat, window.myLng]);
+      }
+      if(points.length > 1){
+        map.fitBounds(points, {padding:[20,20], maxZoom:15});
+      }
+
+      renderedMaps[id] = map;
+      setTimeout(()=> map.invalidateSize(), 100);
+    });
+  }, 50);
 }
 
-});
-
-if(!newOrderShown){
-newOrderDiv.innerHTML="No new order";
+function emojiIcon(emoji, bg){
+  return L.divIcon({
+    className:"",
+    html:`<div style="background:${bg};width:36px;height:36px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 2px 6px rgba(0,0,0,.25);border:2px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:18px;line-height:1;">${emoji}</div>
+          </div>`,
+    iconSize:[36,36], iconAnchor:[18,36]
+  });
 }
 
-});
-
-}
-
-});
-
-// ACCEPT ORDER
-window.acceptOrder = async(id,col)=>{
-
-const email = auth.currentUser.email;
-
-const snap = await getDoc(doc(db,"delivery",email));
-const d = snap.data();
-
-await updateDoc(doc(db,col,id),{
-
-deliveryBoyId: email,
-
-deliveryBoyName: d.name || "",
-deliveryBoyPhone: d.phone || "",
-deliveryVehicle: d.bikeNumber || "",
-
-deliveryStatus:"Accepted"
-
-});
-
+/* ---------- ACTIONS ---------- */
+window.acceptNewOrder = (id, col)=>{
+  openModal({
+    icon:"🛵",
+    title:"Accept this order?",
+    msg:"You'll head to the shop to pick it up. Make sure you can reach within 5 minutes.",
+    confirmText:"Yes, Accept",
+    onConfirm: async ()=>{
+      try{
+        const snap = await getDoc(doc(db,"delivery", myEmail));
+        const d = snap.exists() ? snap.data() : {};
+        await updateDoc(doc(db, col, id), {
+          deliveryBoyId: myEmail,
+          deliveryBoyName:  d.name || "",
+          deliveryBoyPhone: d.phone || "",
+          deliveryVehicle:  d.bikeNumber || "",
+          deliveryStatus:   "Accepted",
+          pickupStep: 0
+        });
+        showToast("✓ Order accepted · Head to the shop");
+      }catch(e){
+        console.error(e);
+        showToast("Could not accept", true);
+      }
+    }
+  });
 };
 
-// REJECT
-window.rejectOrder=async(id,col)=>{
-await updateDoc(doc(db,col,id),{
-deliveryBoyId:null,
-deliveryStatus:"Ready"
-});
+window.rejectNewOrder = (id, col)=>{
+  // Just hide for this user — keep order ready for others
+  newOrderArea.innerHTML = `
+    <div class="noOrderBox">
+      <div class="icon">⏭️</div>
+      <h4>Order skipped</h4>
+      <p>Looking for the next available order…</p>
+    </div>`;
+  setTimeout(()=> renderNewOrder(), 5000);
 };
 
-// STEP
-window.nextStep = async(id,col,step)=>{
-
-if(step===0){
-await updateDoc(doc(db,col,id),{pickupStep:1});
-}
-else if(step===1){
-await updateDoc(doc(db,col,id),{pickupStep:2});
-}
-
+window.nextStep = (id, col, step)=>{
+  const labels = ["Confirm picked up?", "On the way to customer?"];
+  const msgs = [
+    "Confirm that you've collected the order from the shop.",
+    "Mark that you're now heading to the customer's address."
+  ];
+  openModal({
+    icon: step===0 ? "📦" : "🛵",
+    title: labels[step],
+    msg: msgs[step],
+    confirmText:"Yes, Confirm",
+    onConfirm: async ()=>{
+      try{
+        await updateDoc(doc(db, col, id), { pickupStep: step + 1 });
+        showToast(step===0 ? "✓ Picked up · Head to customer" : "✓ On the way");
+      }catch(e){
+        showToast("Could not update", true);
+      }
+    }
+  });
 };
 
-// DELIVER
-window.markDelivered = async(id,col)=>{
-
-await updateDoc(doc(db,col,id),{
-deliveryStatus:"WaitingCustomerConfirm",
-status:"WaitingCustomerConfirm"
-});
-
-alert("📦 Waiting for customer confirmation");
-
+window.markDelivered = (id, col)=>{
+  openModal({
+    icon:"✓",
+    title:"Mark as delivered?",
+    msg:"The customer will be asked to confirm. Make sure you've handed over all items.",
+    confirmText:"Yes, Delivered",
+    onConfirm: async ()=>{
+      try{
+        await updateDoc(doc(db, col, id), {
+          deliveryStatus:"WaitingCustomerConfirm",
+          status:"WaitingCustomerConfirm"
+        });
+        showToast("📦 Waiting for customer confirmation");
+      }catch(e){
+        showToast("Could not update", true);
+      }
+    }
+  });
 };
 
-// ✅ IMPROVED NAVIGATION
-window.openNavigation = function(lat,lng){
-window.open(
-`https://www.google.com/maps/dir/?api=1&origin=${window.myLat},${window.myLng}&destination=${lat},${lng}&travelmode=driving`,
-"_blank"
-);
+window.openNavigation = (lat, lng)=>{
+  if(!lat || !lng){ showToast("Location not available", true); return; }
+  const origin = (window.myLat && window.myLng)
+    ? `${window.myLat},${window.myLng}`
+    : "";
+  const url = origin
+    ? `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${lat},${lng}&travelmode=driving`
+    : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+  window.open(url, "_blank");
 };
-
 </script>
 
 </body>
