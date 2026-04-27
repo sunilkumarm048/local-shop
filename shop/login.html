@@ -1,173 +1,671 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Shop Login</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Shop Login · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#f5f5f5;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
+  min-height:100vh;
 }
 
-.container{
-background:white;
-padding:30px;
-border-radius:12px;
-width:320px;
-text-align:center;
-box-shadow:0 6px 20px rgba(0,0,0,0.1);
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.app{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
-h2{
-margin-bottom:20px;
+/* ============ HERO ============ */
+.hero{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:36px 20px 50px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:"";
+  position:absolute;
+  top:-40px;right:-40px;
+  width:180px;height:180px;
+  background:rgba(255,255,255,.18);
+  border-radius:50%;
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  bottom:-30px;left:-50px;
+  width:140px;height:140px;
+  background:rgba(255,255,255,.1);
+  border-radius:50%;
 }
 
-input{
-width:100%;
-padding:12px;
-margin:10px 0;
-border-radius:8px;
-border:1px solid #ccc;
-font-size:14px;
+.heroContent{
+  max-width:420px;
+  margin:0 auto;
+  text-align:center;
+  position:relative;
+  z-index:1;
 }
 
-button{
-width:100%;
-padding:12px;
-background:#ff5a5f;
-color:white;
-border:none;
-border-radius:8px;
-font-size:16px;
-cursor:pointer;
-margin-top:10px;
+.brandLogo{
+  width:72px;height:72px;
+  background:#fff;
+  border-radius:22px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:36px;
+  margin:0 auto 14px;
+  box-shadow:0 6px 18px rgba(0,0,0,.12);
 }
 
-button:hover{
-background:#e04848;
+.brandName{
+  font-size:22px;font-weight:800;
+  color:#1f1f1f;letter-spacing:-.3px;
+  margin-bottom:4px;
+}
+.brandName span{color:#fff;}
+
+.brandTagline{
+  font-size:13px;font-weight:500;
+  color:#3a3a3a;
+  margin-bottom:6px;
 }
 
-.link{
-margin-top:15px;
-font-size:14px;
+.brandRole{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.5);
+  padding:5px 12px;border-radius:20px;
+  font-size:12px;font-weight:700;
+  color:#1f1f1f;
+  letter-spacing:.3px;
+  margin-top:8px;
 }
 
-.link a{
-color:#ff5a5f;
-font-weight:bold;
-text-decoration:none;
+/* ============ FORM ============ */
+.formWrap{
+  flex:1;
+  padding:0 16px;
+  margin-top:-30px;
+  position:relative;
+  z-index:2;
+  padding-bottom:30px;
 }
 
-#msg{
-margin-top:10px;
-font-weight:bold;
-color:red;
+.formCard{
+  background:#fff;
+  border-radius:20px;
+  padding:24px 20px 22px;
+  max-width:420px;
+  margin:0 auto;
+  box-shadow:0 8px 28px rgba(0,0,0,.08);
 }
+
+.formTitle{
+  font-size:20px;font-weight:800;
+  color:#1f1f1f;
+  margin-bottom:4px;
+}
+.formSub{
+  font-size:13px;color:#666;
+  margin-bottom:20px;
+  line-height:1.4;
+}
+
+/* ============ FIELDS ============ */
+.field{margin-bottom:14px;}
+
+.fieldLabel{
+  display:block;
+  font-size:12px;font-weight:600;
+  color:#555;letter-spacing:.2px;
+  margin-bottom:6px;
+}
+
+.inputWrap{
+  position:relative;
+  display:flex;align-items:stretch;
+  border:1.5px solid #e5e5e5;
+  border-radius:10px;
+  background:#fafafa;
+  overflow:hidden;
+  transition:all .15s;
+}
+.inputWrap.focused{
+  border-color:#0C831F;
+  background:#fff;
+}
+.inputWrap.error{
+  border-color:#d23030;
+  background:#fff5f5;
+}
+
+.inputIcon{
+  padding:0 12px;
+  display:flex;align-items:center;
+  font-size:17px;
+  color:#888;
+  flex-shrink:0;
+  background:#f0f0f0;
+  border-right:1.5px solid #e5e5e5;
+}
+.inputWrap.focused .inputIcon{
+  color:#0C831F;
+  background:#dcf3e1;
+  border-right-color:#dcf3e1;
+}
+
+.inputField{
+  flex:1;
+  border:none;
+  background:transparent;
+  padding:13px 14px;
+  font-size:14px;font-weight:500;
+  font-family:inherit;
+  color:#1f1f1f;
+  outline:none;
+  width:100%;
+  min-width:0;
+}
+
+.eyeBtn{
+  background:transparent;
+  padding:0 14px;
+  font-size:16px;
+  color:#888;
+  flex-shrink:0;
+}
+.eyeBtn:hover{color:#1f1f1f;}
+
+.errorText{
+  display:none;
+  font-size:12px;
+  color:#d23030;
+  font-weight:500;
+  margin-top:5px;
+  padding-left:2px;
+}
+.errorText.show{display:block;}
+
+.fieldRow{
+  display:flex;justify-content:flex-end;
+  margin-bottom:18px;
+  margin-top:-6px;
+}
+
+.forgotLink{
+  font-size:12px;
+  color:#0C831F;
+  font-weight:600;
+  text-decoration:none;
+  cursor:pointer;
+}
+.forgotLink:hover{text-decoration:underline;}
+
+/* ============ SUBMIT BUTTON ============ */
+.submitBtn{
+  width:100%;
+  background:#0C831F;
+  color:#fff;
+  padding:14px;
+  border-radius:12px;
+  font-size:15px;font-weight:800;
+  letter-spacing:.4px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all .12s;
+  position:relative;
+}
+.submitBtn:active{transform:scale(.98);}
+.submitBtn:hover{background:#0a6e1a;}
+.submitBtn:disabled{
+  background:#a0d3a8;
+  cursor:not-allowed;
+}
+
+.submitBtn.loading .submitText{visibility:hidden;}
+.submitBtn .spinner{
+  position:absolute;
+  width:18px;height:18px;
+  border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  display:none;
+  animation:spin .7s linear infinite;
+}
+.submitBtn.loading .spinner{display:block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ============ DIVIDER ============ */
+.divider{
+  display:flex;align-items:center;gap:10px;
+  margin:18px 0 16px;
+  font-size:11px;font-weight:600;
+  color:#999;letter-spacing:.5px;
+}
+.divider::before,
+.divider::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:#eee;
+}
+
+/* ============ REGISTER CARD ============ */
+.registerCard{
+  background:#fff5d6;
+  border:1px solid #f0d76a;
+  border-radius:12px;
+  padding:14px;
+  text-align:center;
+}
+.registerTitle{
+  font-size:13px;font-weight:700;
+  color:#1f1f1f;
+  margin-bottom:3px;
+}
+.registerSub{
+  font-size:12px;color:#666;
+  margin-bottom:10px;
+  line-height:1.4;
+}
+.registerBtn{
+  display:inline-block;
+  background:#fff;
+  color:#0C831F;
+  border:1.5px solid #0C831F;
+  padding:8px 20px;
+  border-radius:8px;
+  font-size:13px;font-weight:700;
+  text-decoration:none;
+  transition:all .12s;
+}
+.registerBtn:hover{background:#dcf3e1;}
+.registerBtn:active{transform:scale(.96);}
+
+/* ============ ROLE SWITCH ============ */
+.roleSwitch{
+  text-align:center;
+  margin-top:14px;
+  font-size:12px;color:#888;
+}
+.roleSwitch a{
+  color:#0C831F;
+  font-weight:600;
+  text-decoration:none;
+  margin-left:4px;
+}
+
+/* ============ FOOTER ============ */
+.footer{
+  text-align:center;
+  font-size:11px;color:#999;
+  padding:14px;
+  flex-shrink:0;
+}
+.footer a{color:#666;text-decoration:none;}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ============ RESET PASSWORD MODAL ============ */
+.modalBg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:2000;
+}
+.modalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:22px 20px 24px;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:14px;}
+
+.modalActions{display:flex;gap:10px;margin-top:14px;}
+.btnPrimary  {flex:1;background:#0C831F;color:#fff;padding:12px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:12px;border-radius:10px;font-size:14px;font-weight:700;}
+
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:420px;}
+}
+
+@media(min-width:768px){
+  .hero{padding:48px 24px 60px;}
+  .brandLogo{width:84px;height:84px;font-size:40px;border-radius:24px;}
+  .brandName{font-size:24px;}
+  .formCard{padding:28px 24px 26px;}
+  .formTitle{font-size:22px;}
+}
+
 </style>
-
 </head>
 
 <body>
 
-<div class="container">
+<div class="app">
 
-<h2>🔐 Shop Login</h2>
+  <!-- ============ HERO ============ -->
+  <header class="hero">
+    <div class="heroContent">
+      <div class="brandLogo">🏪</div>
+      <div class="brandName">Local<span>Shop</span></div>
+      <div class="brandTagline">Run your store. Reach more customers.</div>
+      <div class="brandRole">🏪 Shop Owner</div>
+    </div>
+  </header>
 
-<input id="email" placeholder="Email">
-<input id="password" type="password" placeholder="Password">
+  <!-- ============ FORM ============ -->
+  <main class="formWrap">
+    <div class="formCard">
+      <div class="formTitle">Welcome back 👋</div>
+      <div class="formSub">Sign in to manage your shop, orders, and earnings.</div>
 
-<button onclick="login()">Login</button>
+      <!-- Email -->
+      <div class="field">
+        <label class="fieldLabel" for="email">Email address</label>
+        <div class="inputWrap" id="emailWrap">
+          <span class="inputIcon">📧</span>
+          <input
+            class="inputField" id="email" type="email"
+            placeholder="shop@example.com"
+            autocomplete="email" inputmode="email">
+        </div>
+        <div class="errorText" id="emailError">Please enter a valid email</div>
+      </div>
 
-<p id="msg"></p>
+      <!-- Password -->
+      <div class="field">
+        <label class="fieldLabel" for="password">Password</label>
+        <div class="inputWrap" id="passwordWrap">
+          <span class="inputIcon">🔒</span>
+          <input
+            class="inputField" id="password" type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password">
+          <button class="eyeBtn" type="button" onclick="togglePassword()" aria-label="Show password" id="eyeBtn">👁️</button>
+        </div>
+        <div class="errorText" id="passwordError">Password is required</div>
+      </div>
 
-<!-- 🔥 REGISTER LINK -->
-<div class="link">
-Don't have a shop?<br>
-<a href="register.html">Create Account →</a>
+      <!-- Forgot password -->
+      <div class="fieldRow">
+        <a class="forgotLink" onclick="forgotPassword()">Forgot password?</a>
+      </div>
+
+      <!-- Submit -->
+      <button class="submitBtn" id="submitBtn" onclick="login()">
+        <span class="submitText">Sign In</span>
+        <span class="spinner"></span>
+      </button>
+
+      <!-- Divider -->
+      <div class="divider">NEW TO LOCAL SHOP?</div>
+
+      <!-- Register card -->
+      <div class="registerCard">
+        <div class="registerTitle">Don't have a shop yet?</div>
+        <div class="registerSub">Sign up your shop and start selling in minutes.</div>
+        <a href="register.html" class="registerBtn">🏪 Create Shop Account</a>
+      </div>
+
+      <!-- Role switch -->
+      <div class="roleSwitch">
+        Are you a delivery partner?<a href="../delivery/login.html">Sign in here</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    By signing in you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a><br>
+    Local Shop · Merchant Portal v2.0
+  </footer>
+
 </div>
 
+<!-- ============ TOAST ============ -->
+<div id="toast" class="toast"></div>
+
+<!-- ============ FORGOT MODAL ============ -->
+<div class="modalBg" id="forgotModal">
+  <div class="modal">
+    <h3>Reset your password?</h3>
+    <p>We'll send a password reset link to your registered shop email.</p>
+    <div class="field">
+      <label class="fieldLabel" for="resetEmail">Email address</label>
+      <div class="inputWrap">
+        <span class="inputIcon">📧</span>
+        <input class="inputField" id="resetEmail" type="email" placeholder="shop@example.com">
+      </div>
+    </div>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeForgot()">Cancel</button>
+      <button class="btnPrimary" onclick="sendReset()">Send Reset Link</button>
+    </div>
+  </div>
 </div>
 
+<!-- ============ FIREBASE LOGIC ============ -->
 <script type="module">
-
-// 🔥 IMPORTANT: correct path for GitHub Pages
 import { auth, db } from "/local-shop/js/firebase.js";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  collection, getDocs, query, where
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const emailInput    = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const emailWrap     = document.getElementById("emailWrap");
+const passwordWrap  = document.getElementById("passwordWrap");
+const emailError    = document.getElementById("emailError");
+const passwordError = document.getElementById("passwordError");
+const submitBtn     = document.getElementById("submitBtn");
+const eyeBtn        = document.getElementById("eyeBtn");
+const toast         = document.getElementById("toast");
+const forgotModal   = document.getElementById("forgotModal");
+const resetEmail    = document.getElementById("resetEmail");
 
-window.login = async function(){
-
-const email = document.getElementById("email").value.trim();
-const pass = document.getElementById("password").value.trim();
-
-const msg = document.getElementById("msg");
-
-msg.innerText = "";
-
-if(!email || !pass){
-msg.innerText = "⚠️ Enter email & password";
-return;
-}
-
-try{
-
-// 🔐 LOGIN
-const userCred = await signInWithEmailAndPassword(auth,email,pass);
-
-console.log("Login success:", userCred.user.uid);
-
-// 🔥 FETCH SHOP DATA
-const q = query(
-collection(db,"localshop-details"),
-where("ownerUid","==",userCred.user.uid)
-);
-
-const snapshot = await getDocs(q);
-
-if(snapshot.empty){
-msg.innerText = "❌ Shop not found";
-return;
-}
-
-snapshot.forEach(doc=>{
-let data = doc.data();
-
-// SAVE LOCAL
-localStorage.setItem("shopName", data.shopName);
-localStorage.setItem("shopEmail", data.email);
+/* Auto-redirect if already logged in AND has shop saved */
+onAuthStateChanged(auth, (user)=>{
+  if(user && localStorage.getItem("shopEmail")){
+    location.href = "dashboard.html";
+  }
 });
 
-msg.style.color = "green";
-msg.innerText = "✅ Login successful";
-
-setTimeout(()=>{
-window.location.href = "dashboard.html";
-},1000);
-
-}catch(e){
-
-console.error(e);
-
-msg.style.color = "red";
-
-if(e.code === "auth/invalid-credential"){
-msg.innerText = "❌ Wrong email or password";
-}else{
-msg.innerText = "❌ " + e.message;
+/* ---------- TOAST ---------- */
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#0C831F";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2800);
 }
 
+/* ---------- FOCUS STYLING ---------- */
+[
+  [emailInput, emailWrap],
+  [passwordInput, passwordWrap]
+].forEach(([input, wrap])=>{
+  input.addEventListener("focus", ()=>{
+    wrap.classList.add("focused");
+    wrap.classList.remove("error");
+  });
+  input.addEventListener("blur", ()=> wrap.classList.remove("focused"));
+  input.addEventListener("input", ()=>{
+    wrap.classList.remove("error");
+    if(input === emailInput) emailError.classList.remove("show");
+    if(input === passwordInput) passwordError.classList.remove("show");
+  });
+  input.addEventListener("keydown", (e)=>{
+    if(e.key === "Enter") login();
+  });
+});
+
+/* ---------- TOGGLE PASSWORD ---------- */
+let pwVisible = false;
+window.togglePassword = ()=>{
+  pwVisible = !pwVisible;
+  passwordInput.type = pwVisible ? "text" : "password";
+  eyeBtn.textContent = pwVisible ? "🙈" : "👁️";
+};
+
+/* ---------- VALIDATION ---------- */
+function isValidEmail(s){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 }
 
+function validateForm(){
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+  let valid = true;
+
+  if(!email || !isValidEmail(email)){
+    emailWrap.classList.add("error");
+    emailError.textContent = !email ? "Please enter your email" : "Please enter a valid email";
+    emailError.classList.add("show");
+    valid = false;
+  }
+  if(!password){
+    passwordWrap.classList.add("error");
+    passwordError.classList.add("show");
+    valid = false;
+  }
+  return valid;
 }
 
+/* ---------- LOGIN ---------- */
+window.login = async ()=>{
+  if(!validateForm()) return;
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  /* Loading state */
+  submitBtn.classList.add("loading");
+  submitBtn.disabled = true;
+
+  try{
+    /* Sign in */
+    const userCred = await signInWithEmailAndPassword(auth, email, password);
+
+    /* Fetch shop data */
+    const q = query(
+      collection(db, "localshop-details"),
+      where("ownerUid", "==", userCred.user.uid)
+    );
+    const snapshot = await getDocs(q);
+
+    if(snapshot.empty){
+      showToast("No shop found for this account", true);
+      submitBtn.classList.remove("loading");
+      submitBtn.disabled = false;
+      passwordWrap.classList.add("error");
+      passwordError.textContent = "Shop not registered. Please sign up.";
+      passwordError.classList.add("show");
+      return;
+    }
+
+    snapshot.forEach(docSnap=>{
+      const data = docSnap.data();
+      localStorage.setItem("shopName",  data.shopName || "");
+      localStorage.setItem("shopEmail", data.email || email);
+    });
+
+    showToast("✓ Welcome back!");
+    setTimeout(()=>{
+      location.href = "dashboard.html";
+    }, 700);
+
+  }catch(e){
+    submitBtn.classList.remove("loading");
+    submitBtn.disabled = false;
+
+    /* Friendly errors */
+    let msg = "Login failed. Please try again.";
+    const code = e.code || "";
+    if(code.includes("invalid-email"))           msg = "Email format is invalid";
+    else if(code.includes("user-not-found"))     msg = "No account found with this email";
+    else if(code.includes("wrong-password") ||
+            code.includes("invalid-credential")) msg = "Incorrect email or password";
+    else if(code.includes("too-many-requests"))  msg = "Too many attempts. Try again later.";
+    else if(code.includes("network"))            msg = "Network error. Check your connection.";
+    else if(code.includes("user-disabled"))      msg = "This account has been disabled";
+
+    showToast(msg, true);
+
+    if(code.includes("wrong-password") || code.includes("invalid-credential")){
+      passwordWrap.classList.add("error");
+      passwordError.textContent = "Check your password";
+      passwordError.classList.add("show");
+      passwordInput.focus();
+    }
+  }
+};
+
+/* ---------- FORGOT PASSWORD ---------- */
+window.forgotPassword = ()=>{
+  resetEmail.value = emailInput.value.trim();
+  forgotModal.classList.add("show");
+  setTimeout(()=> resetEmail.focus(), 250);
+};
+
+window.closeForgot = ()=>{
+  forgotModal.classList.remove("show");
+};
+
+forgotModal.addEventListener("click", (e)=>{
+  if(e.target.id === "forgotModal") closeForgot();
+});
+
+window.sendReset = async ()=>{
+  const email = resetEmail.value.trim();
+  if(!email || !isValidEmail(email)){
+    showToast("Please enter a valid email", true);
+    return;
+  }
+  try{
+    await sendPasswordResetEmail(auth, email);
+    closeForgot();
+    showToast("✓ Reset link sent · Check your email");
+  }catch(e){
+    let msg = "Could not send reset link";
+    if(e.code?.includes("user-not-found")) msg = "No account found with this email";
+    else if(e.code?.includes("invalid-email")) msg = "Email format is invalid";
+    showToast(msg, true);
+  }
+};
 </script>
 
 </body>
