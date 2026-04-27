@@ -1,235 +1,830 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Live Tracking</title>
-
+<meta charset="UTF-8">
+<title>Order Tracking · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-body{font-family:Arial;margin:0;background:#f5f5f5;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-.header{
-background:#ff5a5f;
-color:white;
-padding:15px;
-text-align:center;
-font-size:18px;
-font-weight:bold;
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
 }
+
+body{padding-bottom:24px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;
+  top:0;
+  z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+
+.topBar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:700px;
+  margin:0 auto;
+}
+
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;
+  flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{
+  font-size:12px;color:#3a3a3a;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+/* ============ ETA HERO CARD ============ */
+.etaCard{
+  max-width:700px;
+  margin:12px auto 0;
+  background:#fff;
+  border-radius:14px;
+  padding:16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.etaIcon{
+  width:54px;height:54px;
+  background:linear-gradient(135deg,#0C831F,#0fa029);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(12,131,31,.25);
+  position:relative;
+}
+.etaIcon::after{
+  content:"";
+  position:absolute;
+  inset:-4px;
+  border-radius:50%;
+  border:2px solid #0C831F;
+  opacity:0;
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%{opacity:.6;transform:scale(1);}
+  100%{opacity:0;transform:scale(1.25);}
+}
+
+.etaText{flex:1;line-height:1.25;min-width:0;}
+.etaTitle{font-size:16px;font-weight:800;color:#1f1f1f;}
+.etaSub{font-size:13px;color:#666;margin-top:3px;}
+
+.statusBadge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  margin-top:6px;
+}
+
+.badge-pending{background:#fff5d6;color:#8a6500;}
+.badge-accepted{background:#dcf3e1;color:#0C831F;}
+.badge-ready{background:#dbe9ff;color:#1857c1;}
+.badge-out{background:#ffe8d1;color:#b65800;}
+.badge-delivered{background:#e8d6f7;color:#6b21a8;}
+.badge-issue{background:#fde0e0;color:#c41818;}
+
+/* ============ MAIN ============ */
+.container{
+  max-width:700px;
+  margin:0 auto;
+  padding:14px 12px 0;
+}
+
+.section{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+
+.sectionTitle{
+  font-size:15px;
+  font-weight:700;
+  color:#1f1f1f;
+  margin-bottom:12px;
+}
+
+/* ============ MAP ============ */
+.mapSection{padding:0;overflow:hidden;}
 
 #map{
-height:400px;
-margin:15px;
-border-radius:10px;
+  height:340px;
+  width:100%;
+  background:#e9e9e9;
 }
 
-.box{
-background:white;
-margin:15px;
-padding:15px;
-border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
+@media(min-width:600px){
+  #map{height:380px;}
 }
 
-.pending{color:orange;}
-.accepted{color:green;}
-.ready{color:blue;}
-.out{color:#ff9800;}
-.delivered{color:purple;}
+/* ============ STATUS TIMELINE ============ */
+.timeline{
+  position:relative;
+  padding-left:32px;
+}
+
+.timeline::before{
+  content:"";
+  position:absolute;
+  left:11px;top:8px;bottom:8px;
+  width:2px;
+  background:#e5e5e5;
+  z-index:0;
+}
+
+.tlStep{
+  position:relative;
+  padding:6px 0 14px;
+}
+.tlStep:last-child{padding-bottom:0;}
+
+.tlDot{
+  position:absolute;
+  left:-32px;top:6px;
+  width:24px;height:24px;
+  border-radius:50%;
+  background:#fff;
+  border:2px solid #e5e5e5;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+  color:#bbb;
+  z-index:1;
+}
+
+.tlStep.done .tlDot{
+  background:#0C831F;
+  border-color:#0C831F;
+  color:#fff;
+}
+.tlStep.done .tlDot::before{content:"✓";}
+
+.tlStep.active .tlDot{
+  background:#fff;
+  border-color:#0C831F;
+  color:#0C831F;
+  box-shadow:0 0 0 4px rgba(12,131,31,.15);
+}
+.tlStep.active .tlDot::before{
+  content:"";
+  width:8px;height:8px;border-radius:50%;
+  background:#0C831F;
+  animation:pulseDot 1.4s infinite;
+}
+@keyframes pulseDot{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.4;transform:scale(.7);}
+}
+
+.tlLabel{
+  font-size:14px;
+  font-weight:600;
+  color:#1f1f1f;
+  line-height:1.3;
+}
+
+.tlStep:not(.done):not(.active) .tlLabel{color:#999;font-weight:500;}
+
+.tlNote{
+  font-size:12px;
+  color:#666;
+  margin-top:3px;
+  line-height:1.3;
+}
+
+.tlStep.active .tlNote{color:#0C831F;font-weight:600;}
+
+/* ============ DELIVERY PARTNER ============ */
+.partnerCard{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.partnerAvatar{
+  width:50px;height:50px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#F8CD46,#F0B91D);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;color:#fff;
+  flex-shrink:0;
+  box-shadow:0 2px 6px rgba(240,185,29,.3);
+}
+
+.partnerInfo{flex:1;min-width:0;line-height:1.3;}
+.partnerName{font-size:14px;font-weight:700;color:#1f1f1f;}
+.partnerMeta{font-size:12px;color:#666;margin-top:2px;}
+
+.callBtn{
+  width:42px;height:42px;
+  border-radius:50%;
+  background:#0C831F;
+  color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+  flex-shrink:0;
+  text-decoration:none;
+  box-shadow:0 2px 6px rgba(12,131,31,.25);
+}
+.callBtn:active{transform:scale(.94);}
+
+.partnerEmpty{
+  text-align:center;
+  padding:14px 8px;
+  color:#888;
+  font-size:13px;
+}
+.partnerEmpty .icon{font-size:30px;margin-bottom:6px;}
+
+/* ============ ORDER ID + ITEMS ============ */
+.idRow{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;color:#666;
+  padding:4px 0;
+}
+.idRow b{color:#1f1f1f;font-weight:600;font-family:monospace;}
+
+.miniItem{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;
+  border-bottom:1px solid #f4f4f4;
+  font-size:13px;
+}
+.miniItem:last-child{border-bottom:none;padding-bottom:0;}
+.miniItem:first-child{padding-top:0;}
+
+.miniDot{width:8px;height:8px;border-radius:50%;background:#0C831F;flex-shrink:0;}
+.miniName{flex:1;color:#1f1f1f;font-weight:500;}
+.miniQty{color:#777;font-size:12px;margin-right:4px;}
+.miniPrice{font-weight:700;color:#1f1f1f;}
+
+.totalRow{
+  display:flex;justify-content:space-between;
+  padding-top:10px;margin-top:8px;
+  border-top:1px dashed #e0e0e0;
+  font-size:14px;font-weight:800;
+}
+
+/* ============ HELP ============ */
+.helpRow{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;
+  cursor:pointer;
+  font-size:13px;font-weight:600;color:#1f1f1f;
+}
+.helpRow:not(:last-child){border-bottom:1px solid #f4f4f4;}
+.helpRow .arrow{margin-left:auto;color:#bbb;}
+
+/* ============ MODAL ============ */
+.modalBg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:2000;
+  padding:0;
+}
+.modalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;
+  width:100%;
+  max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;
+  animation:slideUp .25s ease;
+  text-align:center;
+}
+@keyframes slideUp{
+  from{transform:translateY(100%);}
+  to{transform:translateY(0);}
+}
+
+.modal .icon{font-size:54px;margin-bottom:8px;}
+.modal h3{font-size:18px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+
+.modalActions{
+  display:flex;flex-direction:column;gap:10px;
+}
+
+.btnPrimary{
+  background:#0C831F;color:#fff;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:700;letter-spacing:.3px;
+}
+.btnPrimary:active{transform:scale(.98);}
+
+.btnSecondary{
+  background:#fff;
+  color:#d23030;
+  border:1.5px solid #d23030;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:700;letter-spacing:.3px;
+}
+.btnSecondary:active{transform:scale(.98);}
+
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:420px;}
+}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1500;max-width:90%;
+  text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ============ DESKTOP ============ */
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
+  .section{padding:18px;}
+}
+
+/* Leaflet popup tweaks */
+.leaflet-popup-content-wrapper{border-radius:8px;}
+.leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
+
 </style>
-
 </head>
 
 <body>
 
-<div class="header">📍 Live Order Tracking</div>
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goHome()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">Order Tracking</div>
+      <div class="pageSub" id="orderIdSub">Loading order…</div>
+    </div>
+  </div>
 
-<div class="box">
-Order ID: <span id="orderId"></span><br><br>
+  <!-- ETA card -->
+  <div class="etaCard">
+    <div class="etaIcon" id="etaIcon">⚡</div>
+    <div class="etaText">
+      <div class="etaTitle" id="etaTitle">Loading…</div>
+      <div class="etaSub" id="etaSub">Fetching your order details</div>
+      <span class="statusBadge badge-pending" id="statusBadge">Pending</span>
+    </div>
+  </div>
+</header>
 
-Status: <b id="status">Loading...</b><br><br>
+<!-- ============ MAIN ============ -->
+<main class="container">
 
-Delivery Boy:
-<div id="boy">Not assigned</div>
+  <!-- Map -->
+  <section class="section mapSection">
+    <div id="map"></div>
+  </section>
+
+  <!-- Status timeline -->
+  <section class="section">
+    <div class="sectionTitle">Order status</div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <!-- Delivery partner -->
+  <section class="section">
+    <div class="sectionTitle">Delivery partner</div>
+    <div id="partnerArea">
+      <div class="partnerEmpty">
+        <div class="icon">🛵</div>
+        Waiting for a delivery partner to be assigned
+      </div>
+    </div>
+  </section>
+
+  <!-- Order details -->
+  <section class="section" id="orderDetails" style="display:none;">
+    <div class="sectionTitle">Order details</div>
+    <div id="itemsList"></div>
+    <div class="totalRow">
+      <span>Total Paid</span>
+      <span>₹<span id="totalAmount">0</span></span>
+    </div>
+    <div class="idRow" style="margin-top:10px;">
+      <span>Order ID</span>
+      <b id="orderIdFull">—</b>
+    </div>
+    <div class="idRow">
+      <span>Shop</span>
+      <b id="shopNameField">—</b>
+    </div>
+  </section>
+
+  <!-- Help -->
+  <section class="section">
+    <div class="sectionTitle">Need help?</div>
+    <div class="helpRow" onclick="contactSupport()">
+      <span>💬</span> Chat with support
+      <span class="arrow">›</span>
+    </div>
+    <div class="helpRow" onclick="reportIssue()">
+      <span>⚠️</span> Report an issue
+      <span class="arrow">›</span>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ DELIVERY CONFIRM MODAL ============ -->
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon">📦</div>
+    <h3>Did you receive your order?</h3>
+    <p>Please confirm that the delivery has been completed successfully.</p>
+    <div class="modalActions">
+      <button class="btnPrimary" onclick="confirmDelivery(true)">Yes, I got it ✓</button>
+      <button class="btnSecondary" onclick="confirmDelivery(false)">No, there's an issue</button>
+    </div>
+  </div>
 </div>
 
-<div id="map"></div>
+<!-- ============ TOAST ============ -->
+<div id="toast" class="toast"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
-
 import { db } from "../js/firebase.js";
 import { doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 📦 GET ORDER ID
+/* ---------- ORDER ID ---------- */
 const urlParams = new URLSearchParams(window.location.search);
 const orderId = urlParams.get("orderId") || localStorage.getItem("lastOrderId");
 
-document.getElementById("orderId").innerText = orderId;
-
-// 🗺️ MAP INIT
-let map = L.map('map').setView([20.2961,85.8245], 13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-// MARKERS
-let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
-let popupShown=false;
-
-// 🧭 DRAW ROUTE
-function drawLine(start,end){
-
-if(routeLine){
-map.removeLayer(routeLine);
+if(!orderId){
+  document.getElementById("orderIdSub").textContent = "No order ID";
+  document.getElementById("etaTitle").textContent  = "Order not found";
+  document.getElementById("etaSub").textContent    = "Please go back and try again";
+}else{
+  document.getElementById("orderIdSub").textContent = "ID: " + orderId.slice(0,10) + "…";
+  document.getElementById("orderIdFull").textContent = orderId;
 }
 
-routeLine = L.polyline([
-[start.lat,start.lng],
-[end.lat,end.lng]
-],{
-color:"blue",
-weight:4
+const toast = document.getElementById("toast");
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2600);
+}
+
+/* ---------- MAP ---------- */
+const map = L.map('map', { zoomControl: true }).setView([20.2961, 85.8245], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution:'© OpenStreetMap',
+  maxZoom:19
 }).addTo(map);
 
+/* Custom emoji icons */
+function emojiIcon(emoji, bg="#fff"){
+  return L.divIcon({
+    className:"",
+    html:`<div style="background:${bg};width:40px;height:40px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 3px 8px rgba(0,0,0,.25);border:2px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:20px;line-height:1;">${emoji}</div>
+          </div>`,
+    iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
+  });
 }
 
-// 🔴 LIVE LISTENER
-onSnapshot(doc(db,"orders",orderId),(docSnap)=>{
+let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
+let confirmShown=false;
 
-if(!docSnap.exists()){
-document.getElementById("status").innerText = "Order not found";
-return;
+function drawLine(start, end, color="#0C831F"){
+  if(routeLine) map.removeLayer(routeLine);
+  routeLine = L.polyline([[start.lat,start.lng],[end.lat,end.lng]], {
+    color, weight:4, opacity:.85, dashArray:"6,8"
+  }).addTo(map);
 }
 
-let data = docSnap.data();
+/* ---------- STATUS TIMELINE ---------- */
+const STAGES = [
+  { key:"placed",   label:"Order placed",      note:"Your order has been received" },
+  { key:"accepted", label:"Accepted by shop",  note:"Shop is preparing your order" },
+  { key:"ready",    label:"Order ready",       note:"Items packed and waiting for pickup" },
+  { key:"out",      label:"Out for delivery",  note:"Your order is on the way" },
+  { key:"delivered",label:"Delivered",         note:"Enjoy your order!" }
+];
 
-// ✅ STATUS
-let statusEl = document.getElementById("status");
-statusEl.innerText = data.status;
-
-statusEl.className="";
-if(data.status==="Pending") statusEl.classList.add("pending");
-if(data.status==="Accepted") statusEl.classList.add("accepted");
-if(data.status==="Ready") statusEl.classList.add("ready");
-if(data.status==="Out for Delivery") statusEl.classList.add("out");
-if(data.status==="Delivered") statusEl.classList.add("delivered");
-
-// ✅ DELIVERY DETAILS (FROM ORDER)
-document.getElementById("boy").innerHTML = `
-👤 ${data.deliveryBoyName || "Not assigned"}<br>
-📞 ${data.deliveryBoyPhone || "-"}<br>
-🚗 ${data.deliveryVehicle || "-"}
-`;
-
-// 👤 CUSTOMER MARKER
-if(data.customerLat && data.customerLng){
-
-let pos=[data.customerLat,data.customerLng];
-
-if(!customerMarker){
-customerMarker=L.marker(pos).addTo(map).bindPopup("👤 Customer");
-}else{
-customerMarker.setLatLng(pos);
+function getStageIndex(status){
+  switch((status||"").toLowerCase()){
+    case "pending":          return 0;
+    case "accepted":         return 1;
+    case "ready":            return 2;
+    case "out for delivery": return 3;
+    case "delivered":        return 4;
+    default:                 return 0;
+  }
 }
 
+function renderTimeline(status){
+  const cur = getStageIndex(status);
+  const tl = document.getElementById("timeline");
+  let html = "";
+  STAGES.forEach((s, i)=>{
+    let cls = "";
+    if(i < cur) cls = "done";
+    else if(i === cur && status.toLowerCase() !== "delivered") cls = "active";
+    else if(i === cur) cls = "done"; // delivered = all done
+    html += `
+      <div class="tlStep ${cls}">
+        <div class="tlDot"></div>
+        <div class="tlLabel">${s.label}</div>
+        <div class="tlNote">${s.note}</div>
+      </div>`;
+  });
+  tl.innerHTML = html;
 }
 
-// 🏪 SHOP MARKER
-if(data.shopLat && data.shopLng){
+/* ---------- ETA / BADGE ---------- */
+function updateHero(status){
+  const title = document.getElementById("etaTitle");
+  const sub   = document.getElementById("etaSub");
+  const icon  = document.getElementById("etaIcon");
+  const badge = document.getElementById("statusBadge");
 
-let pos=[data.shopLat,data.shopLng];
+  badge.className = "statusBadge";
+  badge.textContent = status || "Pending";
 
-if(!shopMarker){
-shopMarker=L.marker(pos).addTo(map).bindPopup("🏪 Shop");
-}else{
-shopMarker.setLatLng(pos);
+  switch((status||"").toLowerCase()){
+    case "pending":
+      title.textContent = "Order received";
+      sub.textContent   = "Waiting for shop to accept";
+      icon.textContent  = "📋";
+      badge.classList.add("badge-pending");
+      break;
+    case "accepted":
+      title.textContent = "Arriving in 15 mins";
+      sub.textContent   = "Shop is preparing your order";
+      icon.textContent  = "👨‍🍳";
+      badge.classList.add("badge-accepted");
+      break;
+    case "ready":
+      title.textContent = "Arriving in 10 mins";
+      sub.textContent   = "Order is ready for pickup";
+      icon.textContent  = "📦";
+      badge.classList.add("badge-ready");
+      break;
+    case "out for delivery":
+      title.textContent = "Arriving in 5 mins";
+      sub.textContent   = "Your delivery partner is on the way";
+      icon.textContent  = "🛵";
+      badge.classList.add("badge-out");
+      break;
+    case "delivered":
+      title.textContent = "Order delivered ✓";
+      sub.textContent   = "Hope you enjoyed your order!";
+      icon.textContent  = "🎉";
+      badge.classList.add("badge-delivered");
+      break;
+    default:
+      title.textContent = status || "Processing";
+      sub.textContent   = "Stay tuned for updates";
+      icon.textContent  = "⚡";
+      badge.classList.add("badge-pending");
+  }
 }
 
+/* ---------- ITEMS RENDER ---------- */
+function renderItems(items, total){
+  if(!items || !items.length){
+    document.getElementById("orderDetails").style.display = "none";
+    return;
+  }
+  document.getElementById("orderDetails").style.display = "block";
+  let html = "";
+  items.forEach(it=>{
+    const lt = (it.price||0) * (it.qty||1);
+    html += `
+      <div class="miniItem">
+        <div class="miniDot"></div>
+        <div class="miniName">${escapeHtml(it.name||"Item")}</div>
+        <div class="miniQty">× ${it.qty||1}</div>
+        <div class="miniPrice">₹${lt}</div>
+      </div>`;
+  });
+  document.getElementById("itemsList").innerHTML = html;
+  document.getElementById("totalAmount").textContent = total || 0;
 }
 
-// 🚚 DELIVERY LIVE MARKER
-if(data.deliveryLat && data.deliveryLng){
-
-let pos=[data.deliveryLat,data.deliveryLng];
-
-if(!deliveryMarker){
-deliveryMarker=L.marker(pos).addTo(map).bindPopup("🚚 Delivery Boy");
-}else{
-deliveryMarker.setLatLng(pos);
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
 }
 
-// AUTO ZOOM
-let group=[];
-if(customerMarker) group.push(customerMarker.getLatLng());
-if(shopMarker) group.push(shopMarker.getLatLng());
-if(deliveryMarker) group.push(deliveryMarker.getLatLng());
+/* ---------- DELIVERY PARTNER ---------- */
+function renderPartner(data){
+  const area = document.getElementById("partnerArea");
+  const name = data.deliveryBoyName;
 
-if(group.length>1){
-map.fitBounds(group,{padding:[50,50]});
+  if(!name || name === "null"){
+    area.innerHTML = `
+      <div class="partnerEmpty">
+        <div class="icon">🛵</div>
+        Waiting for a delivery partner to be assigned
+      </div>`;
+    return;
+  }
+
+  const initial = name.trim().charAt(0).toUpperCase();
+  const phone   = data.deliveryBoyPhone || "";
+  const vehicle = data.deliveryVehicle  || "On the way";
+
+  area.innerHTML = `
+    <div class="partnerCard">
+      <div class="partnerAvatar">${initial}</div>
+      <div class="partnerInfo">
+        <div class="partnerName">${escapeHtml(name)}</div>
+        <div class="partnerMeta">🚗 ${escapeHtml(vehicle)}</div>
+      </div>
+      ${phone ? `<a class="callBtn" href="tel:${escapeHtml(phone)}" aria-label="Call">📞</a>` : ""}
+    </div>`;
 }
 
-// ROUTE SWITCH
-if(data.status==="Out for Delivery"){
-drawLine(
-{lat:data.deliveryLat,lng:data.deliveryLng},
-{lat:data.customerLat,lng:data.customerLng}
-);
-}else{
-drawLine(
-{lat:data.deliveryLat,lng:data.deliveryLng},
-{lat:data.shopLat,lng:data.shopLng}
-);
+/* ---------- LIVE LISTENER ---------- */
+if(orderId){
+  onSnapshot(doc(db, "orders", orderId), (snap)=>{
+    if(!snap.exists()){
+      document.getElementById("etaTitle").textContent = "Order not found";
+      document.getElementById("etaSub").textContent   = "This order may have been removed";
+      return;
+    }
+
+    const data = snap.data();
+
+    /* Hero + timeline */
+    updateHero(data.status);
+    renderTimeline(data.status);
+
+    /* Partner */
+    renderPartner(data);
+
+    /* Items + total */
+    const totalShown = data.grandTotal || data.total || 0;
+    renderItems(data.items, totalShown);
+    document.getElementById("shopNameField").textContent = data.shopName || "—";
+
+    /* MAP MARKERS — handle both customerLat/Lng and lat/lng (legacy) */
+    const custLat = data.customerLat ?? data.lat;
+    const custLng = data.customerLng ?? data.lng;
+
+    if(custLat && custLng){
+      const pos = [custLat, custLng];
+      if(!customerMarker)
+        customerMarker = L.marker(pos, {icon:emojiIcon("🏠","#dbe9ff")}).addTo(map).bindPopup("Your location");
+      else
+        customerMarker.setLatLng(pos);
+    }
+
+    if(data.shopLat && data.shopLng){
+      const pos = [data.shopLat, data.shopLng];
+      if(!shopMarker)
+        shopMarker = L.marker(pos, {icon:emojiIcon("🏪","#fff5d6")}).addTo(map).bindPopup(escapeHtml(data.shopName || "Shop"));
+      else
+        shopMarker.setLatLng(pos);
+    }
+
+    if(data.deliveryLat && data.deliveryLng){
+      const pos = [data.deliveryLat, data.deliveryLng];
+      if(!deliveryMarker)
+        deliveryMarker = L.marker(pos, {icon:emojiIcon("🛵","#dcf3e1")}).addTo(map).bindPopup("Delivery partner");
+      else
+        deliveryMarker.setLatLng(pos);
+
+      /* Route line */
+      const status = (data.status || "").toLowerCase();
+      if(status === "out for delivery" && custLat && custLng){
+        drawLine({lat:data.deliveryLat,lng:data.deliveryLng}, {lat:custLat,lng:custLng});
+      }else if(data.shopLat && data.shopLng){
+        drawLine({lat:data.deliveryLat,lng:data.deliveryLng}, {lat:data.shopLat,lng:data.shopLng});
+      }
+    }
+
+    /* Auto-fit map */
+    const points = [];
+    if(customerMarker) points.push(customerMarker.getLatLng());
+    if(shopMarker)     points.push(shopMarker.getLatLng());
+    if(deliveryMarker) points.push(deliveryMarker.getLatLng());
+    if(points.length === 1){
+      map.setView(points[0], 15);
+    }else if(points.length > 1){
+      map.fitBounds(points, {padding:[60,60], maxZoom:16});
+    }
+
+    /* Trigger map resize (fixes blank tiles when map was hidden) */
+    setTimeout(()=> map.invalidateSize(), 100);
+
+    /* CUSTOMER CONFIRM */
+    if(data.deliveryStatus === "WaitingCustomerConfirm" && !confirmShown){
+      confirmShown = true;
+      setTimeout(()=> document.getElementById("confirmModal").classList.add("show"), 400);
+    }
+
+    /* AUTO REDIRECT after delivered */
+    if((data.status || "").toLowerCase() === "delivered"){
+      setTimeout(()=>{
+        window.location.href = "https://sunilkumarm048.github.io/local-shop/";
+      }, 4000);
+    }
+  });
 }
 
-}
+/* ---------- CONFIRM HANDLERS ---------- */
+window.confirmDelivery = async (received)=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  try{
+    if(received){
+      await updateDoc(doc(db,"orders",orderId), {
+        status:"Delivered", deliveryStatus:"Delivered"
+      });
+      showToast("✓ Order completed!");
+      setTimeout(()=>{
+        window.location.href = "https://sunilkumarm048.github.io/local-shop/";
+      }, 1500);
+    }else{
+      await updateDoc(doc(db,"orders",orderId), { deliveryStatus:"Issue" });
+      showToast("Issue reported. We'll look into it.", true);
+    }
+  }catch(err){
+    console.error(err);
+    showToast("Couldn't update. Try again.", true);
+  }
+};
 
-// 🔥 CUSTOMER CONFIRM POPUP (MAIN FEATURE)
-if(data.deliveryStatus==="WaitingCustomerConfirm" && !popupShown){
+/* ---------- HELPERS ---------- */
+window.goHome = ()=> window.location.href = "https://sunilkumarm048.github.io/local-shop/";
 
-popupShown = true;
+window.contactSupport = ()=> showToast("Support: support@localshop.com");
+window.reportIssue = async ()=>{
+  if(!orderId){ showToast("No order to report", true); return; }
+  if(!confirm("Report an issue with this order?")) return;
+  try{
+    await updateDoc(doc(db,"orders",orderId), { deliveryStatus:"Issue" });
+    showToast("Issue reported successfully");
+  }catch(e){
+    showToast("Could not report issue", true);
+  }
+};
 
-setTimeout(()=>{
-
-let confirmDelivery = confirm("📦 Delivery completed?\nConfirm your order.");
-
-if(confirmDelivery){
-
-updateDoc(doc(db,"orders",orderId),{
-status:"Delivered",
-deliveryStatus:"Delivered"
+/* Close modal on backdrop click */
+document.getElementById("confirmModal").addEventListener("click", (e)=>{
+  if(e.target.id === "confirmModal"){
+    /* don't allow accidental close — require explicit choice */
+  }
 });
-
-alert("✅ Order Completed");
-
-setTimeout(()=>{
-window.location.href="https://sunilkumarm048.github.io/local-shop/";
-},1500);
-
-}else{
-
-updateDoc(doc(db,"orders",orderId),{
-deliveryStatus:"Issue"
-});
-
-alert("⚠️ Issue reported");
-
-}
-
-},500);
-
-}
-
-// 🎉 AUTO REDIRECT AFTER DELIVERY
-if(data.status==="Delivered"){
-setTimeout(()=>{
-window.location.href="https://sunilkumarm048.github.io/local-shop/";
-},2000);
-}
-
-});
-
 </script>
 
 </body>
