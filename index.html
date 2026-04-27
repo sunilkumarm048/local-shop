@@ -1,211 +1,552 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
 <head>
-
+<meta charset="UTF-8">
 <title>Local Shop</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{
-margin:0;
-font-family:Arial;
-background:#f5f5f5;
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#fafafa;
+  color:#1f1f1f;
+  overflow-x:hidden;
 }
 
-/* HEADER */
+body{padding-bottom:90px;}
+
+img{display:block;max-width:100%;}
+
+/* ============ HEADER (Blinkit-style yellow) ============ */
 .header{
-background:#ffcc00;
-padding:10px;
-position:sticky;
-top:0;
-z-index:1000;
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px 12px;
+  position:sticky;
+  top:0;
+  z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
 
 .topBar{
-display:flex;
-justify-content:space-between;
-align-items:center;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:1280px;
+  margin:0 auto;
+}
+
+.brand{
+  font-size:22px;
+  font-weight:800;
+  color:#1f1f1f;
+  letter-spacing:-.5px;
+  flex-shrink:0;
+}
+.brand span{color:#fff;}
+
+.deliveryInfo{
+  flex:1;
+  min-width:0;
+  line-height:1.15;
+}
+
+.deliveryTime{
+  font-size:15px;
+  font-weight:800;
+  color:#1f1f1f;
 }
 
 .location{
-font-size:30px;
-font-weight:bold;
+  font-size:13px;
+  color:#3a3a3a;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  display:flex;
+  align-items:center;
+  gap:3px;
+  margin-top:2px;
 }
 
-/* 🔥 BIG CART BUTTON */
-.cartTop{
-background:black;
-color:white;
-padding:20px 30px;
-border-radius:50px;
-font-size:40px;
-font-weight:bold;
-cursor:pointer;
+.location .arrow{font-size:10px;}
+
+.profileBtn{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  background:rgba(255,255,255,.35);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  cursor:pointer;
+  flex-shrink:0;
+  border:none;
 }
 
 /* SEARCH */
-.search{
-margin-top:8px;
+.searchWrap{
+  margin-top:12px;
+  max-width:1280px;
+  margin-left:auto;
+  margin-right:auto;
+  position:relative;
 }
 
-.search input{
-width:98%;
-padding:10px;
-border-radius:15px;
-border:none;
-font-size:20px;
+.searchWrap input{
+  width:100%;
+  padding:13px 14px 13px 42px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,.08);
+  font-size:14px;
+  background:#fff;
+  font-family:inherit;
+  outline:none;
 }
 
-/* SECTION */
-.section{
-padding:10px;
+.searchWrap input:focus{
+  border-color:#0C831F;
 }
 
-h2{
-margin:8px 0;
-font-size:26px;
+.searchIcon{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:16px;
+  color:#666;
 }
 
-/* 🔥 PRODUCTS → 4 PER ROW */
+/* ============ MAIN ============ */
+.container{
+  max-width:1280px;
+  margin:0 auto;
+  padding:0 12px;
+}
+
+.section{padding:14px 0 4px;}
+
+.sectionHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+  padding:0 4px;
+}
+
+.sectionTitle{
+  font-size:17px;
+  font-weight:700;
+  color:#1f1f1f;
+  letter-spacing:-.2px;
+}
+
+/* ============ CATEGORIES (horizontal pills at top) ============ */
+.catScroll{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:2px 4px 6px;
+  scroll-behavior:smooth;
+}
+
+.catScroll::-webkit-scrollbar{display:none;}
+.catScroll{scrollbar-width:none;}
+
+.catChip{
+  padding:8px 14px;
+  background:#fff;
+  border:1px solid #e5e5e5;
+  border-radius:22px;
+  font-size:13px;
+  font-weight:600;
+  white-space:nowrap;
+  cursor:pointer;
+  color:#444;
+  transition:all .15s;
+  flex-shrink:0;
+}
+
+.catChip.active{
+  background:#0C831F;
+  color:#fff;
+  border-color:#0C831F;
+}
+
+/* ============ SHOPS (cards with image + name) ============ */
+.shopScroll{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  padding:2px 4px 8px;
+}
+
+.shopScroll::-webkit-scrollbar{display:none;}
+.shopScroll{scrollbar-width:none;}
+
+.shopCard{
+  min-width:110px;
+  background:#fff;
+  border:1px solid #ececec;
+  border-radius:12px;
+  padding:10px 8px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .15s;
+  flex-shrink:0;
+}
+
+.shopCard:hover, .shopCard.active{
+  border-color:#0C831F;
+  box-shadow:0 2px 8px rgba(12,131,31,.12);
+}
+
+.shopCard.active{background:#f0fbf2;}
+
+.shopIcon{
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  background:#fff5d6;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin:0 auto 6px;
+  font-size:22px;
+}
+
+.shopName{
+  font-size:12px;
+  font-weight:600;
+  color:#1f1f1f;
+  line-height:1.2;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+
+/* ============ PRODUCTS GRID (responsive) ============ */
 .products{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:10px;
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  padding:0 4px;
 }
 
-/* CARD */
+@media(min-width:520px){
+  .products{grid-template-columns:repeat(3,1fr);gap:12px;}
+}
+@media(min-width:768px){
+  .products{grid-template-columns:repeat(4,1fr);gap:14px;}
+}
+@media(min-width:1024px){
+  .products{grid-template-columns:repeat(5,1fr);}
+}
+@media(min-width:1280px){
+  .products{grid-template-columns:repeat(6,1fr);}
+}
+
+/* PRODUCT CARD */
 .card{
-background:white;
-border-radius:12px;
-padding:6px;
-box-shadow:0 2px 5px rgba(0,0,0,0.08);
+  background:#fff;
+  border:1px solid #ececec;
+  border-radius:12px;
+  padding:8px;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  transition:all .15s;
 }
 
-/* 🔥 IMAGE (BIG & CLOSE LIKE BLINKIT) */
-.imgSlider{
-height:95px;
-display:flex;
-overflow:hidden;
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06);}
+
+.imgWrap{
+  width:100%;
+  aspect-ratio:1/1;
+  background:#f5f5f5;
+  border-radius:8px;
+  overflow:hidden;
+  margin-bottom:8px;
+  position:relative;
 }
 
-.imgSlider img{
-width:100%;
-height:95px;
-object-fit:cover; /* important */
-border-radius:8px;
+.imgWrap img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 
-/* 🔥 TEXT BIGGER */
-.card h4{
-font-size:26px;
-font-weight:600;
-margin:6px 0 2px;
-line-height:1.2;
+.discountBadge{
+  position:absolute;
+  top:0;
+  left:6px;
+  background:#0C831F;
+  color:#fff;
+  font-size:10px;
+  font-weight:700;
+  padding:2px 6px;
+  border-radius:0 0 4px 4px;
 }
+
+.deliveryBadge{
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  font-size:9px;
+  color:#666;
+  background:#f0f0f0;
+  padding:2px 5px;
+  border-radius:4px;
+  font-weight:600;
+  margin-bottom:5px;
+  width:fit-content;
+}
+
+.cardName{
+  font-size:13px;
+  font-weight:600;
+  color:#1f1f1f;
+  line-height:1.25;
+  margin-bottom:3px;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  min-height:32px;
+}
+
+.cardWeight{
+  font-size:11px;
+  color:#888;
+  margin-bottom:8px;
+}
+
+.priceRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:auto;
+  gap:6px;
+}
+
+.priceBlock{flex:1;min-width:0;}
 
 .price{
-font-size:26px;
-color:green;
-font-weight:bold;
+  font-size:14px;
+  font-weight:700;
+  color:#1f1f1f;
 }
 
-/* BUTTON */
-button{
-width:100%;
-padding:6px;
-font-size:20px;
-border-radius:6px;
-background:#ff5a5f;
-color:white;
-border:none;
-margin-top:4px;
+.mrp{
+  font-size:11px;
+  color:#888;
+  text-decoration:line-through;
+  margin-left:3px;
 }
 
-/* SHOPS */
-.shops{
-display:flex;
-overflow-x:auto;
-gap:8px;
+/* ADD BUTTON (Blinkit green-outline) */
+.addBtn{
+  background:#fff;
+  color:#0C831F;
+  border:1px solid #0C831F;
+  border-radius:7px;
+  padding:6px 14px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
+  letter-spacing:.5px;
+  transition:all .12s;
+  text-transform:uppercase;
+  min-width:62px;
 }
 
-.shop{
-padding:6px 10px;
-background:white;
-border-radius:26px;
-font-size:30px;
-white-space:nowrap;
+.addBtn:hover{background:#f0fbf2;}
+.addBtn:active{transform:scale(.96);}
+
+/* QTY CONTROL */
+.qtyBox{
+  display:flex;
+  align-items:center;
+  background:#0C831F;
+  color:#fff;
+  border-radius:7px;
+  overflow:hidden;
+  min-width:62px;
 }
 
-/* 🔥 BOTTOM CATEGORY */
-.bottomCat{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:white;
-padding:8px;
-display:flex;
-overflow-x:auto;
-gap:8px;
-border-top:1px solid #ddd;
+.qtyBox button{
+  background:transparent;
+  border:none;
+  color:#fff;
+  width:22px;
+  height:30px;
+  font-size:16px;
+  font-weight:700;
+  cursor:pointer;
+  font-family:inherit;
 }
 
-.cat{
-padding:7px 14px;
-background:#eee;
-border-radius:15px;
-font-size:20px;
-white-space:nowrap;
-cursor:pointer;
+.qtyBox span{
+  flex:1;
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
 }
 
-.cat.active{
-background:#ff5a5f;
-color:white;
+/* ============ EMPTY STATE ============ */
+.empty{
+  text-align:center;
+  padding:40px 20px;
+  color:#777;
+  font-size:14px;
+  grid-column:1/-1;
 }
 
-/* HIDE SCROLL */
-.bottomCat::-webkit-scrollbar,
-.shops::-webkit-scrollbar{
-display:none;
+.empty .emoji{font-size:48px;margin-bottom:12px;}
+
+/* ============ STICKY CART BAR (bottom) ============ */
+.cartBar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#0C831F;
+  color:#fff;
+  padding:12px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  z-index:999;
+  transform:translateY(100%);
+  transition:transform .25s ease;
+  box-shadow:0 -2px 12px rgba(0,0,0,.15);
 }
+
+.cartBar.show{transform:translateY(0);}
+
+.cartLeft{display:flex;flex-direction:column;line-height:1.2;}
+.cartItems{font-size:13px;font-weight:600;opacity:.9;}
+.cartTotal{font-size:16px;font-weight:800;}
+
+.cartRight{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:14px;
+  font-weight:700;
+}
+
+/* ============ LOADING ============ */
+.skeleton{
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:8px;
+}
+@keyframes shimmer{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+.skeletonCard{
+  background:#fff;
+  border:1px solid #ececec;
+  border-radius:12px;
+  padding:8px;
+}
+.skeletonCard .skeleton:nth-child(1){width:100%;aspect-ratio:1/1;margin-bottom:8px;}
+.skeletonCard .skeleton:nth-child(2){height:12px;margin-bottom:6px;}
+.skeletonCard .skeleton:nth-child(3){height:10px;width:60%;margin-bottom:8px;}
+.skeletonCard .skeleton:nth-child(4){height:24px;}
+
+/* ============ DESKTOP TWEAKS ============ */
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .brand{font-size:26px;}
+  .deliveryTime{font-size:16px;}
+  .location{font-size:14px;}
+  .searchWrap input{padding:14px 14px 14px 44px;font-size:15px;}
+  .container{padding:0 20px;}
+  .sectionTitle{font-size:19px;}
+  .cardName{font-size:14px;}
+  .price{font-size:15px;}
+  body{padding-bottom:0;}
+}
+
 </style>
-
 </head>
 
 <body>
 
-<div class="header">
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <div class="brand">Local<span>Shop</span></div>
+    <div class="deliveryInfo">
+      <div class="deliveryTime">Delivery in 15 mins</div>
+      <div class="location" id="location">📍 Getting location… <span class="arrow">▾</span></div>
+    </div>
+    <button class="profileBtn" title="Account">👤</button>
+  </div>
 
-<div class="topBar">
-<div class="location" id="location">📍 Getting location...</div>
+  <div class="searchWrap">
+    <span class="searchIcon">🔍</span>
+    <input id="search" placeholder="Search for atta, milk, snacks…" oninput="searchProducts()">
+  </div>
+</header>
 
-<div class="cartTop" onclick="openCart()">
-🛒 ₹<span id="total">0</span>
+<!-- ============ MAIN ============ -->
+<main class="container">
+
+  <!-- Categories -->
+  <section class="section">
+    <div id="categories" class="catScroll"></div>
+  </section>
+
+  <!-- Shops -->
+  <section class="section">
+    <div class="sectionHeader">
+      <div class="sectionTitle">Shops near you</div>
+    </div>
+    <div id="shops" class="shopScroll"></div>
+  </section>
+
+  <!-- Products -->
+  <section class="section">
+    <div class="sectionHeader">
+      <div class="sectionTitle" id="productsTitle">All Products</div>
+    </div>
+    <div id="products" class="products">
+      <!-- skeletons -->
+      <div class="skeletonCard"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+      <div class="skeletonCard"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+      <div class="skeletonCard"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+      <div class="skeletonCard"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ STICKY CART BAR ============ -->
+<div id="cartBar" class="cartBar" onclick="openCart()">
+  <div class="cartLeft">
+    <div class="cartItems"><span id="itemCount">0</span> items</div>
+    <div class="cartTotal">₹<span id="total">0</span></div>
+  </div>
+  <div class="cartRight">
+    View Cart <span>→</span>
+  </div>
 </div>
-</div>
 
-<div class="search">
-<input id="search" placeholder="Search..." oninput="searchProducts()">
-</div>
-
-</div>
-
-<div class="section">
-<h3>Shops</h3>
-<div id="shops" class="shops"></div>
-</div>
-
-<div class="section">
-<h3>Products</h3>
-<div id="products" class="products"></div>
-</div>
-
-<div id="categories" class="bottomCat"></div>
-
+<!-- ============ FIREBASE LOGIC ============ -->
 <script type="module">
-
 import { db } from "/local-shop/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -215,120 +556,218 @@ let allShops = [];
 
 let selectedCategory = null;
 let selectedShop = null;
+let searchTerm = "";
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-/* LOCATION */
+/* ---------- LOCATION ---------- */
 function getLocation(){
-navigator.geolocation.getCurrentPosition(async (pos)=>{
-let res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
-let data = await res.json();
-let area = data.address.city || data.address.state;
-document.getElementById("location").innerText = "📍 " + area;
-});
+  if(!navigator.geolocation){
+    document.getElementById("location").innerHTML = "📍 Location unavailable <span class='arrow'>▾</span>";
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    try{
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
+      const data = await res.json();
+      const a = data.address || {};
+      const area = a.suburb || a.neighbourhood || a.village || a.town || a.city || a.state || "Your area";
+      document.getElementById("location").innerHTML = `📍 ${area} <span class='arrow'>▾</span>`;
+    }catch(e){
+      document.getElementById("location").innerHTML = "📍 Your area <span class='arrow'>▾</span>";
+    }
+  }, ()=>{
+    document.getElementById("location").innerHTML = "📍 Set location <span class='arrow'>▾</span>";
+  });
 }
 getLocation();
 
-/* LOAD */
+/* ---------- LOAD DATA ---------- */
 async function loadData(){
-allProducts = (await getDocs(collection(db,"products"))).docs.map(d=>d.data());
-allCategories = (await getDocs(collection(db,"shops"))).docs.map(d=>d.data());
-allShops = (await getDocs(collection(db,"localshop-details"))).docs.map(d=>d.data());
+  try{
+    const [pSnap, cSnap, sSnap] = await Promise.all([
+      getDocs(collection(db, "products")),
+      getDocs(collection(db, "shops")),
+      getDocs(collection(db, "localshop-details"))
+    ]);
+    allProducts   = pSnap.docs.map(d => d.data());
+    allCategories = cSnap.docs.map(d => d.data());
+    allShops      = sSnap.docs.map(d => d.data());
 
-renderCategories();
-renderShops();
-renderProducts();
+    renderCategories();
+    renderShops();
+    renderProducts();
+  }catch(err){
+    console.error(err);
+    document.getElementById("products").innerHTML =
+      `<div class="empty"><div class="emoji">⚠️</div>Could not load products. Please check your connection.</div>`;
+  }
 }
 loadData();
 
-/* CATEGORY */
+/* ---------- CATEGORIES ---------- */
 function renderCategories(){
-const c = document.getElementById("categories");
-c.innerHTML = "";
-
-c.innerHTML += `<div class="cat ${!selectedCategory?'active':''}" onclick="selectCategory(null)">All</div>`;
-
-allCategories.forEach(x=>{
-c.innerHTML += `<div class="cat ${selectedCategory===x.category?'active':''}" onclick="selectCategory('${x.category}')">${x.category}</div>`;
-});
+  const c = document.getElementById("categories");
+  let html = `<div class="catChip ${!selectedCategory?'active':''}" onclick="selectCategory(null)">All</div>`;
+  allCategories.forEach(x=>{
+    const cat = x.category || x.name || "";
+    if(!cat) return;
+    html += `<div class="catChip ${selectedCategory===cat?'active':''}" onclick="selectCategory('${escapeAttr(cat)}')">${escapeHtml(cat)}</div>`;
+  });
+  c.innerHTML = html;
 }
 
 window.selectCategory = (cat)=>{
-selectedCategory = cat;
-selectedShop = null;
-renderCategories();
-renderShops();
-renderProducts();
+  selectedCategory = cat;
+  selectedShop = null;
+  renderCategories();
+  renderShops();
+  renderProducts();
 };
 
-/* SHOPS */
+/* ---------- SHOPS ---------- */
 function renderShops(){
-let c = document.getElementById("shops");
-c.innerHTML = "";
+  const c = document.getElementById("shops");
+  let f = selectedCategory ? allShops.filter(s=>s.category===selectedCategory) : allShops;
 
-let f = selectedCategory ? allShops.filter(s=>s.category===selectedCategory) : allShops;
+  if(!f.length){
+    c.innerHTML = `<div class="empty" style="padding:14px;font-size:13px;">No shops here yet.</div>`;
+    return;
+  }
 
-f.forEach(s=>{
-c.innerHTML += `<div class="shop" onclick="selectShop('${s.shopName}')">${s.shopName}</div>`;
-});
+  let html = "";
+  f.forEach(s=>{
+    const name = s.shopName || "Shop";
+    const active = selectedShop===name ? "active" : "";
+    html += `
+      <div class="shopCard ${active}" onclick="selectShop('${escapeAttr(name)}')">
+        <div class="shopIcon">🏪</div>
+        <div class="shopName">${escapeHtml(name)}</div>
+      </div>`;
+  });
+  c.innerHTML = html;
 }
 
-window.selectShop = (s)=>{
-selectedShop = s;
-renderProducts();
+window.selectShop = (name)=>{
+  selectedShop = (selectedShop===name) ? null : name;
+  renderShops();
+  renderProducts();
 };
 
-/* PRODUCTS */
+/* ---------- PRODUCTS ---------- */
 function renderProducts(){
-let c = document.getElementById("products");
-c.innerHTML = "";
+  const c = document.getElementById("products");
+  const title = document.getElementById("productsTitle");
 
-let f = allProducts;
+  let f = allProducts;
+  if(selectedCategory) f = f.filter(p=>p.category===selectedCategory);
+  if(selectedShop)     f = f.filter(p=>p.shopName===selectedShop);
+  if(searchTerm)       f = f.filter(p=>(p.name||"").toLowerCase().includes(searchTerm));
 
-if(selectedCategory) f = f.filter(p=>p.category===selectedCategory);
-if(selectedShop) f = f.filter(p=>p.shopName===selectedShop);
+  // Update title
+  if(searchTerm)             title.textContent = `Results for "${searchTerm}"`;
+  else if(selectedShop)      title.textContent = selectedShop;
+  else if(selectedCategory)  title.textContent = selectedCategory;
+  else                       title.textContent = "All Products";
 
-f.forEach(p=>{
-let img = p.images?.[0] || "https://via.placeholder.com/150";
+  if(!f.length){
+    c.innerHTML = `<div class="empty"><div class="emoji">🛒</div>No products found.<br>Try a different category or search.</div>`;
+    return;
+  }
 
-c.innerHTML += `
-<div class="card">
-<div class="imgSlider">
-<img src="${img}">
-</div>
-<h4>${p.name}</h4>
-<p class="price">₹${p.price}</p>
-<button onclick="addToCart('${p.name}',${p.price})">Add</button>
-</div>`;
-});
+  let html = "";
+  f.forEach((p,i)=>{
+    const img    = p.images?.[0] || p.image || "https://via.placeholder.com/300x300/f0f0f0/999?text=No+Image";
+    const name   = p.name || "Product";
+    const price  = Number(p.price) || 0;
+    const mrp    = p.mrp ? Number(p.mrp) : null;
+    const weight = p.weight || p.qty || p.unit || "";
+    const id     = p.id || `${name}_${i}`;
+    const inCart = cart.find(c=>c.name===name);
+
+    let discount = "";
+    if(mrp && mrp > price){
+      const off = Math.round(((mrp - price) / mrp) * 100);
+      discount = `<div class="discountBadge">${off}% OFF</div>`;
+    }
+
+    const button = inCart ?
+      `<div class="qtyBox">
+         <button onclick="event.stopPropagation();changeQty('${escapeAttr(name)}',-1)">−</button>
+         <span>${inCart.qty}</span>
+         <button onclick="event.stopPropagation();changeQty('${escapeAttr(name)}',1)">+</button>
+       </div>` :
+      `<button class="addBtn" onclick="addToCart('${escapeAttr(name)}',${price})">ADD</button>`;
+
+    html += `
+      <div class="card">
+        <div class="imgWrap">
+          ${discount}
+          <img src="${escapeAttr(img)}" alt="${escapeAttr(name)}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x300/f0f0f0/999?text=No+Image'">
+        </div>
+        <div class="deliveryBadge">⚡ 15 MINS</div>
+        <div class="cardName">${escapeHtml(name)}</div>
+        ${weight ? `<div class="cardWeight">${escapeHtml(weight)}</div>` : `<div class="cardWeight">1 unit</div>`}
+        <div class="priceRow">
+          <div class="priceBlock">
+            <span class="price">₹${price}</span>
+            ${mrp && mrp>price ? `<span class="mrp">₹${mrp}</span>` : ""}
+          </div>
+          ${button}
+        </div>
+      </div>`;
+  });
+  c.innerHTML = html;
 }
 
-/* SEARCH */
+/* ---------- SEARCH ---------- */
 window.searchProducts = ()=>{
-let t = document.getElementById("search").value.toLowerCase();
-let f = allProducts.filter(p=>p.name.toLowerCase().includes(t));
-document.getElementById("products").innerHTML = "";
-f.forEach(p=>{
-document.getElementById("products").innerHTML += `<div class="card"><h4>${p.name}</h4></div>`;
-});
+  searchTerm = document.getElementById("search").value.toLowerCase().trim();
+  renderProducts();
 };
 
-/* CART */
-window.addToCart = (n,p)=>{
-let f = cart.find(c=>c.name===n);
-f ? f.qty++ : cart.push({name:n,price:p,qty:1});
-localStorage.setItem("cart", JSON.stringify(cart));
-updateCart();
+/* ---------- CART ---------- */
+window.addToCart = (n, p)=>{
+  const f = cart.find(c=>c.name===n);
+  if(f) f.qty++;
+  else  cart.push({name:n, price:p, qty:1});
+  saveCart();
 };
+
+window.changeQty = (name, delta)=>{
+  const f = cart.find(c=>c.name===name);
+  if(!f) return;
+  f.qty += delta;
+  if(f.qty <= 0) cart = cart.filter(c=>c.name!==name);
+  saveCart();
+};
+
+function saveCart(){
+  localStorage.setItem("cart", JSON.stringify(cart));
+  updateCart();
+  renderProducts();
+}
 
 function updateCart(){
-let t=0; cart.forEach(c=>t+=c.price*c.qty);
-document.getElementById("total").innerText=t;
+  let total = 0, count = 0;
+  cart.forEach(c=>{ total += c.price*c.qty; count += c.qty; });
+  document.getElementById("total").textContent = total;
+  document.getElementById("itemCount").textContent = count;
+  document.getElementById("cartBar").classList.toggle("show", count > 0);
 }
 updateCart();
 
-window.openCart = ()=> location.href="customer/cart.html";
+window.openCart = ()=> location.href = "customer/cart.html";
 
+/* ---------- HELPERS ---------- */
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
+function escapeAttr(str){
+  return String(str).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
 </script>
 
 </body>
