@@ -1,75 +1,848 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Analytics</title>
+<meta charset="UTF-8">
+<title>Shop Analytics · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <style>
-body{font-family:Arial;padding:20px;background:#eef1f5;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-.box{
-background:white;
-padding:20px;
-margin-bottom:10px;
-border-radius:10px;
-font-size:18px;
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
+}
+body{padding-bottom:30px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{
+  display:flex;align-items:center;gap:12px;
+  max-width:1100px;margin:0 auto;
+}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
+
+/* ============ PERIOD TABS ============ */
+.periodTabs{
+  display:flex;gap:8px;
+  padding:12px 12px 4px;
+  max-width:1100px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
+}
+.periodTabs::-webkit-scrollbar{display:none;}
+
+.periodTab{
+  padding:8px 16px;
+  background:#fff;border:1px solid #e5e5e5;border-radius:22px;
+  font-size:13px;font-weight:600;color:#444;
+  white-space:nowrap;flex-shrink:0;
+  transition:all .15s;
+}
+.periodTab.active{background:#0C831F;color:#fff;border-color:#0C831F;}
+
+/* ============ MAIN ============ */
+.container{
+  max-width:1100px;margin:0 auto;
+  padding:6px 12px 0;
+}
+
+/* ============ HERO STATS ============ */
+.heroCard{
+  background:linear-gradient(135deg,#0C831F 0%,#0fa029 100%);
+  border-radius:14px;
+  padding:18px;
+  color:#fff;
+  margin-bottom:12px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 6px 20px rgba(12,131,31,.25);
+}
+.heroCard::before{
+  content:"";
+  position:absolute;
+  top:-30px;right:-30px;
+  width:140px;height:140px;
+  background:rgba(255,255,255,.08);
+  border-radius:50%;
+}
+.heroLabel{
+  font-size:11px;font-weight:700;
+  letter-spacing:.6px;text-transform:uppercase;
+  opacity:.9;margin-bottom:6px;
+  position:relative;z-index:1;
+}
+.heroAmount{
+  font-size:38px;font-weight:800;
+  letter-spacing:-1px;line-height:1;
+  position:relative;z-index:1;
+}
+.heroAmount.loading{
+  display:inline-block;
+  width:140px;height:34px;
+  background:linear-gradient(90deg,rgba(255,255,255,.15) 25%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.15) 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:8px;vertical-align:middle;
+}
+.heroDelta{
+  font-size:13px;font-weight:600;
+  margin-top:6px;opacity:.95;
+  position:relative;z-index:1;
+}
+@keyframes shimmer{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+/* ============ STATS GRID ============ */
+.statsGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+  margin-bottom:14px;
+}
+@media(min-width:600px){
+  .statsGrid{grid-template-columns:repeat(4,1fr);}
+}
+
+.statCard{
+  background:#fff;
+  border-radius:12px;
+  padding:14px 12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  position:relative;
+  overflow:hidden;
+}
+.statCard::before{
+  content:"";
+  position:absolute;
+  top:-15px;right:-15px;
+  width:60px;height:60px;
+  border-radius:50%;
+  opacity:.1;
+}
+.statCard.orders   ::before{background:#1857c1;}
+.statCard.delivered::before{background:#0C831F;}
+.statCard.pending  ::before{background:#F0B91D;}
+.statCard.aov      ::before{background:#6b21a8;}
+
+.statIcon{font-size:18px;margin-bottom:4px;}
+.statValue{font-size:18px;font-weight:800;color:#1f1f1f;line-height:1.1;}
+.statLabel{font-size:11px;color:#666;font-weight:500;margin-top:3px;letter-spacing:.2px;}
+
+.statValue.loading{
+  display:inline-block;width:50px;height:16px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:4px;vertical-align:middle;
+}
+
+/* ============ SECTION ============ */
+.section{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.sectionHeader{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:14px;
+}
+.sectionTitle{font-size:15px;font-weight:700;color:#1f1f1f;}
+.sectionMeta{font-size:11px;color:#888;font-weight:500;}
+
+/* ============ CHART CONTAINER ============ */
+.chartWrap{
+  position:relative;
+  height:240px;
+  width:100%;
+}
+.chartWrap.small{height:200px;}
+@media(min-width:768px){
+  .chartWrap{height:280px;}
+}
+
+/* ============ TWO COLUMN ============ */
+@media(min-width:900px){
+  .twoCol{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .twoCol .section{margin-bottom:0;}
+}
+
+/* ============ EMPTY ============ */
+.empty{
+  text-align:center;
+  padding:40px 20px;
+  color:#777;
+}
+.empty .icon{font-size:48px;margin-bottom:10px;opacity:.5;}
+.empty h3{font-size:15px;font-weight:700;color:#444;margin-bottom:4px;}
+.empty p{font-size:13px;color:#888;line-height:1.4;}
+
+/* ============ TOP PRODUCTS ============ */
+.productRow{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid #f4f4f4;
+}
+.productRow:last-child{border-bottom:none;padding-bottom:0;}
+.productRow:first-child{padding-top:0;}
+
+.rankBadge{
+  width:28px;height:28px;border-radius:50%;
+  background:#f4f4f4;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#666;
+  flex-shrink:0;
+}
+.rankBadge.gold  {background:#fff5d6;color:#8a6500;}
+.rankBadge.silver{background:#e8e8e8;color:#444;}
+.rankBadge.bronze{background:#ffe5cc;color:#a04500;}
+
+.productInfo{flex:1;min-width:0;line-height:1.3;}
+.productName{
+  font-size:13px;font-weight:600;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.productMeta{font-size:11px;color:#888;margin-top:2px;}
+
+.productAmount{
+  font-size:14px;font-weight:800;color:#1f1f1f;
+  flex-shrink:0;
+}
+
+/* ============ INSIGHTS ============ */
+.insightCard{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px;
+  background:#fff5d6;
+  border-radius:10px;
+  margin-top:10px;
+}
+.insightIcon{
+  width:36px;height:36px;border-radius:50%;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.insightText{flex:1;line-height:1.4;}
+.insightTitle{font-size:13px;font-weight:700;color:#8a6500;}
+.insightSub{font-size:12px;color:#8a6500;opacity:.85;margin-top:2px;}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:10px 20px 0;}
+  .heroAmount{font-size:42px;}
 }
 </style>
-
 </head>
 
 <body>
 
-<h2>📊 Analytics Dashboard</h2>
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">📊 Shop Analytics</div>
+      <div class="pageSub" id="headerSub">Your shop performance</div>
+    </div>
+  </div>
 
-<div class="box">🧾 Total Orders: <span id="orders">0</span></div>
-<div class="box">💰 Total Revenue: ₹<span id="revenue">0</span></div>
-<div class="box">📦 Delivered Orders: <span id="delivered">0</span></div>
+  <!-- PERIOD TABS -->
+  <div class="periodTabs">
+    <button class="periodTab" data-days="7">Last 7 days</button>
+    <button class="periodTab active" data-days="30">Last 30 days</button>
+    <button class="periodTab" data-days="90">Last 90 days</button>
+    <button class="periodTab" data-days="all">All time</button>
+  </div>
+</header>
+
+<!-- ============ MAIN ============ -->
+<main class="container">
+
+  <!-- HERO -->
+  <div class="heroCard">
+    <div class="heroLabel">Total Earnings</div>
+    <div class="heroAmount loading" id="heroAmount"></div>
+    <div class="heroDelta" id="heroDelta">From completed orders</div>
+  </div>
+
+  <!-- STATS GRID -->
+  <div class="statsGrid">
+    <div class="statCard orders">
+      <div class="statIcon">🧾</div>
+      <div class="statValue loading" id="statOrders"></div>
+      <div class="statLabel">Total orders</div>
+    </div>
+    <div class="statCard delivered">
+      <div class="statIcon">📦</div>
+      <div class="statValue loading" id="statDelivered"></div>
+      <div class="statLabel">Delivered</div>
+    </div>
+    <div class="statCard pending">
+      <div class="statIcon">⏳</div>
+      <div class="statValue loading" id="statPending"></div>
+      <div class="statLabel">In progress</div>
+    </div>
+    <div class="statCard aov">
+      <div class="statIcon">💸</div>
+      <div class="statValue loading" id="statAvg"></div>
+      <div class="statLabel">Avg order value</div>
+    </div>
+  </div>
+
+  <!-- DAILY REVENUE CHART -->
+  <section class="section">
+    <div class="sectionHeader">
+      <div class="sectionTitle">Daily revenue</div>
+      <div class="sectionMeta" id="dailyMeta">Loading…</div>
+    </div>
+    <div class="chartWrap" id="dailyWrap">
+      <canvas id="dailyChart"></canvas>
+    </div>
+  </section>
+
+  <!-- TWO-COLUMN ON DESKTOP -->
+  <div class="twoCol">
+
+    <!-- ORDER STATUS DONUT -->
+    <section class="section">
+      <div class="sectionHeader">
+        <div class="sectionTitle">Order status</div>
+        <div class="sectionMeta">Distribution</div>
+      </div>
+      <div class="chartWrap small" id="statusWrap">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </section>
+
+    <!-- DAY OF WEEK -->
+    <section class="section">
+      <div class="sectionHeader">
+        <div class="sectionTitle">Best days</div>
+        <div class="sectionMeta">Revenue split</div>
+      </div>
+      <div class="chartWrap small" id="dowWrap">
+        <canvas id="dowChart"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- TOP PRODUCTS -->
+  <section class="section">
+    <div class="sectionHeader">
+      <div class="sectionTitle">🏆 Top selling products</div>
+      <div class="sectionMeta">By quantity</div>
+    </div>
+    <div id="topProducts">
+      <div class="empty"><div class="icon">📦</div><p>Loading…</p></div>
+    </div>
+  </section>
+
+  <!-- INSIGHT -->
+  <section class="section" id="insightSection" style="display:none;">
+    <div class="sectionTitle">💡 Insights</div>
+    <div id="insightsList"></div>
+  </section>
+
+</main>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
 
 <script type="module">
-
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-onAuthStateChanged(auth, async(user)=>{
+const heroAmount     = document.getElementById("heroAmount");
+const heroDelta      = document.getElementById("heroDelta");
+const statOrders     = document.getElementById("statOrders");
+const statDelivered  = document.getElementById("statDelivered");
+const statPending    = document.getElementById("statPending");
+const statAvg        = document.getElementById("statAvg");
+const dailyMeta      = document.getElementById("dailyMeta");
+const headerSub      = document.getElementById("headerSub");
+const insightSection = document.getElementById("insightSection");
+const insightsList   = document.getElementById("insightsList");
+const topProducts    = document.getElementById("topProducts");
+const toast          = document.getElementById("toast");
 
-if(!user){
-location.href="login.html";
-return;
+let myEmail = null;
+let allOrders = [];
+let currentDays = 30;
+let dailyChart=null, statusChart=null, dowChart=null;
+
+const DAYS_LABEL = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+/* ---------- TOAST ---------- */
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-const shopEmail = user.email;
-
-const snapshot = await getDocs(collection(db,"orders"));
-
-let totalOrders = 0;
-let totalRevenue = 0;
-let delivered = 0;
-
-snapshot.forEach(doc=>{
-
-let o = doc.data();
-
-if(o.shopEmail === shopEmail){
-
-totalOrders++;
-
-if(o.deliveryStatus === "Delivered"){
-delivered++;
-totalRevenue += o.total;
+function setStat(el, val){
+  el.classList.remove("loading");
+  el.textContent = val;
+}
+function setHero(val){
+  heroAmount.classList.remove("loading");
+  heroAmount.textContent = val;
 }
 
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
 }
 
+/* ---------- TABS ---------- */
+document.querySelectorAll(".periodTab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".periodTab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    currentDays = tab.dataset.days === "all" ? "all" : parseInt(tab.dataset.days, 10);
+    rebuild();
+  });
 });
 
-document.getElementById("orders").innerText = totalOrders;
-document.getElementById("revenue").innerText = totalRevenue;
-document.getElementById("delivered").innerText = delivered;
+/* ---------- AUTH ---------- */
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    showToast("Login required", true);
+    setTimeout(()=> location.href = "login.html", 800);
+    return;
+  }
+  myEmail = user.email;
 
+  await loadOrders();
+  rebuild();
 });
 
+/* ---------- LOAD ALL SHOP ORDERS ---------- */
+async function loadOrders(){
+  try{
+    const snap = await getDocs(query(collection(db,"orders"), where("shopEmail","==", myEmail)));
+    snap.forEach(d=>{
+      const o = d.data(); o.__id = d.id;
+      allOrders.push(o);
+    });
+
+    /* Also include split orders */
+    try{
+      const snap2 = await getDocs(query(collection(db,"split-orders"), where("shopEmail","==", myEmail)));
+      snap2.forEach(d=>{
+        const o = d.data(); o.__id = "split_" + d.id;
+        allOrders.push(o);
+      });
+    }catch(e){ /* split-orders may not exist */ }
+
+  }catch(err){
+    console.error(err);
+    showToast("Could not load analytics", true);
+  }
+}
+
+/* ---------- FILTER BY PERIOD ---------- */
+function filterByPeriod(){
+  if(currentDays === "all") return allOrders;
+  const cutoff = Date.now() - currentDays * 24 * 60 * 60 * 1000;
+  return allOrders.filter(o=>{
+    const t = o.time?.toDate ? o.time.toDate().getTime() : new Date(o.time).getTime();
+    return t >= cutoff;
+  });
+}
+
+function isDelivered(o){
+  const status  = (o.status || "").toLowerCase();
+  const dStatus = (o.deliveryStatus || "").toLowerCase();
+  return status === "delivered" || dStatus === "delivered" || dStatus === "completed";
+}
+
+/* ---------- REBUILD UI ---------- */
+function rebuild(){
+  const filtered = filterByPeriod();
+
+  /* Aggregate */
+  let totalRevenue = 0;
+  let delivered = 0, pending = 0, rejected = 0;
+  const byDay   = {};
+  const byDow   = [0,0,0,0,0,0,0];
+  const productCount = {}; // name -> {qty, revenue}
+
+  filtered.forEach(o=>{
+    const status  = (o.status || "").toLowerCase();
+    const t = o.time?.toDate ? o.time.toDate() : new Date(o.time);
+    if(isNaN(t.getTime())) return;
+
+    if(isDelivered(o)){
+      delivered++;
+      // shop earning if available, else fall back to total
+      const earn = Number(o.shopEarning || o.total || 0);
+      totalRevenue += earn;
+
+      const dateKey = t.toISOString().slice(0,10);
+      byDay[dateKey] = (byDay[dateKey] || 0) + earn;
+      byDow[t.getDay()] += earn;
+
+      /* Track product sales */
+      if(Array.isArray(o.items)){
+        o.items.forEach(it=>{
+          const name = it.name || "Unknown";
+          const qty  = Number(it.qty) || 1;
+          const rev  = (Number(it.price)||0) * qty;
+          if(!productCount[name]) productCount[name] = { qty:0, revenue:0 };
+          productCount[name].qty     += qty;
+          productCount[name].revenue += rev;
+        });
+      }
+    }else if(status === "rejected"){
+      rejected++;
+    }else{
+      pending++;
+    }
+  });
+
+  const totalOrders = filtered.length;
+  const aov = delivered ? (totalRevenue / delivered) : 0;
+
+  /* Period label */
+  const periodLabel = currentDays === "all" ? "All time" : `Last ${currentDays} days`;
+  headerSub.textContent = periodLabel;
+  dailyMeta.textContent = periodLabel;
+  heroDelta.textContent = totalOrders === 0
+    ? "No orders yet"
+    : `${delivered} delivered · ${periodLabel.toLowerCase()}`;
+
+  /* Render hero & stats */
+  setHero("₹" + Math.round(totalRevenue).toLocaleString("en-IN"));
+  setStat(statOrders,    totalOrders);
+  setStat(statDelivered, delivered);
+  setStat(statPending,   pending);
+  setStat(statAvg,       "₹" + Math.round(aov));
+
+  /* Charts */
+  renderDailyChart(filtered, byDay);
+  renderStatusChart(delivered, pending, rejected);
+  renderDowChart(byDow);
+
+  /* Top products */
+  renderTopProducts(productCount);
+
+  /* Insights */
+  renderInsights({delivered, byDow, productCount, byDay});
+
+  if(totalOrders === 0){
+    showEmptyCharts();
+  }
+}
+
+/* ---------- EMPTY ---------- */
+function showEmptyCharts(){
+  document.getElementById("dailyWrap").innerHTML = `
+    <div class="empty"><div class="icon">📈</div>
+    <h3>No data yet</h3>
+    <p>Once you start receiving orders, your revenue will appear here.</p></div>`;
+  document.getElementById("statusWrap").innerHTML = `<div class="empty"><div class="icon">📊</div></div>`;
+  document.getElementById("dowWrap").innerHTML = `<div class="empty"><div class="icon">📅</div></div>`;
+}
+
+/* ---------- DAILY CHART ---------- */
+function renderDailyChart(filtered, byDay){
+  const wrap = document.getElementById("dailyWrap");
+  if(filtered.length === 0) return;
+  if(!document.getElementById("dailyChart")){
+    wrap.innerHTML = `<canvas id="dailyChart"></canvas>`;
+  }
+  const ctx = document.getElementById("dailyChart");
+
+  let startTs;
+  if(currentDays === "all"){
+    const keys = Object.keys(byDay).sort();
+    startTs = keys.length ? new Date(keys[0]).getTime() : Date.now();
+  }else{
+    startTs = Date.now() - (currentDays-1) * 24 * 60 * 60 * 1000;
+  }
+  const endTs = Date.now();
+
+  const labels = [], values = [];
+  for(let t = new Date(startTs); t <= new Date(endTs); t.setDate(t.getDate()+1)){
+    const key = t.toISOString().slice(0,10);
+    const date = new Date(t);
+    labels.push(date.toLocaleDateString("en-IN", {day:"numeric", month:"short"}));
+    values.push(Math.round(byDay[key] || 0));
+  }
+
+  const skip = Math.max(1, Math.ceil(labels.length / 12));
+  const displayLabels = labels.map((l,i)=> i % skip === 0 ? l : "");
+
+  if(dailyChart) dailyChart.destroy();
+  dailyChart = new Chart(ctx, {
+    type:"bar",
+    data:{
+      labels: displayLabels,
+      datasets:[{
+        label:"Revenue",
+        data: values,
+        backgroundColor:"rgba(12,131,31,0.85)",
+        hoverBackgroundColor:"#0fa029",
+        borderRadius:6,
+        borderSkipped:false,
+        maxBarThickness:28
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#1f1f1f", padding:10, cornerRadius:8,
+          titleFont:{family:"Inter", weight:"700"},
+          bodyFont:{family:"Inter"},
+          callbacks:{
+            title:(items)=> labels[items[0].dataIndex],
+            label:(item)=> "₹" + item.parsed.y.toLocaleString("en-IN")
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{family:"Inter", size:11}, color:"#888"}},
+        y:{beginAtZero:true, grid:{color:"#f0f0f0"},
+          ticks:{font:{family:"Inter", size:11}, color:"#888", callback:(v)=>"₹"+v}}
+      }
+    }
+  });
+}
+
+/* ---------- STATUS DONUT CHART ---------- */
+function renderStatusChart(delivered, pending, rejected){
+  const wrap = document.getElementById("statusWrap");
+  if(!document.getElementById("statusChart")){
+    wrap.innerHTML = `<canvas id="statusChart"></canvas>`;
+  }
+  if(statusChart) statusChart.destroy();
+
+  if(delivered + pending + rejected === 0) return;
+
+  const ctx = document.getElementById("statusChart");
+  statusChart = new Chart(ctx, {
+    type:"doughnut",
+    data:{
+      labels:["Delivered","In progress","Rejected"],
+      datasets:[{
+        data:[delivered, pending, rejected],
+        backgroundColor:["#0C831F","#F0B91D","#d23030"],
+        borderWidth:0,
+        hoverOffset:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      cutout:"68%",
+      plugins:{
+        legend:{
+          position:"bottom",
+          labels:{
+            font:{family:"Inter", size:12, weight:"600"},
+            color:"#1f1f1f",
+            padding:12,
+            usePointStyle:true,
+            pointStyle:"circle"
+          }
+        },
+        tooltip:{
+          backgroundColor:"#1f1f1f", padding:10, cornerRadius:8,
+          titleFont:{family:"Inter", weight:"700"},
+          bodyFont:{family:"Inter"},
+          callbacks:{
+            label:(item)=> `${item.label}: ${item.parsed} order${item.parsed===1?"":"s"}`
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ---------- DAY OF WEEK CHART ---------- */
+function renderDowChart(byDow){
+  const wrap = document.getElementById("dowWrap");
+  if(!document.getElementById("dowChart")){
+    wrap.innerHTML = `<canvas id="dowChart"></canvas>`;
+  }
+  if(dowChart) dowChart.destroy();
+  if(byDow.every(v=>v===0)) return;
+
+  const ctx = document.getElementById("dowChart");
+  dowChart = new Chart(ctx, {
+    type:"bar",
+    data:{
+      labels: DAYS_LABEL,
+      datasets:[{
+        label:"Revenue",
+        data: byDow.map(v=> Math.round(v)),
+        backgroundColor:["#dbe9ff","#dcf3e1","#fff5d6","#e8d6f7","#ffe8d1","#ffe0e0","#d6f0ff"],
+        borderRadius:6,
+        borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:"#1f1f1f", padding:10, cornerRadius:8,
+          titleFont:{family:"Inter", weight:"700"},
+          bodyFont:{family:"Inter"},
+          callbacks:{
+            label:(item)=> "₹" + item.parsed.y.toLocaleString("en-IN")
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{family:"Inter", size:11}, color:"#666"}},
+        y:{beginAtZero:true, grid:{color:"#f0f0f0"},
+          ticks:{font:{family:"Inter", size:10}, color:"#888", callback:(v)=>"₹"+v}}
+      }
+    }
+  });
+}
+
+/* ---------- TOP PRODUCTS ---------- */
+function renderTopProducts(productCount){
+  const arr = Object.entries(productCount).map(([name, info])=>({
+    name, qty: info.qty, revenue: info.revenue
+  }));
+  arr.sort((a,b)=> b.qty - a.qty);
+  const top = arr.slice(0, 5);
+
+  if(top.length === 0){
+    topProducts.innerHTML = `
+      <div class="empty"><div class="icon">📦</div>
+      <p>No products sold yet in this period.</p></div>`;
+    return;
+  }
+
+  let html = "";
+  top.forEach((p, i)=>{
+    const cls = i === 0 ? "gold" : i === 1 ? "silver" : i === 2 ? "bronze" : "";
+    const display = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+    html += `
+      <div class="productRow">
+        <div class="rankBadge ${cls}">${display}</div>
+        <div class="productInfo">
+          <div class="productName">${escapeHtml(p.name)}</div>
+          <div class="productMeta">${p.qty} sold</div>
+        </div>
+        <div class="productAmount">₹${Math.round(p.revenue).toLocaleString("en-IN")}</div>
+      </div>`;
+  });
+  topProducts.innerHTML = html;
+}
+
+/* ---------- INSIGHTS ---------- */
+function renderInsights({delivered, byDow, productCount, byDay}){
+  if(delivered === 0){
+    insightSection.style.display = "none";
+    return;
+  }
+  insightSection.style.display = "block";
+
+  const insights = [];
+
+  // Best day of week
+  let topDow = 0, topDowAmt = 0;
+  byDow.forEach((v,i)=>{ if(v > topDowAmt){ topDowAmt = v; topDow = i; } });
+  if(topDowAmt > 0){
+    insights.push({
+      icon:"📅",
+      title:`${DAYS_LABEL[topDow]}s are your best day`,
+      sub:`You earn the most on ${DAYS_LABEL[topDow]}s — keep your shop well-stocked.`
+    });
+  }
+
+  // Top product
+  const arr = Object.entries(productCount).sort((a,b)=> b[1].qty - a[1].qty);
+  if(arr.length > 0){
+    insights.push({
+      icon:"🏆",
+      title:`Bestseller: ${arr[0][0]}`,
+      sub:`${arr[0][1].qty} units sold this period.`
+    });
+  }
+
+  // Best day record
+  let bestDay = null, bestAmt = 0;
+  Object.entries(byDay).forEach(([k,v])=>{
+    if(v > bestAmt){ bestAmt = v; bestDay = k; }
+  });
+  if(bestDay && bestAmt > 0){
+    const niceDate = new Date(bestDay).toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+    insights.push({
+      icon:"🎯",
+      title:`Record: ₹${Math.round(bestAmt).toLocaleString("en-IN")} on ${niceDate}`,
+      sub:`Your best single-day revenue!`
+    });
+  }
+
+  insightsList.innerHTML = insights.map(i=>`
+    <div class="insightCard">
+      <div class="insightIcon">${i.icon}</div>
+      <div class="insightText">
+        <div class="insightTitle">${i.title}</div>
+        <div class="insightSub">${i.sub}</div>
+      </div>
+    </div>`).join("");
+}
+
+/* ---------- NAV ---------- */
+window.goBack = ()=> location.href = "dashboard.html";
 </script>
 
 </body>
