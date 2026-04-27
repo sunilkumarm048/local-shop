@@ -1,187 +1,583 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Cart</title>
+<meta charset="UTF-8">
+<title>My Cart · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-body{
-font-family:Arial;
-padding:20px;
-background:#f5f5f5;
-margin:0;
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
 }
 
-h2{
-text-align:center;
+body{padding-bottom:90px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;
+  top:0;
+  z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
 
-/* ITEM */
+.topBar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:900px;
+  margin:0 auto;
+}
+
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:18px;
+  font-weight:700;
+  flex-shrink:0;
+  color:#1f1f1f;
+}
+
+.backBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+
+.pageTitle{
+  font-size:18px;
+  font-weight:800;
+  color:#1f1f1f;
+}
+
+.pageSub{
+  font-size:13px;
+  color:#3a3a3a;
+  margin-top:2px;
+}
+
+/* ============ DELIVERY BANNER ============ */
+.deliveryBanner{
+  max-width:900px;
+  margin:12px auto 0;
+  background:#fff;
+  border-radius:12px;
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+
+.bannerIcon{
+  width:42px;
+  height:42px;
+  background:#fff5d6;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  flex-shrink:0;
+}
+
+.bannerText{flex:1;line-height:1.25;}
+.bannerTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
+.bannerSub{font-size:12px;color:#666;margin-top:2px;}
+
+/* ============ MAIN ============ */
+.container{
+  max-width:900px;
+  margin:0 auto;
+  padding:14px 12px 0;
+}
+
+.section{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+
+.sectionHeader{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+.sectionTitle{
+  font-size:15px;
+  font-weight:700;
+  color:#1f1f1f;
+}
+
+.itemCount{
+  font-size:12px;
+  color:#666;
+  font-weight:500;
+}
+
+/* ============ ITEM ROW ============ */
 .item{
-background:white;
-padding:12px;
-margin-bottom:10px;
-border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
-display:flex;
-justify-content:space-between;
-align-items:center;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid #f0f0f0;
 }
 
-/* BUTTONS */
-button{
-border:none;
-padding:6px 10px;
-border-radius:5px;
-cursor:pointer;
+.item:last-child{border-bottom:none;padding-bottom:4px;}
+.item:first-child{padding-top:4px;}
+
+.itemImg{
+  width:60px;
+  height:60px;
+  border-radius:10px;
+  background:#f5f5f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:800;
+  color:#fff;
+  flex-shrink:0;
+  overflow:hidden;
 }
 
-.remove{
-background:red;
-color:white;
+.itemImg img{width:100%;height:100%;object-fit:cover;}
+
+.itemInfo{
+  flex:1;
+  min-width:0;
+  line-height:1.3;
 }
 
-.qtyBtn{
-background:#ff5a5f;
-color:white;
+.itemName{
+  font-size:14px;
+  font-weight:600;
+  color:#1f1f1f;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
 }
 
-.checkout{
-width:100%;
-padding:12px;
-background:#ff5a5f;
-color:white;
-font-size:16px;
-margin-top:15px;
+.itemPrice{
+  font-size:13px;
+  color:#666;
+  margin-top:3px;
 }
 
-/* EMPTY */
+.itemPrice b{color:#1f1f1f;font-weight:700;}
+
+.itemRight{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:6px;
+  flex-shrink:0;
+}
+
+.lineTotal{
+  font-size:14px;
+  font-weight:700;
+  color:#1f1f1f;
+}
+
+/* QTY (matches home page) */
+.qtyBox{
+  display:flex;
+  align-items:center;
+  background:#0C831F;
+  color:#fff;
+  border-radius:7px;
+  overflow:hidden;
+  min-width:78px;
+}
+
+.qtyBox button{
+  background:transparent;
+  color:#fff;
+  width:24px;
+  height:30px;
+  font-size:16px;
+  font-weight:700;
+}
+
+.qtyBox span{
+  flex:1;
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+}
+
+/* ============ BILL DETAILS ============ */
+.billRow{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:6px 0;
+  font-size:13px;
+  color:#3a3a3a;
+}
+
+.billRow b{font-weight:600;color:#1f1f1f;}
+
+.billDivider{
+  border-top:1px dashed #e0e0e0;
+  margin:8px 0;
+}
+
+.billTotal{
+  font-size:15px;
+  font-weight:800;
+  color:#1f1f1f;
+  padding-top:6px;
+}
+
+.savings{
+  background:#e8f8eb;
+  color:#0C831F;
+  padding:8px 12px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  margin-top:10px;
+  text-align:center;
+}
+
+.freeTag{
+  color:#0C831F;
+  font-weight:700;
+}
+
+.strike{
+  text-decoration:line-through;
+  color:#999;
+  margin-right:4px;
+  font-weight:400;
+}
+
+/* ============ EMPTY STATE ============ */
 .empty{
-text-align:center;
-margin-top:40px;
-color:gray;
+  text-align:center;
+  padding:60px 20px;
+  background:#fff;
+  border-radius:14px;
+  margin-top:20px;
 }
 
-.topBtn{
-margin-bottom:10px;
+.empty .icon{
+  font-size:64px;
+  margin-bottom:14px;
+}
+
+.empty h3{
+  font-size:18px;
+  font-weight:700;
+  color:#1f1f1f;
+  margin-bottom:6px;
+}
+
+.empty p{
+  font-size:13px;
+  color:#777;
+  margin-bottom:20px;
+}
+
+.shopBtn{
+  background:#0C831F;
+  color:#fff;
+  padding:12px 26px;
+  border-radius:10px;
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:.3px;
+}
+
+.shopBtn:active{transform:scale(.97);}
+
+/* ============ STICKY CHECKOUT BAR ============ */
+.checkoutBar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#0C831F;
+  color:#fff;
+  padding:12px 16px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  z-index:999;
+  box-shadow:0 -2px 12px rgba(0,0,0,.15);
+  transition:opacity .2s, transform .2s;
+}
+
+.checkoutBar.hidden{
+  opacity:0;
+  transform:translateY(100%);
+  pointer-events:none;
+}
+
+.coLeft{display:flex;flex-direction:column;line-height:1.2;}
+.coAmount{font-size:17px;font-weight:800;}
+.coLabel{font-size:12px;font-weight:500;opacity:.9;margin-top:2px;}
+
+.coRight{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:14px;
+  font-weight:700;
+}
+
+/* ============ DESKTOP ============ */
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
+  .section{padding:18px;}
+  .sectionTitle{font-size:16px;}
+  .itemImg{width:70px;height:70px;}
+  .itemName{font-size:15px;}
+  .checkoutBar{padding:14px 24px;}
+  .coAmount{font-size:18px;}
 }
 
 </style>
-
 </head>
 
 <body>
 
-<button class="topBtn" onclick="goBack()">⬅ Back</button>
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">My Cart</div>
+      <div class="pageSub" id="headerSub">0 items</div>
+    </div>
+  </div>
 
-<h2>🛒 Your Cart</h2>
+  <div class="deliveryBanner" id="deliveryBanner" style="display:none;">
+    <div class="bannerIcon">⚡</div>
+    <div class="bannerText">
+      <div class="bannerTitle">Delivery in 15 minutes</div>
+      <div class="bannerSub">Shipment of <span id="bannerCount">0</span> items</div>
+    </div>
+  </div>
+</header>
 
-<div id="cart"></div>
+<!-- ============ MAIN ============ -->
+<main class="container" id="mainArea"></main>
 
-<h3>Total: ₹<span id="total">0</span></h3>
-
-<button class="checkout" onclick="checkout()">Proceed to Checkout</button>
+<!-- ============ STICKY CHECKOUT BAR ============ -->
+<div id="checkoutBar" class="checkoutBar hidden" onclick="checkout()">
+  <div class="coLeft">
+    <div class="coAmount">₹<span id="payAmount">0</span></div>
+    <div class="coLabel">TOTAL · <span id="payCount">0</span> items</div>
+  </div>
+  <div class="coRight">
+    Proceed to Pay <span>→</span>
+  </div>
+</div>
 
 <script>
-
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-const cartDiv = document.getElementById("cart");
-const totalEl = document.getElementById("total");
+const mainArea     = document.getElementById("mainArea");
+const headerSub    = document.getElementById("headerSub");
+const deliveryBanner = document.getElementById("deliveryBanner");
+const bannerCount  = document.getElementById("bannerCount");
+const checkoutBar  = document.getElementById("checkoutBar");
+const payAmount    = document.getElementById("payAmount");
+const payCount     = document.getElementById("payCount");
 
-// 🔄 RENDER CART
-function renderCart(){
+const DELIVERY_FEE = 0;     // free delivery
+const HANDLING_FEE = 5;     // ₹5 handling
+const FREE_DELIVERY_OVER = 199;
 
-cartDiv.innerHTML = "";
-let total = 0;
-
-if(cart.length === 0){
-cartDiv.innerHTML = `<div class="empty">🛒 Cart is empty</div>`;
-totalEl.innerText = 0;
-return;
+/* color palette for item placeholders (when no image) */
+const COLORS = ["#FF6B6B","#4ECDC4","#FFA94D","#845EC2","#0C831F","#F4A261","#2A9D8F","#E76F51"];
+function colorFor(name){
+  let h = 0;
+  for(let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
+  return COLORS[h % COLORS.length];
 }
 
-cart.forEach((item,index)=>{
-
-let t = item.price * item.qty;
-total += t;
-
-cartDiv.innerHTML += `
-<div class="item">
-
-<div>
-<b>${item.name}</b><br>
-₹${item.price} x ${item.qty}
-</div>
-
-<div>
-
-<button class="qtyBtn" onclick="decrease(${index})">-</button>
-${item.qty}
-<button class="qtyBtn" onclick="increase(${index})">+</button>
-
-<br><br>
-
-<button class="remove" onclick="removeItem(${index})">Remove</button>
-
-</div>
-
-</div>
-`;
-
-});
-
-totalEl.innerText = total;
-
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
 }
 
-// ➕ INCREASE
-function increase(i){
-cart[i].qty++;
-save();
+/* ---------- RENDER ---------- */
+function render(){
+  if(cart.length === 0){
+    renderEmpty();
+    return;
+  }
+
+  let itemsHtml = "";
+  let itemTotal = 0;
+  let totalQty  = 0;
+  let mrpTotal  = 0;
+
+  cart.forEach((item, i)=>{
+    const lineTotal = item.price * item.qty;
+    itemTotal += lineTotal;
+    totalQty  += item.qty;
+    mrpTotal  += (item.mrp || item.price) * item.qty;
+
+    const initial = (item.name || "?").trim().charAt(0).toUpperCase();
+    const imgHtml = item.image
+      ? `<img src="${escapeHtml(item.image)}" alt="" onerror="this.parentElement.innerHTML='${initial}';this.parentElement.style.background='${colorFor(item.name)}';">`
+      : initial;
+    const imgBg = item.image ? "" : `background:${colorFor(item.name)};`;
+
+    itemsHtml += `
+      <div class="item">
+        <div class="itemImg" style="${imgBg}">${imgHtml}</div>
+        <div class="itemInfo">
+          <div class="itemName">${escapeHtml(item.name)}</div>
+          <div class="itemPrice">₹${item.price} <span style="color:#bbb">·</span> <b>₹${lineTotal}</b></div>
+        </div>
+        <div class="itemRight">
+          <div class="qtyBox">
+            <button onclick="changeQty(${i},-1)" aria-label="Decrease">−</button>
+            <span>${item.qty}</span>
+            <button onclick="changeQty(${i},1)" aria-label="Increase">+</button>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  /* Bill calculations */
+  const deliveryFee = itemTotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
+  const handling    = HANDLING_FEE;
+  const grandTotal  = itemTotal + deliveryFee + handling;
+  const mrpSavings  = mrpTotal - itemTotal;
+
+  /* Update header */
+  headerSub.textContent = `${totalQty} item${totalQty>1?"s":""}`;
+  bannerCount.textContent = totalQty;
+  deliveryBanner.style.display = "flex";
+
+  /* Render */
+  mainArea.innerHTML = `
+    <div class="section">
+      <div class="sectionHeader">
+        <div class="sectionTitle">Items in your cart</div>
+        <div class="itemCount">${totalQty} item${totalQty>1?"s":""}</div>
+      </div>
+      ${itemsHtml}
+    </div>
+
+    <div class="section">
+      <div class="sectionTitle" style="margin-bottom:10px;">Bill details</div>
+
+      <div class="billRow">
+        <span>🧾 Item total</span>
+        <span><b>₹${itemTotal}</b></span>
+      </div>
+
+      <div class="billRow">
+        <span>🛵 Delivery charge</span>
+        <span>
+          ${deliveryFee === 0
+            ? `<span class="strike">₹25</span><span class="freeTag">FREE</span>`
+            : `<b>₹${deliveryFee}</b>`}
+        </span>
+      </div>
+
+      <div class="billRow">
+        <span>🛍️ Handling charge</span>
+        <span><b>₹${handling}</b></span>
+      </div>
+
+      <div class="billDivider"></div>
+
+      <div class="billRow billTotal">
+        <span>To Pay</span>
+        <span>₹${grandTotal}</span>
+      </div>
+
+      ${mrpSavings > 0
+        ? `<div class="savings">🎉 You're saving ₹${mrpSavings} on this order</div>`
+        : ``}
+    </div>
+
+    <div class="section" style="font-size:12px;color:#777;line-height:1.5;">
+      <b style="color:#1f1f1f;font-size:13px;">Cancellation Policy</b><br>
+      Orders cannot be cancelled once packed for delivery. In case of unexpected delays, a refund will be provided if applicable.
+    </div>
+  `;
+
+  /* Update sticky bar */
+  payAmount.textContent = grandTotal;
+  payCount.textContent  = totalQty;
+  checkoutBar.classList.remove("hidden");
 }
 
-// ➖ DECREASE
-function decrease(i){
-cart[i].qty--;
-
-if(cart[i].qty <= 0){
-cart.splice(i,1);
+function renderEmpty(){
+  headerSub.textContent = "0 items";
+  deliveryBanner.style.display = "none";
+  checkoutBar.classList.add("hidden");
+  mainArea.innerHTML = `
+    <div class="empty">
+      <div class="icon">🛒</div>
+      <h3>Your cart is empty</h3>
+      <p>Looks like you haven't added anything yet.<br>Let's fix that!</p>
+      <button class="shopBtn" onclick="goBack()">Start Shopping</button>
+    </div>
+  `;
 }
 
-save();
+/* ---------- ACTIONS ---------- */
+function changeQty(i, delta){
+  cart[i].qty += delta;
+  if(cart[i].qty <= 0) cart.splice(i, 1);
+  save();
 }
 
-// ❌ REMOVE
-function removeItem(i){
-cart.splice(i,1);
-save();
-}
-
-// 💾 SAVE
 function save(){
-localStorage.setItem("cart", JSON.stringify(cart));
-renderCart();
+  localStorage.setItem("cart", JSON.stringify(cart));
+  render();
 }
 
-// 🔁 BACK
 function goBack(){
-window.location.href = "product.html";
+  // Go to home page (one level up from /customer/)
+  window.location.href = "../index.html";
 }
 
-// 🛒 CHECKOUT
 function checkout(){
-if(cart.length === 0){
-alert("Cart is empty");
-return;
-}
-window.location.href = "checkout.html";
+  if(cart.length === 0){
+    alert("Your cart is empty");
+    return;
+  }
+  window.location.href = "checkout.html";
 }
 
-// INIT
-renderCart();
-
+/* INIT */
+render();
 </script>
 
 </body>
