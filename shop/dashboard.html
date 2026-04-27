@@ -1,88 +1,542 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Shop Dashboard</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>Shop Dashboard · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-body{
-font-family:Arial;
-background:#f5f5f5;
-margin:0;
-padding:20px;
-text-align:center;
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{
+  font-family:'Inter',Arial,sans-serif;
+  background:#f4f4f4;
+  color:#1f1f1f;
+  overflow-x:hidden;
 }
 
-h2{
-margin-bottom:20px;
+body{padding-bottom:30px;}
+
+button{font-family:inherit;cursor:pointer;border:none;}
+
+/* ============ HEADER ============ */
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:16px;
+  position:sticky;
+  top:0;
+  z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
 
-button{
-display:block;
-width:260px;
-margin:12px auto;
-padding:14px;
-background:#ff5a5f;
-color:white;
-border:none;
-border-radius:10px;
-font-size:16px;
-cursor:pointer;
+.topBar{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  max-width:1100px;
+  margin:0 auto;
 }
 
-.logout{
-background:black;
+.shopAvatar{
+  width:46px;height:46px;
+  border-radius:50%;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+.shopInfo{flex:1;min-width:0;line-height:1.2;}
+.greeting{
+  font-size:13px;color:#3a3a3a;font-weight:500;
+}
+.shopName{
+  font-size:17px;font-weight:800;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-top:2px;
+}
+
+.statusToggle{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.5);
+  padding:6px 12px;border-radius:20px;
+  font-size:12px;font-weight:700;
+  flex-shrink:0;
+}
+.statusDot{
+  width:8px;height:8px;border-radius:50%;
+  background:#0C831F;
+  box-shadow:0 0 0 0 rgba(12,131,31,.6);
+  animation:liveDot 1.6s infinite;
+}
+@keyframes liveDot{
+  0%{box-shadow:0 0 0 0 rgba(12,131,31,.6);}
+  70%{box-shadow:0 0 0 8px rgba(12,131,31,0);}
+  100%{box-shadow:0 0 0 0 rgba(12,131,31,0);}
+}
+
+/* ============ MAIN ============ */
+.container{
+  max-width:1100px;
+  margin:0 auto;
+  padding:14px 12px 0;
+}
+
+.section{margin-bottom:18px;}
+
+.sectionTitle{
+  font-size:14px;font-weight:700;
+  color:#555;
+  margin:0 4px 10px;
+  letter-spacing:.3px;
+  text-transform:uppercase;
+}
+
+/* ============ STATS ROW ============ */
+.statsRow{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+@media(min-width:520px){
+  .statsRow{grid-template-columns:repeat(4,1fr);}
+}
+
+.statCard{
+  background:#fff;
+  border-radius:14px;
+  padding:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  position:relative;
+  overflow:hidden;
+}
+
+.statCard::before{
+  content:"";
+  position:absolute;
+  top:-20px;right:-20px;
+  width:70px;height:70px;
+  border-radius:50%;
+  opacity:.12;
+}
+.statCard.live::before    {background:#0C831F;}
+.statCard.pending::before {background:#F0B91D;}
+.statCard.revenue::before {background:#1857c1;}
+.statCard.products::before{background:#6b21a8;}
+
+.statIcon{
+  font-size:22px;
+  margin-bottom:6px;
+}
+
+.statValue{
+  font-size:22px;font-weight:800;color:#1f1f1f;
+  line-height:1.1;
+}
+
+.statLabel{
+  font-size:12px;color:#666;font-weight:500;
+  margin-top:3px;
+}
+
+.statValue.loading{
+  display:inline-block;
+  width:30px;height:18px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.4s infinite;
+  border-radius:4px;
+  vertical-align:middle;
+}
+@keyframes shimmer{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+/* ============ ACTION CARDS ============ */
+.actionGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+@media(min-width:600px){
+  .actionGrid{grid-template-columns:repeat(3,1fr);}
+}
+@media(min-width:900px){
+  .actionGrid{grid-template-columns:repeat(4,1fr);gap:14px;}
+}
+
+.actionCard{
+  background:#fff;
+  border-radius:14px;
+  padding:16px 14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  text-align:left;
+  cursor:pointer;
+  transition:transform .15s, box-shadow .15s;
+  position:relative;
+  overflow:hidden;
+  min-height:120px;
+}
+
+.actionCard:hover{
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+
+.actionCard:active{transform:scale(.98);}
+
+.actionIcon{
+  width:44px;height:44px;
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  margin-bottom:10px;
+  flex-shrink:0;
+}
+
+.actionCard.live    .actionIcon{background:#dcf3e1;}
+.actionCard.orders  .actionIcon{background:#fff5d6;}
+.actionCard.history .actionIcon{background:#dbe9ff;}
+.actionCard.stats   .actionIcon{background:#e8d6f7;}
+.actionCard.add     .actionIcon{background:#ffe0e0;}
+.actionCard.shop    .actionIcon{background:#d6f0ff;}
+
+.actionTitle{
+  font-size:14px;font-weight:700;color:#1f1f1f;
+  line-height:1.25;
+  margin-bottom:3px;
+}
+
+.actionSub{
+  font-size:12px;color:#777;
+  line-height:1.3;
+}
+
+/* New-orders badge */
+.actionBadge{
+  position:absolute;
+  top:10px;right:10px;
+  background:#d23030;
+  color:#fff;
+  font-size:11px;font-weight:800;
+  min-width:22px;height:22px;
+  border-radius:11px;
+  padding:0 7px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(210,48,48,.3);
+  animation:badgePulse 1.8s infinite;
+}
+@keyframes badgePulse{
+  0%,100%{transform:scale(1);}
+  50%{transform:scale(1.08);}
+}
+
+/* ============ FEATURED ADD-PRODUCT CARD ============ */
+.addCard{
+  background:linear-gradient(135deg,#0C831F 0%,#0fa029 100%);
+  color:#fff;
+  border-radius:14px;
+  padding:18px;
+  display:flex;align-items:center;gap:14px;
+  cursor:pointer;
+  box-shadow:0 4px 14px rgba(12,131,31,.25);
+  transition:transform .15s;
+  margin-bottom:12px;
+}
+.addCard:active{transform:scale(.98);}
+
+.addCardIcon{
+  width:48px;height:48px;
+  background:rgba(255,255,255,.2);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;flex-shrink:0;
+}
+
+.addCardText{flex:1;min-width:0;line-height:1.3;}
+.addCardTitle{font-size:15px;font-weight:800;}
+.addCardSub{font-size:12px;opacity:.92;margin-top:2px;}
+.addCardArrow{font-size:18px;font-weight:800;}
+
+/* ============ LOGOUT ============ */
+.logoutBtn{
+  width:100%;
+  background:#fff;
+  color:#d23030;
+  border:1.5px solid #ffd2d2;
+  padding:14px;
+  border-radius:12px;
+  font-size:14px;font-weight:700;
+  letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:8px;
+}
+.logoutBtn:active{transform:scale(.98);background:#fff5f5;}
+
+/* ============ TOAST ============ */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1500;max-width:90%;
+  text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ============ DESKTOP ============ */
+@media(min-width:768px){
+  .header{padding:18px 24px;}
+  .container{padding:18px 20px 0;}
+  .shopName{font-size:19px;}
+  .statValue{font-size:24px;}
 }
 </style>
-
 </head>
 
 <body>
 
-<h2>🏪 Shop Dashboard</h2>
+<!-- ============ HEADER ============ -->
+<header class="header">
+  <div class="topBar">
+    <div class="shopAvatar">🏪</div>
+    <div class="shopInfo">
+      <div class="greeting" id="greeting">Hi, welcome back</div>
+      <div class="shopName" id="shopNameDisplay">My Shop</div>
+    </div>
+    <div class="statusToggle">
+      <span class="statusDot"></span> OPEN
+    </div>
+  </div>
+</header>
 
-<button onclick="goStatus()">📦 Live Orders</button>
-<button onclick="goOrders()">📋 Orders (Manage)</button>
-<button onclick="goHistory()">📜 Order History</button>
-<button onclick="goAnalytics()">📊 Analytics</button>
-<button onclick="goAdd()">➕ Add Product</button>
+<!-- ============ MAIN ============ -->
+<main class="container">
 
-<button class="logout" onclick="logout()">🚪 Logout</button>
+  <!-- Stats -->
+  <section class="section">
+    <div class="sectionTitle">Today's Overview</div>
+    <div class="statsRow">
+      <div class="statCard live">
+        <div class="statIcon">⚡</div>
+        <div class="statValue loading" id="statLive"></div>
+        <div class="statLabel">Live orders</div>
+      </div>
+      <div class="statCard pending">
+        <div class="statIcon">⏳</div>
+        <div class="statValue loading" id="statPending"></div>
+        <div class="statLabel">Pending</div>
+      </div>
+      <div class="statCard revenue">
+        <div class="statIcon">💰</div>
+        <div class="statValue loading" id="statRevenue"></div>
+        <div class="statLabel">Today's earning</div>
+      </div>
+      <div class="statCard products">
+        <div class="statIcon">📦</div>
+        <div class="statValue loading" id="statProducts"></div>
+        <div class="statLabel">Products</div>
+      </div>
+    </div>
+  </section>
 
-<script>
+  <!-- Featured add product card -->
+  <section class="section">
+    <div class="addCard" onclick="goAdd()">
+      <div class="addCardIcon">➕</div>
+      <div class="addCardText">
+        <div class="addCardTitle">Add a new product</div>
+        <div class="addCardSub">Expand your catalog and reach more customers</div>
+      </div>
+      <div class="addCardArrow">→</div>
+    </div>
+  </section>
 
-if(!localStorage.getItem("shopEmail")){
-alert("Login first");
-location.href="login.html";
+  <!-- Quick Actions -->
+  <section class="section">
+    <div class="sectionTitle">Manage Your Shop</div>
+    <div class="actionGrid">
+
+      <div class="actionCard live" onclick="goStatus()">
+        <div class="actionBadge" id="liveBadge" style="display:none;">0</div>
+        <div class="actionIcon">⚡</div>
+        <div class="actionTitle">Live Orders</div>
+        <div class="actionSub">Track ongoing orders in real-time</div>
+      </div>
+
+      <div class="actionCard orders" onclick="goOrders()">
+        <div class="actionBadge" id="pendingBadge" style="display:none;">0</div>
+        <div class="actionIcon">📋</div>
+        <div class="actionTitle">Manage Orders</div>
+        <div class="actionSub">Accept and process new orders</div>
+      </div>
+
+      <div class="actionCard history" onclick="goHistory()">
+        <div class="actionIcon">📜</div>
+        <div class="actionTitle">Order History</div>
+        <div class="actionSub">View all completed orders</div>
+      </div>
+
+      <div class="actionCard stats" onclick="goAnalytics()">
+        <div class="actionIcon">📊</div>
+        <div class="actionTitle">Analytics</div>
+        <div class="actionSub">Sales insights and reports</div>
+      </div>
+
+      <div class="actionCard add" onclick="goAdd()">
+        <div class="actionIcon">➕</div>
+        <div class="actionTitle">Add Product</div>
+        <div class="actionSub">List a new item in your store</div>
+      </div>
+
+      <div class="actionCard shop" onclick="goProducts()">
+        <div class="actionIcon">🛍️</div>
+        <div class="actionTitle">My Products</div>
+        <div class="actionSub">Edit and manage your catalog</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Logout -->
+  <section class="section">
+    <button class="logoutBtn" onclick="logout()">
+      🚪 Logout
+    </button>
+  </section>
+
+</main>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { db } from "../js/firebase.js";
+import {
+  collection, query, where, onSnapshot, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ---------- AUTH GUARD ---------- */
+const shopEmail = localStorage.getItem("shopEmail");
+if(!shopEmail){
+  showToast("Please login first", true);
+  setTimeout(()=> location.href = "login.html", 800);
 }
 
-function goStatus(){
-location.href="order-status.html";
+/* ---------- HEADER ---------- */
+const shopName = localStorage.getItem("shopName") || (shopEmail ? shopEmail.split("@")[0] : "My Shop");
+document.getElementById("shopNameDisplay").textContent = shopName;
+
+/* Greeting based on time */
+const hr = new Date().getHours();
+const greet = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
+document.getElementById("greeting").textContent = `${greet} 👋`;
+
+/* ---------- TOAST ---------- */
+const toast = document.getElementById("toast");
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-function goOrders(){
-location.href="orders.html";
+/* ---------- LOAD STATS (live listener for orders) ---------- */
+if(shopEmail){
+  try{
+    const ordersQ = query(collection(db, "orders"), where("shopEmail","==",shopEmail));
+
+    onSnapshot(ordersQ, (snap)=>{
+      let live=0, pending=0, todayRevenue=0;
+      const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+
+      snap.forEach(doc=>{
+        const d = doc.data();
+        const status = (d.status || "").toLowerCase();
+
+        if(status === "pending"){
+          pending++; live++;
+        }else if(["accepted","ready","out for delivery"].includes(status)){
+          live++;
+        }
+
+        // Today's earnings — use shopEarning if present, else fall back to total
+        const t = d.time?.toDate ? d.time.toDate() : new Date(d.time);
+        if(t >= todayStart && status === "delivered"){
+          todayRevenue += (d.shopEarning || d.total || 0);
+        }
+      });
+
+      setStat("statLive", live);
+      setStat("statPending", pending);
+      setStat("statRevenue", "₹" + Math.round(todayRevenue));
+
+      /* Update badges on action cards */
+      const liveBadge = document.getElementById("liveBadge");
+      const pendingBadge = document.getElementById("pendingBadge");
+      liveBadge.style.display    = live > 0 ? "flex" : "none";
+      pendingBadge.style.display = pending > 0 ? "flex" : "none";
+      liveBadge.textContent      = live;
+      pendingBadge.textContent   = pending;
+    });
+
+    /* Products count — one-time fetch */
+    (async ()=>{
+      try{
+        const pSnap = await getDocs(query(collection(db,"products"), where("shopEmail","==",shopEmail)));
+        setStat("statProducts", pSnap.size);
+      }catch(e){
+        setStat("statProducts", "—");
+      }
+    })();
+
+  }catch(err){
+    console.error(err);
+    setStat("statLive", "—");
+    setStat("statPending", "—");
+    setStat("statRevenue", "—");
+    setStat("statProducts", "—");
+  }
 }
 
-function goHistory(){
-location.href="order-history.html";
+function setStat(id, val){
+  const el = document.getElementById(id);
+  el.classList.remove("loading");
+  el.textContent = val;
 }
 
-function goAnalytics(){
-location.href="analytics.html";
-}
+/* ---------- NAV ---------- */
+window.goStatus    = ()=> location.href = "order-status.html";
+window.goOrders    = ()=> location.href = "orders.html";
+window.goHistory   = ()=> location.href = "order-history.html";
+window.goAnalytics = ()=> location.href = "analytics.html";
+window.goAdd       = ()=> location.href = "add-product.html";
+window.goProducts  = ()=> location.href = "my-products.html";
 
-function goAdd(){
-location.href="add-product.html";
-}
-
-function logout(){
-localStorage.clear();
-location.href="login.html";
-}
-
+window.logout = ()=>{
+  if(confirm("Are you sure you want to logout?")){
+    localStorage.removeItem("shopEmail");
+    localStorage.removeItem("shopName");
+    showToast("Logged out");
+    setTimeout(()=> location.href = "login.html", 600);
+  }
+};
 </script>
 
 </body>
