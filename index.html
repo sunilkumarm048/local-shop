@@ -180,6 +180,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .itemIcon.delivery{background:#dcf3e1;}
 .itemIcon.cart    {background:#dbe9ff;}
 .itemIcon.orders  {background:#e8d6f7;}
+.itemIcon.history {background:#ffe8d1;}
+.itemIcon.nearby  {background:#d6f0ff;}
 .itemIcon.help    {background:#ffe0e0;}
 
 .itemContent{flex:1;min-width:0;line-height:1.3;}
@@ -462,7 +464,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .backdrop{
   position:fixed;inset:0;
   background:rgba(0,0,0,.15);
-  z-index:1001;
+  z-index:999;
   display:none;
   opacity:0;
   transition:opacity .2s;
@@ -509,7 +511,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
         <!-- CUSTOMER -->
         <div class="dropdownSection">
           <div class="dropdownLabel">Shopping</div>
-          <a href="customer/cart.html" class="dropdownItem">
+          <a href="/local-shop/customer/cart.html" class="dropdownItem">
             <div class="itemIcon cart">🛒</div>
             <div class="itemContent">
               <div class="itemTitle">My Cart</div>
@@ -518,19 +520,35 @@ button{font-family:inherit;cursor:pointer;border:none;}
             <div class="itemArrow">›</div>
           </a>
           <button class="dropdownItem" onclick="openLastOrder()">
-            <div class="itemIcon orders">📦</div>
+            <div class="itemIcon orders">📍</div>
             <div class="itemContent">
-              <div class="itemTitle">Track Order</div>
-              <div class="itemSub">Track your last order</div>
+              <div class="itemTitle">Track Live Order</div>
+              <div class="itemSub">See your last order on the map</div>
             </div>
             <div class="itemArrow">›</div>
           </button>
+          <a href="/local-shop/customer/order-history.html" class="dropdownItem">
+            <div class="itemIcon history">📜</div>
+            <div class="itemContent">
+              <div class="itemTitle">Order History</div>
+              <div class="itemSub">All your past orders</div>
+            </div>
+            <div class="itemArrow">›</div>
+          </a>
+          <a href="/local-shop/customer/Nearby-Shops.html" class="dropdownItem">
+            <div class="itemIcon nearby">🏪</div>
+            <div class="itemContent">
+              <div class="itemTitle">Nearby Shops</div>
+              <div class="itemSub">Discover stores around you</div>
+            </div>
+            <div class="itemArrow">›</div>
+          </a>
         </div>
 
         <!-- PARTNER -->
         <div class="dropdownSection">
           <div class="dropdownLabel">Partner with us</div>
-          <a href="shop/login.html" class="dropdownItem">
+          <a href="/local-shop/shop/login.html" class="dropdownItem">
             <div class="itemIcon shop">🏪</div>
             <div class="itemContent">
               <div class="itemTitle">Shop Owner Login</div>
@@ -538,7 +556,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
             </div>
             <div class="itemArrow">›</div>
           </a>
-          <a href="delivery/login.html" class="dropdownItem">
+          <a href="/local-shop/delivery/login.html" class="dropdownItem">
             <div class="itemIcon delivery">🚚</div>
             <div class="itemContent">
               <div class="itemTitle">Delivery Partner Login</div>
@@ -656,7 +674,7 @@ window.openLastOrder = ()=>{
   closeProfile();
   const orderId = localStorage.getItem("lastOrderId");
   if(orderId){
-    location.href = "customer/tracking.html?orderId=" + orderId;
+    location.href = "/local-shop/customer/tracking.html?orderId=" + orderId;
   }else{
     showToast("No recent order found. Place an order first!");
   }
@@ -867,7 +885,7 @@ function updateCart(){
 }
 updateCart();
 
-window.openCart = ()=> location.href = "customer/cart.html";
+window.openCart = ()=> location.href = "/local-shop/customer/cart.html";
 
 /* ---------- HELPERS ---------- */
 function escapeHtml(str){
