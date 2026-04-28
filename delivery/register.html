@@ -13,42 +13,25 @@
 
 html,body{
   font-family:'Inter',Arial,sans-serif;
-  background:#f4f4f4;
-  color:#1f1f1f;
-  overflow-x:hidden;
-  min-height:100vh;
+  background:#f4f4f4;color:#1f1f1f;
+  overflow-x:hidden;min-height:100vh;
 }
-
 button{font-family:inherit;cursor:pointer;border:none;}
 
-.app{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+.app{min-height:100vh;display:flex;flex-direction:column;}
 
-/* ============ HERO ============ */
 .hero{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
   padding:24px 16px 50px;
-  position:relative;
-  overflow:hidden;
+  position:relative;overflow:hidden;
 }
 .hero::before{
-  content:"";
-  position:absolute;
-  top:-40px;right:-40px;
-  width:180px;height:180px;
-  background:rgba(255,255,255,.18);
-  border-radius:50%;
+  content:"";position:absolute;top:-40px;right:-40px;
+  width:180px;height:180px;background:rgba(255,255,255,.18);border-radius:50%;
 }
 .hero::after{
-  content:"";
-  position:absolute;
-  bottom:-30px;left:-50px;
-  width:140px;height:140px;
-  background:rgba(255,255,255,.1);
-  border-radius:50%;
+  content:"";position:absolute;bottom:-30px;left:-50px;
+  width:140px;height:140px;background:rgba(255,255,255,.1);border-radius:50%;
 }
 
 .heroBar{
@@ -65,124 +48,78 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .backBtn:active{transform:scale(.94);}
 
 .heroContent{
-  max-width:480px;
-  margin:0 auto;
-  text-align:center;
-  position:relative;
-  z-index:1;
+  max-width:480px;margin:0 auto;text-align:center;
+  position:relative;z-index:1;
 }
 .brandLogo{
-  width:64px;height:64px;
-  background:#fff;
-  border-radius:20px;
+  width:64px;height:64px;background:#fff;border-radius:20px;
   display:flex;align-items:center;justify-content:center;
-  font-size:32px;
-  margin:0 auto 12px;
+  font-size:32px;margin:0 auto 12px;
   box-shadow:0 6px 18px rgba(0,0,0,.12);
 }
 .brandTitle{
-  font-size:20px;font-weight:800;
-  color:#1f1f1f;
-  margin-bottom:4px;
-  letter-spacing:-.3px;
+  font-size:20px;font-weight:800;color:#1f1f1f;
+  margin-bottom:4px;letter-spacing:-.3px;
 }
-.brandSub{
-  font-size:13px;font-weight:500;
-  color:#3a3a3a;
-  line-height:1.4;
-}
+.brandSub{font-size:13px;font-weight:500;color:#3a3a3a;line-height:1.4;}
 
-/* ============ FORM ============ */
 .formWrap{
-  flex:1;
-  padding:0 12px;
-  margin-top:-30px;
-  position:relative;
-  z-index:2;
-  padding-bottom:30px;
+  flex:1;padding:0 12px;margin-top:-30px;
+  position:relative;z-index:2;padding-bottom:30px;
 }
-
 .formCard{
-  background:#fff;
-  border-radius:20px;
-  max-width:480px;
-  margin:0 auto;
-  box-shadow:0 8px 28px rgba(0,0,0,.08);
-  overflow:hidden;
+  background:#fff;border-radius:20px;
+  max-width:480px;margin:0 auto;
+  box-shadow:0 8px 28px rgba(0,0,0,.08);overflow:hidden;
 }
 
-/* ============ PROGRESS BENEFITS STRIP ============ */
 .benefitsStrip{
   display:flex;
   background:linear-gradient(135deg,#dcf3e1 0%,#fff5d6 100%);
-  padding:14px 16px;
-  gap:12px;
-  align-items:center;
+  padding:14px 16px;gap:12px;align-items:center;
   border-bottom:1px solid #f0f0f0;
 }
-.benefitItem{
-  flex:1;
-  text-align:center;
-  line-height:1.2;
-}
+.benefitItem{flex:1;text-align:center;line-height:1.2;}
 .benefitIcon{font-size:20px;margin-bottom:3px;}
-.benefitText{
-  font-size:11px;font-weight:700;
-  color:#1f1f1f;
-}
-.benefitSep{
-  width:1px;height:30px;
-  background:rgba(0,0,0,.1);
-  flex-shrink:0;
-}
+.benefitText{font-size:11px;font-weight:700;color:#1f1f1f;}
+.benefitSep{width:1px;height:30px;background:rgba(0,0,0,.1);flex-shrink:0;}
 
-/* ============ FORM SECTIONS ============ */
 .formBody{padding:18px 18px 20px;}
 
 .sectionLabel{
   display:flex;align-items:center;gap:8px;
-  font-size:12px;font-weight:800;
-  color:#0C831F;
-  letter-spacing:.5px;
-  text-transform:uppercase;
+  font-size:12px;font-weight:800;color:#0C831F;
+  letter-spacing:.5px;text-transform:uppercase;
   margin:6px 0 10px;
 }
 .sectionLabel:first-child{margin-top:0;}
 .sectionLabel::before{
-  content:"";
-  width:18px;height:2px;background:#0C831F;
-  border-radius:1px;
+  content:"";width:18px;height:2px;background:#0C831F;border-radius:1px;
 }
 
-/* ============ FIELDS ============ */
 .field{margin-bottom:12px;}
-
 .fieldLabel{
-  display:block;
-  font-size:12px;font-weight:600;
-  color:#555;letter-spacing:.2px;
-  margin-bottom:5px;
+  display:block;font-size:12px;font-weight:600;
+  color:#555;letter-spacing:.2px;margin-bottom:5px;
+}
+.fieldHelper{
+  font-size:11px;color:#888;
+  font-weight:500;margin-bottom:6px;line-height:1.4;
 }
 
 .inputWrap{
-  position:relative;
-  display:flex;align-items:stretch;
-  border:1.5px solid #e5e5e5;
-  border-radius:10px;
-  background:#fafafa;
-  overflow:hidden;
+  position:relative;display:flex;align-items:stretch;
+  border:1.5px solid #e5e5e5;border-radius:10px;
+  background:#fafafa;overflow:hidden;
   transition:all .15s;
 }
 .inputWrap.focused{border-color:#0C831F;background:#fff;}
 .inputWrap.error{border-color:#d23030;background:#fff5f5;}
 
 .inputIcon{
-  padding:0 10px;
-  display:flex;align-items:center;
-  font-size:15px;color:#888;
-  flex-shrink:0;
-  background:#f0f0f0;
-  border-right:1.5px solid #e5e5e5;
+  padding:0 10px;display:flex;align-items:center;
+  font-size:15px;color:#888;flex-shrink:0;
+  background:#f0f0f0;border-right:1.5px solid #e5e5e5;
   min-width:42px;justify-content:center;
 }
 .inputWrap.focused .inputIcon{
@@ -190,68 +127,70 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 
 .inputField{
-  flex:1;
-  border:none;
-  background:transparent;
-  padding:12px 14px;
-  font-size:14px;font-weight:500;
-  font-family:inherit;
-  color:#1f1f1f;
-  outline:none;
-  width:100%;
-  min-width:0;
+  flex:1;border:none;background:transparent;
+  padding:12px 14px;font-size:14px;font-weight:500;
+  font-family:inherit;color:#1f1f1f;outline:none;
+  width:100%;min-width:0;
 }
 
 .eyeBtn{
-  background:transparent;
-  padding:0 14px;
-  font-size:15px;color:#888;
-  flex-shrink:0;
+  background:transparent;padding:0 14px;
+  font-size:15px;color:#888;flex-shrink:0;
 }
 .eyeBtn:hover{color:#1f1f1f;}
 
 .errorText{
-  display:none;
-  font-size:11px;color:#d23030;
-  font-weight:500;
-  margin-top:4px;padding-left:2px;
+  display:none;font-size:11px;color:#d23030;
+  font-weight:500;margin-top:4px;padding-left:2px;
 }
 .errorText.show{display:block;}
 
 .helperText{
-  font-size:11px;color:#888;
-  font-weight:500;
+  font-size:11px;color:#888;font-weight:500;
   margin-top:4px;padding-left:2px;
 }
 
-/* Phone special */
 .phonePrefix{
-  padding:0 10px;
-  display:flex;align-items:center;
+  padding:0 10px;display:flex;align-items:center;
   font-size:14px;font-weight:700;color:#555;
-  background:#f0f0f0;
-  border-right:1.5px solid #e5e5e5;
+  background:#f0f0f0;border-right:1.5px solid #e5e5e5;
 }
 .inputWrap.focused .phonePrefix{
   background:#dcf3e1;color:#0C831F;border-right-color:#dcf3e1;
 }
 
-/* ============ LOCATION CAPTURE ============ */
-.locationField{
-  background:#fff5d6;
-  border:1.5px dashed #f0d76a;
+/* ============ VEHICLE TYPE PICKER ============ */
+.vehicleGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.vehicleOption{
+  background:#fafafa;border:1.5px solid #e5e5e5;
   border-radius:10px;
-  padding:12px 14px;
-  margin-bottom:12px;
+  padding:12px 10px;
+  text-align:center;cursor:pointer;
+  transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;
+}
+.vehicleOption:hover{border-color:#b3e5bf;}
+.vehicleOption.selected{
+  background:#dcf3e1;border-color:#0C831F;
+  box-shadow:0 2px 8px rgba(12,131,31,.15);
+}
+.voEmoji{font-size:30px;margin-bottom:4px;}
+.voName{font-size:12px;font-weight:700;color:#1f1f1f;line-height:1.2;}
+.vehicleOption.selected .voName{color:#0C831F;}
+.voCap{font-size:10px;color:#888;margin-top:2px;}
+
+.locationField{
+  background:#fff5d6;border:1.5px dashed #f0d76a;
+  border-radius:10px;padding:12px 14px;margin-bottom:12px;
 }
 .locationField.captured{
-  background:#dcf3e1;
-  border:1.5px solid #0C831F;
+  background:#dcf3e1;border:1.5px solid #0C831F;
 }
-
-.locationTop{
-  display:flex;align-items:flex-start;gap:10px;
-}
+.locationTop{display:flex;align-items:flex-start;gap:10px;}
 .locationIcon{
   width:34px;height:34px;border-radius:50%;
   background:rgba(255,255,255,.6);
@@ -262,8 +201,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .locationText{flex:1;line-height:1.3;min-width:0;}
 .locationTitle{
-  font-size:13px;font-weight:700;color:#1f1f1f;
-  margin-bottom:2px;
+  font-size:13px;font-weight:700;color:#1f1f1f;margin-bottom:2px;
 }
 .locationSub{
   font-size:11px;color:#666;
@@ -272,111 +210,79 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .locationField.captured .locationTitle{color:#0C831F;}
 
 .locationBtn{
-  background:#fff;
-  color:#8a6500;
+  background:#fff;color:#8a6500;
   border:1.5px solid #f0d76a;
   padding:6px 12px;border-radius:8px;
-  font-size:11px;font-weight:700;
-  flex-shrink:0;
+  font-size:11px;font-weight:700;flex-shrink:0;
 }
 .locationField.captured .locationBtn{
-  border-color:#0C831F;
-  color:#0C831F;
+  border-color:#0C831F;color:#0C831F;
 }
 .locationBtn:active{transform:scale(.94);}
 
-/* ============ SUBMIT ============ */
 .submitBtn{
-  width:100%;
-  background:#0C831F;
-  color:#fff;
-  padding:14px;
-  border-radius:12px;
-  font-size:15px;font-weight:800;
-  letter-spacing:.4px;
+  width:100%;background:#0C831F;color:#fff;
+  padding:14px;border-radius:12px;
+  font-size:15px;font-weight:800;letter-spacing:.4px;
   display:flex;align-items:center;justify-content:center;gap:8px;
   margin-top:6px;
-  transition:all .12s;
-  position:relative;
+  transition:all .12s;position:relative;
 }
 .submitBtn:active{transform:scale(.98);}
 .submitBtn:hover{background:#0a6e1a;}
-.submitBtn:disabled{
-  background:#a0d3a8;
-  cursor:not-allowed;
-}
+.submitBtn:disabled{background:#a0d3a8;cursor:not-allowed;}
 .submitBtn.loading .submitText{visibility:hidden;}
 .submitBtn .spinner{
-  position:absolute;
-  width:18px;height:18px;
+  position:absolute;width:18px;height:18px;
   border:2.5px solid rgba(255,255,255,.3);
-  border-top-color:#fff;
-  border-radius:50%;
-  display:none;
-  animation:spin .7s linear infinite;
+  border-top-color:#fff;border-radius:50%;
+  display:none;animation:spin .7s linear infinite;
 }
 .submitBtn.loading .spinner{display:block;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ============ TERMS ============ */
 .terms{
-  font-size:11px;color:#888;
-  text-align:center;
+  font-size:11px;color:#888;text-align:center;
   margin-top:12px;line-height:1.5;
 }
 .terms a{color:#0C831F;text-decoration:none;font-weight:600;}
 
-/* ============ LOGIN LINK ============ */
 .loginLink{
-  background:#f8f8f8;
-  border-radius:0 0 20px 20px;
-  padding:14px;
-  text-align:center;
-  font-size:13px;color:#555;
+  background:#f8f8f8;border-radius:0 0 20px 20px;
+  padding:14px;text-align:center;font-size:13px;color:#555;
 }
 .loginLink a{
-  color:#0C831F;
-  font-weight:700;
-  text-decoration:none;
-  margin-left:4px;
+  color:#0C831F;font-weight:700;
+  text-decoration:none;margin-left:4px;
 }
 .loginLink a:hover{text-decoration:underline;}
 
 .footer{
-  text-align:center;
-  font-size:11px;color:#999;
-  padding:14px;
-  flex-shrink:0;
+  text-align:center;font-size:11px;color:#999;
+  padding:14px;flex-shrink:0;
 }
 
-/* ============ TOAST ============ */
 .toast{
-  position:fixed;bottom:24px;
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1f1f1f;color:#fff;
-  padding:12px 20px;border-radius:10px;
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s;
-  z-index:1700;max-width:90%;text-align:center;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ============ SUCCESS MODAL ============ */
 .modalBg{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.55);
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
   display:none;align-items:center;justify-content:center;
-  z-index:2000;
-  padding:20px;
+  z-index:2000;padding:20px;
 }
 .modalBg.show{display:flex;animation:fadeIn .25s;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 .modal{
-  background:#fff;width:100%;max-width:380px;
-  border-radius:18px;
+  background:#fff;width:100%;max-width:380px;border-radius:18px;
   padding:30px 24px 24px;text-align:center;
   animation:scaleIn .3s ease;
 }
@@ -384,38 +290,22 @@ button{font-family:inherit;cursor:pointer;border:none;}
   from{transform:scale(.85);opacity:0;}
   to{transform:scale(1);opacity:1;}
 }
-
 .successIcon{
-  width:80px;height:80px;
-  border-radius:50%;
+  width:80px;height:80px;border-radius:50%;
   background:linear-gradient(135deg,#0C831F,#0fa029);
   display:flex;align-items:center;justify-content:center;
-  margin:0 auto 16px;
-  font-size:42px;
-  color:#fff;
+  margin:0 auto 16px;font-size:42px;color:#fff;
   box-shadow:0 8px 22px rgba(12,131,31,.3);
   animation:popIn .5s ease;
 }
 @keyframes popIn{
-  0%{transform:scale(0);}
-  60%{transform:scale(1.15);}
-  100%{transform:scale(1);}
+  0%{transform:scale(0);}60%{transform:scale(1.15);}100%{transform:scale(1);}
 }
-
-.modal h3{
-  font-size:20px;font-weight:800;
-  color:#1f1f1f;margin-bottom:6px;
-}
-.modal p{
-  font-size:13px;color:#666;
-  line-height:1.5;margin-bottom:18px;
-}
-
+.modal h3{font-size:20px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.5;margin-bottom:18px;}
 .btnPrimary{
-  width:100%;
-  background:#0C831F;color:#fff;
-  padding:13px;border-radius:10px;
-  font-size:14px;font-weight:700;
+  width:100%;background:#0C831F;color:#fff;
+  padding:13px;border-radius:10px;font-size:14px;font-weight:700;
 }
 
 @media(min-width:768px){
@@ -424,7 +314,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   .brandTitle{font-size:22px;}
   .formBody{padding:24px 24px 24px;}
 }
-
 </style>
 </head>
 
@@ -432,7 +321,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <div class="app">
 
-  <!-- ============ HERO ============ -->
   <header class="hero">
     <div class="heroBar">
       <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
@@ -444,11 +332,9 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </header>
 
-  <!-- ============ FORM ============ -->
   <main class="formWrap">
     <div class="formCard">
 
-      <!-- Benefits strip -->
       <div class="benefitsStrip">
         <div class="benefitItem">
           <div class="benefitIcon">💰</div>
@@ -468,7 +354,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
       <div class="formBody">
 
-        <!-- ============ PERSONAL INFO ============ -->
+        <!-- PERSONAL -->
         <div class="sectionLabel">Personal Information</div>
 
         <div class="field">
@@ -487,10 +373,10 @@ button{font-family:inherit;cursor:pointer;border:none;}
             <input class="inputField" id="phone" type="tel" placeholder="10-digit mobile number"
               inputmode="numeric" maxlength="10" autocomplete="tel">
           </div>
-          <div class="errorText" id="phoneError">Enter a valid 10-digit number</div>
+          <div class="errorText" id="phoneError">Enter a valid 10-digit Indian number</div>
         </div>
 
-        <!-- ============ ACCOUNT ============ -->
+        <!-- ACCOUNT -->
         <div class="sectionLabel">Account Details</div>
 
         <div class="field">
@@ -515,8 +401,43 @@ button{font-family:inherit;cursor:pointer;border:none;}
           <div class="helperText" id="passwordHelp">Use at least 6 characters</div>
         </div>
 
-        <!-- ============ VEHICLE ============ -->
-        <div class="sectionLabel">Vehicle Details</div>
+        <!-- VEHICLE TYPE — NEW -->
+        <div class="sectionLabel">Your Vehicle Type</div>
+        <div class="fieldHelper">
+          Choose the vehicle you'll be using. You'll get matched with orders that fit your vehicle's capacity.
+        </div>
+
+        <div class="vehicleGrid" id="vehicleGrid">
+          <div class="vehicleOption" data-vt="bike">
+            <div class="voEmoji">🛵</div>
+            <div class="voName">2-Wheeler</div>
+            <div class="voCap">Up to 20 kg</div>
+          </div>
+          <div class="vehicleOption" data-vt="3wheeler">
+            <div class="voEmoji">🛺</div>
+            <div class="voName">3-Wheeler</div>
+            <div class="voCap">Up to 500 kg</div>
+          </div>
+          <div class="vehicleOption" data-vt="tataAce">
+            <div class="voEmoji">🚐</div>
+            <div class="voName">Tata Ace</div>
+            <div class="voCap">Up to 750 kg</div>
+          </div>
+          <div class="vehicleOption" data-vt="pickup8ft">
+            <div class="voEmoji">🚛</div>
+            <div class="voName">Pickup 8ft</div>
+            <div class="voCap">Up to 1,250 kg</div>
+          </div>
+          <div class="vehicleOption" data-vt="tata407" style="grid-column:1/-1;">
+            <div class="voEmoji">🚚</div>
+            <div class="voName">Tata 407</div>
+            <div class="voCap">Up to 2,500 kg</div>
+          </div>
+        </div>
+        <div class="errorText" id="vehicleTypeError">Please select your vehicle type</div>
+
+        <!-- VEHICLE DETAILS -->
+        <div class="sectionLabel" style="margin-top:14px;">Vehicle Details</div>
 
         <div class="field">
           <label class="fieldLabel" for="license">Driving license number</label>
@@ -537,7 +458,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
           <div class="errorText" id="bikeError">Vehicle number is required</div>
         </div>
 
-        <!-- ============ LOCATION ============ -->
+        <!-- LOCATION -->
         <div class="sectionLabel">Location</div>
 
         <div class="locationField" id="locationField">
@@ -551,7 +472,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
           </div>
         </div>
 
-        <!-- ============ SUBMIT ============ -->
         <button class="submitBtn" id="submitBtn" onclick="register()">
           <span class="submitText">Create Partner Account</span>
           <span class="spinner"></span>
@@ -562,24 +482,18 @@ button{font-family:inherit;cursor:pointer;border:none;}
         </div>
       </div>
 
-      <!-- Login link -->
       <div class="loginLink">
         Already a partner?<a href="login.html">Sign in</a>
       </div>
     </div>
   </main>
 
-  <!-- ============ FOOTER ============ -->
-  <footer class="footer">
-    Local Shop · Delivery Partner v2.0
-  </footer>
+  <footer class="footer">Local Shop · Delivery Partner v2.0</footer>
 
 </div>
 
-<!-- TOAST -->
 <div id="toast" class="toast"></div>
 
-<!-- SUCCESS MODAL -->
 <div class="modalBg" id="successModal">
   <div class="modal">
     <div class="successIcon">✓</div>
@@ -589,7 +503,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
-<!-- FIREBASE LOGIC -->
 <script type="module">
 import { auth, db } from "../js/firebase.js";
 import {
@@ -598,7 +511,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* References */
 const fields = {
   name:     { input: document.getElementById("name"),     wrap: document.getElementById("nameWrap"),     err: document.getElementById("nameError") },
   phone:    { input: document.getElementById("phone"),    wrap: document.getElementById("phoneWrap"),    err: document.getElementById("phoneError") },
@@ -616,10 +528,12 @@ const locationField = document.getElementById("locationField");
 const locationTitle = document.getElementById("locationTitle");
 const locationSub   = document.getElementById("locationSub");
 const locationBtn   = document.getElementById("locationBtn");
+const vehicleGrid   = document.getElementById("vehicleGrid");
+const vehicleTypeError = document.getElementById("vehicleTypeError");
 
-let userLocation = null; // {lat, lng}
+let userLocation = null;
+let selectedVehicleType = null;
 
-/* ---------- TOAST ---------- */
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#0C831F";
@@ -627,14 +541,10 @@ function showToast(msg, isError=false){
   setTimeout(()=> toast.classList.remove("show"), 2800);
 }
 
-/* ---------- AUTO-REDIRECT IF LOGGED IN ---------- */
 onAuthStateChanged(auth, (user)=>{
-  if(user){
-    location.href = "dashboard.html";
-  }
+  if(user){ location.href = "dashboard.html"; }
 });
 
-/* ---------- INPUT FOCUS / VALIDATION ---------- */
 Object.values(fields).forEach(({input, wrap, err})=>{
   input.addEventListener("focus", ()=>{
     wrap.classList.add("focused");
@@ -647,17 +557,14 @@ Object.values(fields).forEach(({input, wrap, err})=>{
   });
 });
 
-/* Phone-specific: digits only, max 10 */
 fields.phone.input.addEventListener("input", ()=>{
   fields.phone.input.value = fields.phone.input.value.replace(/\D/g,"").slice(0,10);
 });
 
-/* Bike: uppercase + alnum */
 fields.bikeNo.input.addEventListener("input", ()=>{
   fields.bikeNo.input.value = fields.bikeNo.input.value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 });
 
-/* ---------- TOGGLE PASSWORD ---------- */
 let pwVisible = false;
 window.togglePassword = ()=>{
   pwVisible = !pwVisible;
@@ -665,24 +572,29 @@ window.togglePassword = ()=>{
   eyeBtn.textContent = pwVisible ? "🙈" : "👁️";
 };
 
-/* ---------- LOCATION ---------- */
+/* ====== VEHICLE TYPE PICKER ====== */
+vehicleGrid.querySelectorAll(".vehicleOption").forEach(opt=>{
+  opt.addEventListener("click", ()=>{
+    vehicleGrid.querySelectorAll(".vehicleOption").forEach(o => o.classList.remove("selected"));
+    opt.classList.add("selected");
+    selectedVehicleType = opt.dataset.vt;
+    vehicleTypeError.classList.remove("show");
+  });
+});
+
 window.captureLocation = ()=>{
   if(!navigator.geolocation){
-    showToast("Geolocation not supported on this device", true);
-    return;
+    showToast("Geolocation not supported", true); return;
   }
   locationBtn.textContent = "Locating…";
   locationBtn.disabled = true;
   navigator.geolocation.getCurrentPosition(async (pos)=>{
     userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-
-    /* Reverse geocode for nice display */
     try{
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLocation.lat}&lon=${userLocation.lng}&format=json`);
       const data = await res.json();
       const a = data.address || {};
       const place = a.suburb || a.neighbourhood || a.village || a.town || a.city || a.state || "Captured";
-
       locationField.classList.add("captured");
       locationTitle.textContent = "✓ Location captured";
       locationSub.textContent = "📍 " + place;
@@ -693,14 +605,13 @@ window.captureLocation = ()=>{
     }
     locationBtn.textContent = "Update";
     locationBtn.disabled = false;
-  }, (err)=>{
+  }, ()=>{
     locationBtn.textContent = "Try again";
     locationBtn.disabled = false;
     showToast("Couldn't get location. Please allow access.", true);
   }, { enableHighAccuracy:true, timeout:10000 });
 };
 
-/* ---------- VALIDATION ---------- */
 function isValidEmail(s){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s); }
 
 function validateAll(){
@@ -715,11 +626,10 @@ function validateAll(){
 
   let valid = true;
 
-  if(!v.name){
-    setError("name", "Please enter your name"); valid = false;
-  }
-  if(v.phone.length !== 10){
-    setError("phone", "Enter a valid 10-digit number"); valid = false;
+  if(!v.name){ setError("name", "Please enter your name"); valid = false; }
+  /* FIX: Indian phone validation (6-9 prefix) */
+  if(v.phone.length !== 10 || !/^[6-9]/.test(v.phone)){
+    setError("phone", "Enter a valid 10-digit Indian number (starts with 6-9)"); valid = false;
   }
   if(!isValidEmail(v.email)){
     setError("email", v.email ? "Please enter a valid email" : "Please enter your email"); valid = false;
@@ -727,11 +637,12 @@ function validateAll(){
   if(v.password.length < 6){
     setError("password", "Password must be at least 6 characters"); valid = false;
   }
-  if(!v.license){
-    setError("license", "License number is required"); valid = false;
-  }
-  if(!v.bikeNo){
-    setError("bikeNo", "Vehicle number is required"); valid = false;
+  if(!v.license){ setError("license", "License number is required"); valid = false; }
+  if(!v.bikeNo){ setError("bikeNo", "Vehicle number is required"); valid = false; }
+
+  if(!selectedVehicleType){
+    vehicleTypeError.classList.add("show");
+    valid = false;
   }
 
   return valid ? v : false;
@@ -743,7 +654,6 @@ function setError(key, msg){
   fields[key].err.classList.add("show");
 }
 
-/* ---------- REGISTER ---------- */
 window.register = async ()=>{
   const v = validateAll();
   if(!v){
@@ -756,31 +666,29 @@ window.register = async ()=>{
     return;
   }
 
-  /* Loading state */
   submitBtn.classList.add("loading");
   submitBtn.disabled = true;
 
   try{
-    /* Create Firebase user */
     await createUserWithEmailAndPassword(auth, v.email, v.password);
 
-    /* Save delivery partner profile */
+    /* NEW: include vehicleType */
     await setDoc(doc(db, "delivery", v.email), {
       name:           v.name,
       email:          v.email,
       phone:          v.phone,
       licenseNumber:  v.license,
       bikeNumber:     v.bikeNo,
+      vehicleType:    selectedVehicleType,   // NEW field
       lat:            userLocation.lat,
       lng:            userLocation.lng,
       available:      true,
-      verified:       true,            // skip approval flow (matches your old code)
+      verified:       true,
       earnings:       0,
       totalDeliveries:0,
       createdAt:      new Date()
     });
 
-    /* Show success modal */
     successModal.classList.add("show");
     submitBtn.classList.remove("loading");
     submitBtn.disabled = false;
