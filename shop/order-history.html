@@ -10,28 +10,16 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
-html,body{
-  font-family:'Inter',Arial,sans-serif;
-  background:#f4f4f4;
-  color:#1f1f1f;
-  overflow-x:hidden;
-}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
 body{padding-bottom:30px;}
-
 button{font-family:inherit;cursor:pointer;border:none;}
 
-/* ============ HEADER ============ */
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
-  padding:14px 16px;
-  position:sticky;top:0;z-index:1000;
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-.topBar{
-  display:flex;align-items:center;gap:12px;
-  max-width:1100px;margin:0 auto;
-}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
 .backBtn{
   background:rgba(255,255,255,.4);
   width:38px;height:38px;border-radius:50%;
@@ -44,40 +32,19 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
 .pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
 
-/* SEARCH */
-.searchWrap{
-  margin:12px auto 0;
-  max-width:1100px;
-  position:relative;
-}
-
+.searchWrap{margin:12px auto 0;max-width:1100px;position:relative;}
 .searchWrap input{
-  width:100%;
-  padding:11px 14px 11px 38px;
-  border-radius:10px;
-  border:1px solid rgba(0,0,0,.08);
-  font-size:13px;
-  background:#fff;
-  font-family:inherit;
-  outline:none;
-  transition:border-color .15s;
+  width:100%;padding:11px 14px 11px 38px;
+  border-radius:10px;border:1px solid rgba(0,0,0,.08);
+  font-size:13px;background:#fff;font-family:inherit;
+  outline:none;transition:border-color .15s;
 }
-.searchWrap input:focus{
-  border-color:#0C831F;
-}
-.searchIcon{
-  position:absolute;
-  left:13px;top:50%;
-  transform:translateY(-50%);
-  font-size:14px;
-  color:#666;
-}
+.searchWrap input:focus{border-color:#0C831F;}
+.searchIcon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#666;}
 
-/* ============ FILTER TABS ============ */
 .tabs{
   display:flex;gap:8px;
-  padding:12px 12px 4px;
-  max-width:1100px;margin:0 auto;
+  padding:12px 12px 4px;max-width:1100px;margin:0 auto;
   overflow-x:auto;scrollbar-width:none;
 }
 .tabs::-webkit-scrollbar{display:none;}
@@ -98,40 +65,22 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .tab.active .tabCount{background:rgba(255,255,255,.25);color:#fff;}
 
-/* ============ MAIN ============ */
-.container{
-  max-width:1100px;margin:0 auto;
-  padding:6px 12px 0;
-}
+.container{max-width:1100px;margin:0 auto;padding:6px 12px 0;}
 
-/* ============ SUMMARY STRIP ============ */
-.summary{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin-bottom:14px;
-}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
 .summaryCard{
-  background:#fff;
-  border-radius:12px;
-  padding:12px 10px;
-  text-align:center;
+  background:#fff;border-radius:12px;padding:12px 10px;text-align:center;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
-.summaryValue{
-  font-size:16px;font-weight:800;color:#1f1f1f;
-  line-height:1.1;
-}
+.summaryValue{font-size:16px;font-weight:800;color:#1f1f1f;line-height:1.1;}
 .summaryLabel{
   font-size:10px;color:#666;font-weight:500;
-  margin-top:4px;letter-spacing:.2px;
-  text-transform:uppercase;
+  margin-top:4px;letter-spacing:.2px;text-transform:uppercase;
 }
 .summaryValue.loading{
   display:inline-block;width:50px;height:14px;
   background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
-  background-size:200% 100%;
-  animation:shimmer 1.4s infinite;
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
   border-radius:4px;vertical-align:middle;
 }
 @keyframes shimmer{
@@ -139,68 +88,44 @@ button{font-family:inherit;cursor:pointer;border:none;}
   100%{background-position:-200% 0;}
 }
 
-/* ============ DATE GROUP HEADER ============ */
 .dateHeader{
-  font-size:11px;font-weight:700;
-  color:#666;letter-spacing:.4px;
-  text-transform:uppercase;
-  margin:14px 4px 8px;
+  font-size:11px;font-weight:700;color:#666;letter-spacing:.4px;
+  text-transform:uppercase;margin:14px 4px 8px;
   display:flex;align-items:center;gap:8px;
 }
-.dateHeader::before{
-  content:"";
-  width:3px;height:12px;background:#0C831F;
-  border-radius:2px;
-}
+.dateHeader::before{content:"";width:3px;height:12px;background:#0C831F;border-radius:2px;}
 
-/* ============ ORDER CARD ============ */
 .orderCard{
   background:#fff;border-radius:14px;
   margin-bottom:10px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
-  overflow:hidden;
-  border:1px solid #ececec;
-  cursor:pointer;
-  transition:box-shadow .15s;
+  overflow:hidden;border:1px solid #ececec;
+  cursor:pointer;transition:box-shadow .15s;
 }
 .orderCard:hover{box-shadow:0 3px 10px rgba(0,0,0,.06);}
 
 .cardTop{
   display:flex;align-items:center;justify-content:space-between;
-  padding:12px 14px;
-  border-bottom:1px solid #f4f4f4;
-  background:#fafafa;
-  gap:10px;
+  padding:12px 14px;border-bottom:1px solid #f4f4f4;background:#fafafa;gap:10px;
 }
 .cardLeft{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
-.orderNum{
-  font-size:13px;font-weight:800;color:#1f1f1f;
-  letter-spacing:.3px;font-family:monospace;
-}
+.orderNum{font-size:13px;font-weight:800;color:#1f1f1f;letter-spacing:.3px;font-family:monospace;}
 .timeAgo{font-size:11px;color:#888;font-weight:500;}
 
 .statusPill{
   padding:4px 10px;border-radius:20px;
   font-size:10px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.4px;
-  white-space:nowrap;
+  text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;
 }
 .pill-delivered{background:#dcf3e1;color:#0C831F;}
 .pill-rejected{background:#fde0e0;color:#c41818;}
 .pill-cancelled{background:#f0f0f0;color:#888;}
 
-/* CUSTOMER */
-.custStrip{
-  display:flex;align-items:center;gap:10px;
-  padding:12px 14px;
-  border-bottom:1px solid #f4f4f4;
-}
+.custStrip{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f4f4f4;}
 .custAvatar{
-  width:36px;height:36px;border-radius:50%;
-  background:#fff5d6;
+  width:36px;height:36px;border-radius:50%;background:#fff5d6;
   display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:800;color:#8a6500;
-  flex-shrink:0;
+  font-size:14px;font-weight:800;color:#8a6500;flex-shrink:0;
 }
 .custInfo{flex:1;min-width:0;line-height:1.3;}
 .custName{
@@ -213,71 +138,50 @@ button{font-family:inherit;cursor:pointer;border:none;}
   -webkit-box-orient:vertical;overflow:hidden;
 }
 
-/* SUMMARY */
 .cardFoot{
   display:flex;align-items:center;justify-content:space-between;
-  padding:10px 14px;
-  font-size:12px;color:#666;
+  padding:10px 14px;font-size:12px;color:#666;
 }
-.itemsCount{
-  display:flex;align-items:center;gap:5px;
-  font-weight:600;
-}
-.foot-amount{
-  font-size:15px;font-weight:800;color:#0C831F;
-}
+.itemsCount{display:flex;align-items:center;gap:5px;font-weight:600;}
+.foot-amount{font-size:15px;font-weight:800;color:#0C831F;}
 .foot-amount .label{
   font-size:10px;font-weight:600;color:#888;
-  text-transform:uppercase;
-  letter-spacing:.3px;margin-right:4px;
+  text-transform:uppercase;letter-spacing:.3px;margin-right:4px;
 }
 
-/* ============ EXPANDED ITEMS ============ */
 .itemsExpanded{
-  display:none;
-  padding:0 14px 12px;
-  border-top:1px solid #f4f4f4;
-  background:#fafafa;
+  display:none;padding:0 14px 12px;
+  border-top:1px solid #f4f4f4;background:#fafafa;
 }
 .orderCard.expanded .itemsExpanded{display:block;}
 .orderCard.expanded .cardFoot{border-bottom:1px solid #f4f4f4;}
 
 .itemRow{
   display:flex;align-items:center;gap:10px;
-  padding:8px 0;
-  font-size:12px;
+  padding:8px 0;font-size:12px;
   border-bottom:1px dashed #ececec;
 }
 .itemRow:last-child{border-bottom:none;}
-.itemRow .dot{
-  width:6px;height:6px;border-radius:50%;
-  background:#0C831F;flex-shrink:0;
-}
+.itemRow .dot{width:6px;height:6px;border-radius:50%;background:#0C831F;flex-shrink:0;}
 .itemRow .iName{flex:1;color:#1f1f1f;font-weight:500;}
 .itemRow .iQty{color:#777;font-weight:600;margin-right:4px;}
 .itemRow .iPrice{font-weight:700;color:#1f1f1f;}
 
 .expandedTotal{
   display:flex;justify-content:space-between;
-  padding:10px 0 0;
-  font-size:13px;font-weight:700;
-  border-top:1px dashed #d0d0d0;
-  margin-top:6px;
+  padding:10px 0 0;font-size:13px;font-weight:700;
+  border-top:1px dashed #d0d0d0;margin-top:6px;
 }
 
-/* ============ EMPTY ============ */
 .empty{
-  text-align:center;
-  padding:60px 20px;
-  background:#fff;border-radius:14px;
-  margin-top:14px;
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;margin-top:14px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
 .empty .icon{font-size:64px;margin-bottom:14px;}
 .empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
 .empty p{font-size:13px;color:#777;line-height:1.5;}
 
-/* SKELETON */
 .skel{
   background:#fff;border-radius:14px;
   padding:14px;margin-bottom:10px;
@@ -292,17 +196,14 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .skelLine.short{width:50%;}
 .skelLine.med{width:75%;}
 
-/* TOAST */
 .toast{
-  position:fixed;bottom:24px;
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1f1f1f;color:#fff;
-  padding:12px 20px;border-radius:10px;
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s;
-  z-index:1500;max-width:90%;text-align:center;
+  transition:all .25s;z-index:1500;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
@@ -313,11 +214,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 
 @media(min-width:900px){
-  .ordersList{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
-  }
+  .ordersList{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
   .orderCard{margin-bottom:0;}
   .dateHeader{grid-column:1/-1;}
 }
@@ -326,7 +223,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <body>
 
-<!-- ============ HEADER ============ -->
 <header class="header">
   <div class="topBar">
     <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
@@ -348,10 +244,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </header>
 
-<!-- ============ MAIN ============ -->
 <main class="container">
 
-  <!-- Summary -->
   <div class="summary">
     <div class="summaryCard">
       <div class="summaryValue loading" id="sumOrders"></div>
@@ -367,7 +261,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </div>
 
-  <!-- Orders -->
   <div id="orders" class="ordersList">
     <div class="skel">
       <div class="skelLine med"></div>
@@ -383,7 +276,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 </main>
 
-<!-- TOAST -->
 <div id="toast" class="toast"></div>
 
 <script type="module">
@@ -391,16 +283,15 @@ import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const ordersDiv  = document.getElementById("orders");
-const headerSub  = document.getElementById("headerSub");
-const toast      = document.getElementById("toast");
+const ordersDiv = document.getElementById("orders");
+const headerSub = document.getElementById("headerSub");
+const toast     = document.getElementById("toast");
 
 let myEmail = null;
 let allOrders = [];
 let currentFilter = "all";
 let searchTerm = "";
 
-/* ---------- TOAST ---------- */
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#1f1f1f";
@@ -409,9 +300,7 @@ function showToast(msg, isError=false){
 }
 
 function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
 function timeAgo(t){
@@ -423,15 +312,6 @@ function timeAgo(t){
   if(sec < 86400) return Math.floor(sec/3600) + "h ago";
   if(sec < 604800)return Math.floor(sec/86400) + "d ago";
   return d.toLocaleDateString("en-IN", {day:"numeric", month:"short"});
-}
-
-function fullDate(t){
-  if(!t) return "";
-  const d = t.toDate ? t.toDate() : new Date(t);
-  return d.toLocaleString("en-IN", {
-    day:"numeric", month:"short", year:"numeric",
-    hour:"numeric", minute:"2-digit"
-  });
 }
 
 function dateGroupKey(t){
@@ -455,12 +335,8 @@ function isDelivered(o){
   const dStatus = (o.deliveryStatus || "").toLowerCase();
   return status === "delivered" || dStatus === "delivered" || dStatus === "completed";
 }
+function isRejected(o){ return (o.status || "").toLowerCase() === "rejected"; }
 
-function isRejected(o){
-  return (o.status || "").toLowerCase() === "rejected";
-}
-
-/* ---------- TABS ---------- */
 document.querySelectorAll(".tab").forEach(tab=>{
   tab.addEventListener("click", ()=>{
     document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
@@ -470,13 +346,11 @@ document.querySelectorAll(".tab").forEach(tab=>{
   });
 });
 
-/* ---------- SEARCH ---------- */
 window.onSearch = ()=>{
   searchTerm = document.getElementById("search").value.toLowerCase().trim();
   renderOrders();
 };
 
-/* ---------- AUTH ---------- */
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
     showToast("Login required", true);
@@ -487,7 +361,6 @@ onAuthStateChanged(auth, async (user)=>{
   await loadOrders();
 });
 
-/* ---------- LOAD ---------- */
 async function loadOrders(){
   try{
     const snap = await getDocs(query(
@@ -498,13 +371,11 @@ async function loadOrders(){
     allOrders = [];
     snap.forEach(d=>{
       const o = d.data(); o.__id = d.id;
-      // Skip in-progress orders — only show completed/rejected
       if(isDelivered(o) || isRejected(o)){
         allOrders.push(o);
       }
     });
 
-    /* Also include split-orders */
     try{
       const snap2 = await getDocs(query(
         collection(db, "split-orders"),
@@ -520,7 +391,6 @@ async function loadOrders(){
       });
     }catch(e){ /* split-orders may not exist */ }
 
-    /* Sort newest first */
     allOrders.sort((a,b)=>{
       const ta = a.time?.toDate ? a.time.toDate().getTime() : 0;
       const tb = b.time?.toDate ? b.time.toDate().getTime() : 0;
@@ -539,15 +409,12 @@ async function loadOrders(){
   }
 }
 
-/* ---------- SUMMARY ---------- */
 function updateSummary(){
   const delivered = allOrders.filter(isDelivered);
   const rejected = allOrders.filter(isRejected);
 
   let revenue = 0;
-  delivered.forEach(o=>{
-    revenue += Number(o.shopEarning || o.total || 0);
-  });
+  delivered.forEach(o=>{ revenue += Number(o.shopEarning || o.total || 0); });
   const avg = delivered.length ? revenue / delivered.length : 0;
 
   setSummary("sumOrders",  delivered.length);
@@ -568,15 +435,12 @@ function setSummary(id, val){
   el.textContent = val;
 }
 
-/* ---------- RENDER ORDERS ---------- */
 function renderOrders(){
   let visible = allOrders.slice();
 
-  /* Filter */
   if(currentFilter === "delivered") visible = visible.filter(isDelivered);
   else if(currentFilter === "rejected") visible = visible.filter(isRejected);
 
-  /* Search */
   if(searchTerm){
     visible = visible.filter(o=>{
       const inName = (o.name || "").toLowerCase().includes(searchTerm);
@@ -589,18 +453,22 @@ function renderOrders(){
     });
   }
 
+  /* FIX: use innerHTML on the same ordersDiv element so the reference stays valid.
+     The previous version replaced ordersDiv via outerHTML, breaking subsequent renders. */
   if(visible.length === 0){
-    ordersDiv.innerHTML = "";
     let icon = "📜", title = "No orders found", msg = "Your completed orders will appear here.";
     if(searchTerm){ icon="🔍"; title="No matches found"; msg="Try a different search term."; }
     else if(currentFilter === "delivered"){ icon="📦"; title="No delivered orders"; msg="Completed deliveries appear here."; }
     else if(currentFilter === "rejected"){ icon="✕"; title="No rejected orders"; msg="Orders you've rejected appear here."; }
-    ordersDiv.outerHTML = `<main class="container" style="padding-top:0;"><div class="empty"><div class="icon">${icon}</div><h3>${title}</h3><p>${escapeHtml(msg)}</p></div></main>`;
-    // Re-attach reference (the outerHTML replaced it)
+    ordersDiv.innerHTML = `
+      <div class="empty">
+        <div class="icon">${icon}</div>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(msg)}</p>
+      </div>`;
     return;
   }
 
-  /* Group by date */
   const groups = new Map();
   visible.forEach(o=>{
     const key = dateGroupKey(o.time);
@@ -615,7 +483,6 @@ function renderOrders(){
   });
   ordersDiv.innerHTML = html;
 
-  /* Wire up expand toggles */
   ordersDiv.querySelectorAll(".orderCard").forEach(c=>{
     c.addEventListener("click", ()=>{
       c.classList.toggle("expanded");
@@ -640,7 +507,6 @@ function renderCard(order){
   const total = order.total || 0;
   const itemCount = order.items?.length || 0;
 
-  /* Items list */
   let itemsHtml = "";
   if(Array.isArray(order.items)){
     order.items.forEach(it=>{
@@ -690,7 +556,6 @@ function renderCard(order){
     </div>`;
 }
 
-/* ---------- NAV ---------- */
 window.goBack = ()=> location.href = "dashboard.html";
 </script>
 
