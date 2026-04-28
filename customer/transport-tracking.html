@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Track Transport · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{
+  font-size:12px;color:#3a3a3a;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.refreshBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.refreshBtn:active{transform:scale(.94) rotate(180deg);transition:.4s;}
+
+.container{max-width:900px;margin:0 auto;padding:14px 12px 0;}
+
+/* Status banner */
+.statusBanner{
+  background:#fff;border-radius:14px;
+  padding:16px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  display:flex;align-items:center;gap:14px;
+  border-left:4px solid #F0B91D;
+}
+.statusBanner.searching{border-left-color:#F0B91D;}
+.statusBanner.assigned{border-left-color:#1857c1;}
+.statusBanner.picked{border-left-color:#0C831F;}
+.statusBanner.delivered{border-left-color:#0C831F;background:#f0fbf2;}
+.statusBanner.cancelled{border-left-color:#d23030;background:#fff5f5;}
+
+.statusIcon{
+  width:50px;height:50px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+  background:#fff5d6;
+}
+.statusBanner.assigned .statusIcon{background:#dbe9ff;}
+.statusBanner.picked .statusIcon,
+.statusBanner.delivered .statusIcon{background:#dcf3e1;}
+.statusBanner.cancelled .statusIcon{background:#fde0e0;}
+
+.statusText{flex:1;line-height:1.3;min-width:0;}
+.statusTitle{font-size:15px;font-weight:800;color:#1f1f1f;}
+.statusDesc{font-size:12px;color:#666;margin-top:3px;}
+
+/* Map */
+.mapWrap{
+  background:#fff;border-radius:14px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:12px;
+}
+#map{height:280px;background:#e9e9e9;}
+@media(min-width:600px){#map{height:340px;}}
+
+/* Driver card */
+.driverCard{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.driverTop{display:flex;align-items:center;gap:12px;}
+.driverAvatar{
+  width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,#F8CD46,#F0B91D);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+.driverInfo{flex:1;min-width:0;line-height:1.3;}
+.driverName{
+  font-size:15px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.driverMeta{
+  font-size:12px;color:#666;margin-top:2px;
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+}
+.driverMeta .dot{width:3px;height:3px;border-radius:50%;background:#bbb;}
+.callBtn{
+  background:#dcf3e1;color:#0C831F;border:1px solid #b3e5bf;
+  padding:9px 16px;border-radius:10px;
+  font-size:13px;font-weight:700;
+  display:flex;align-items:center;gap:5px;
+  text-decoration:none;flex-shrink:0;
+}
+.callBtn:active{transform:scale(.96);}
+
+/* Journey */
+.journeyCard{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.cardTitle{
+  font-size:13px;font-weight:700;color:#1f1f1f;
+  margin-bottom:12px;
+}
+.journey{
+  display:flex;flex-direction:column;
+  position:relative;padding-left:8px;
+}
+.jStep{
+  display:flex;gap:14px;
+  position:relative;padding-bottom:18px;
+}
+.jStep:last-child{padding-bottom:0;}
+.jLine{
+  position:absolute;top:30px;left:13px;bottom:-4px;
+  width:2px;background:#e5e5e5;
+}
+.jStep:last-child .jLine{display:none;}
+.jStep.done .jLine{background:#0C831F;}
+
+.jDot{
+  width:28px;height:28px;border-radius:50%;
+  background:#fff;border:2px solid #e5e5e5;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;color:#bbb;
+  position:relative;z-index:1;
+}
+.jStep.done .jDot{background:#0C831F;border-color:#0C831F;color:#fff;}
+.jStep.active .jDot{
+  background:#fff;border-color:#0C831F;color:#0C831F;
+  box-shadow:0 0 0 4px rgba(12,131,31,.15);
+}
+.jStep.active .jDot::after{
+  content:"";width:8px;height:8px;border-radius:50%;
+  background:#0C831F;
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  animation:pulseDot 1.4s infinite;
+}
+@keyframes pulseDot{
+  0%,100%{opacity:1;transform:translate(-50%,-50%) scale(1);}
+  50%{opacity:.4;transform:translate(-50%,-50%) scale(.7);}
+}
+.jBody{flex:1;min-width:0;line-height:1.3;}
+.jTitle{font-size:13px;font-weight:700;color:#1f1f1f;}
+.jStep.done .jTitle{color:#0C831F;}
+.jSub{font-size:11px;color:#888;margin-top:2px;}
+
+/* Bill / details */
+.billRow{
+  display:flex;justify-content:space-between;
+  padding:7px 0;font-size:13px;
+}
+.billRow:not(:last-child){border-bottom:1px dashed #f0f0f0;}
+.billRow .lbl{color:#666;}
+.billRow .val{font-weight:600;color:#1f1f1f;}
+.billRow.total{
+  padding-top:12px;margin-top:4px;
+  border-top:2px solid #f0f0f0;border-bottom:none;
+}
+.billRow.total .lbl{font-size:14px;font-weight:700;color:#1f1f1f;}
+.billRow.total .val{font-size:18px;font-weight:800;color:#0C831F;}
+
+.routeLine{
+  display:flex;gap:10px;padding:6px 0;align-items:flex-start;
+}
+.routeLine .pin{
+  width:22px;height:22px;border-radius:50%;
+  background:#dcf3e1;color:#0C831F;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;margin-top:2px;
+}
+.routeLine.drop .pin{background:#fde0e0;color:#d23030;}
+.routeText{flex:1;line-height:1.4;}
+.routeAddr{font-size:13px;color:#1f1f1f;font-weight:500;}
+.routePerson{font-size:11px;color:#666;margin-top:2px;}
+
+/* Cancel button */
+.cancelBtn{
+  width:100%;
+  background:#fff;color:#d23030;
+  border:1.5px solid #ffd2d2;padding:13px;border-radius:12px;
+  font-size:13px;font-weight:700;
+  margin-top:6px;
+}
+.cancelBtn:active{transform:scale(.98);background:#fff5f5;}
+
+/* Empty / error state */
+.empty{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;line-height:1.5;margin-bottom:18px;}
+.empty .btn{
+  background:#0C831F;color:#fff;
+  padding:12px 22px;border-radius:10px;
+  font-size:13px;font-weight:700;
+}
+
+/* Modal */
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
+}
+.modalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary  {flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger   {flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:420px;}
+}
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.searchingHint{
+  background:linear-gradient(90deg,#fff5d6 0%,#ffeec1 100%);
+  border-radius:14px;padding:14px;
+  text-align:center;font-size:13px;color:#8a6500;
+  font-weight:600;margin-bottom:12px;
+}
+.searchingHint .pulse{
+  display:inline-block;width:8px;height:8px;
+  border-radius:50%;background:#F0B91D;margin-right:6px;
+  animation:pulseDot 1.2s infinite;
+}
+
+.leaflet-popup-content-wrapper{border-radius:8px;}
+.leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">📦 Transport</div>
+      <div class="pageSub" id="pageSub">Loading…</div>
+    </div>
+    <button class="refreshBtn" onclick="location.reload()" aria-label="Refresh">🔄</button>
+  </div>
+</header>
+
+<main class="container" id="mainContent">
+  <!-- filled in by JS -->
+  <div class="empty">
+    <div class="icon">📦</div>
+    <h3>Loading order…</h3>
+    <p>Just a moment.</p>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<!-- Cancel modal -->
+<div class="modalBg" id="cancelModal">
+  <div class="modal">
+    <div class="icon">⚠️</div>
+    <h3>Cancel this booking?</h3>
+    <p>If a driver is already assigned, they may have started moving. Cancellation may incur a small fee.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeCancelModal()">Don't Cancel</button>
+      <button class="btnDanger" onclick="confirmCancel()">Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script type="module">
+import { db } from "/local-shop/js/firebase.js";
+import { doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const params = new URLSearchParams(location.search);
+let orderId = params.get("orderId") || localStorage.getItem("lastTransportOrderId");
+
+const main = document.getElementById("mainContent");
+const pageSub = document.getElementById("pageSub");
+const toast = document.getElementById("toast");
+
+let map = null, pickupMarker = null, dropMarker = null, driverMarker = null, routeLine = null;
+let currentOrder = null;
+
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+function emojiPin(emoji, bg, color="#fff"){
+  return L.divIcon({
+    className:"",
+    html:`<div style="background:${bg};width:38px;height:38px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 3px 8px rgba(0,0,0,.25);border:2.5px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:16px;font-weight:800;color:${color};line-height:1;">${emoji}</div>
+          </div>`,
+    iconSize:[38,38], iconAnchor:[19,38], popupAnchor:[0,-38]
+  });
+}
+
+if(!orderId){
+  showError("No order found", "Please book a transport first or open a booking link.");
+}else{
+  /* Live listener */
+  onSnapshot(doc(db, "transport-orders", orderId), (snap)=>{
+    if(!snap.exists()){
+      showError("Order not found", "This booking may have been removed.");
+      return;
+    }
+    currentOrder = { ...snap.data(), __id: snap.id };
+    renderOrder(currentOrder);
+  }, (err)=>{
+    console.error(err);
+    showError("Could not load order", "Check your connection and try again.");
+  });
+}
+
+function showError(title, msg){
+  main.innerHTML = `
+    <div class="empty">
+      <div class="icon">⚠️</div>
+      <h3>${escapeHtml(title)}</h3>
+      <p>${escapeHtml(msg)}</p>
+      <button class="btn" onclick="location.href='/local-shop/index.html'">Back to Home</button>
+    </div>`;
+}
+
+function getStatusInfo(o){
+  const status = (o.status || "").toLowerCase();
+  const dStatus = (o.deliveryStatus || "").toLowerCase();
+  const step = o.pickupStep || 0;
+
+  if(status === "cancelled" || dStatus === "cancelled"){
+    return { cls:"cancelled", icon:"❌", title:"Booking cancelled",
+      desc:"This booking is no longer active." };
+  }
+  if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+    return { cls:"delivered", icon:"✓", title:"Delivered",
+      desc:"Your goods have been delivered safely." };
+  }
+  if(o.deliveryBoyId){
+    if(step === 0){
+      return { cls:"assigned", icon:"🚐", title:"Driver heading to pickup",
+        desc:`${o.deliveryBoyName || "Your driver"} is on the way to collect your goods.` };
+    }else if(step === 1){
+      return { cls:"picked", icon:"📦", title:"On the way to drop",
+        desc:"Goods picked up · driver is heading to the drop location." };
+    }else{
+      return { cls:"picked", icon:"🏁", title:"Arriving at drop",
+        desc:"Driver has reached the drop location." };
+    }
+  }
+  return { cls:"searching", icon:"🔍", title:"Looking for a driver",
+    desc:`Finding a ${o.vehicleName || "vehicle"} near you. Usually takes 2-5 minutes.` };
+}
+
+function renderOrder(o){
+  const sInfo = getStatusInfo(o);
+  pageSub.textContent = sInfo.title;
+
+  const isCancelled = sInfo.cls === "cancelled";
+  const isDelivered = sInfo.cls === "delivered";
+  const hasDriver = !!o.deliveryBoyId;
+  const step = o.pickupStep || 0;
+  const orderShort = "#" + o.__id.slice(-6).toUpperCase();
+
+  let html = `
+    <div class="statusBanner ${sInfo.cls}">
+      <div class="statusIcon">${sInfo.icon}</div>
+      <div class="statusText">
+        <div class="statusTitle">${escapeHtml(sInfo.title)}</div>
+        <div class="statusDesc">${escapeHtml(sInfo.desc)}</div>
+      </div>
+    </div>
+  `;
+
+  if(sInfo.cls === "searching"){
+    html += `
+      <div class="searchingHint">
+        <span class="pulse"></span>
+        Looking for the closest ${escapeHtml(o.vehicleName || "vehicle")} driver…
+      </div>`;
+  }
+
+  /* Map (only show if not cancelled) */
+  if(!isCancelled){
+    html += `
+      <div class="mapWrap">
+        <div id="map"></div>
+      </div>`;
+  }
+
+  /* Driver info */
+  if(hasDriver && !isCancelled){
+    html += `
+      <div class="driverCard">
+        <div class="driverTop">
+          <div class="driverAvatar">${escapeHtml(o.vehicleIcon || "🚚")}</div>
+          <div class="driverInfo">
+            <div class="driverName">${escapeHtml(o.deliveryBoyName || "Driver")}</div>
+            <div class="driverMeta">
+              <span>${escapeHtml(o.vehicleName || "")}</span>
+              ${o.deliveryVehicle ? `<span class="dot"></span><span>${escapeHtml(o.deliveryVehicle)}</span>` : ""}
+            </div>
+          </div>
+          ${o.deliveryBoyPhone ? `<a class="callBtn" href="tel:${escapeHtml(o.deliveryBoyPhone)}">📞 Call</a>` : ""}
+        </div>
+      </div>`;
+  }
+
+  /* Journey */
+  html += `
+    <div class="journeyCard">
+      <div class="cardTitle">📋 Journey</div>
+      <div class="journey">
+        <div class="jStep ${hasDriver?"done":"active"}">
+          <div class="jLine"></div>
+          <div class="jDot">${hasDriver?"":"1"}</div>
+          <div class="jBody">
+            <div class="jTitle">${hasDriver?"Driver assigned":"Looking for driver"}</div>
+            <div class="jSub">${hasDriver?escapeHtml(o.deliveryBoyName||""):"We're matching you with a nearby driver"}</div>
+          </div>
+        </div>
+        <div class="jStep ${step>=1?"done":(hasDriver?"active":"")}">
+          <div class="jLine"></div>
+          <div class="jDot">${step>=1?"":"2"}</div>
+          <div class="jBody">
+            <div class="jTitle">${step>=1?"Picked up":"Heading to pickup"}</div>
+            <div class="jSub">${escapeHtml((o.pickupAddress||"").split(",").slice(0,2).join(","))}</div>
+          </div>
+        </div>
+        <div class="jStep ${isDelivered?"done":(step>=2?"active":"")}">
+          <div class="jLine"></div>
+          <div class="jDot">${isDelivered?"":"3"}</div>
+          <div class="jBody">
+            <div class="jTitle">${step>=2?"At drop":"En route to drop"}</div>
+            <div class="jSub">${escapeHtml((o.dropAddress||"").split(",").slice(0,2).join(","))}</div>
+          </div>
+        </div>
+        <div class="jStep ${isDelivered?"active":""}">
+          <div class="jDot">${isDelivered?"✓":"4"}</div>
+          <div class="jBody">
+            <div class="jTitle">Delivered</div>
+            <div class="jSub">Goods handed over to receiver</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  /* Pickup + Drop addresses */
+  html += `
+    <div class="journeyCard">
+      <div class="cardTitle">📍 Trip details</div>
+      <div class="routeLine">
+        <div class="pin">P</div>
+        <div class="routeText">
+          <div class="routeAddr">${escapeHtml(o.pickupAddress || "—")}</div>
+          <div class="routePerson">📞 ${escapeHtml(o.pickupContactName || "")} · ${escapeHtml(o.pickupContactPhone || "")}</div>
+        </div>
+      </div>
+      <div class="routeLine drop">
+        <div class="pin">D</div>
+        <div class="routeText">
+          <div class="routeAddr">${escapeHtml(o.dropAddress || "—")}</div>
+          <div class="routePerson">📞 ${escapeHtml(o.dropContactName || "")} · ${escapeHtml(o.dropContactPhone || "")}</div>
+        </div>
+      </div>
+    </div>`;
+
+  /* Bill */
+  const distanceFare = (o.estimatedFare || 0);
+  html += `
+    <div class="journeyCard">
+      <div class="cardTitle">💰 Fare details</div>
+      <div class="billRow">
+        <span class="lbl">Vehicle</span>
+        <span class="val">${escapeHtml(o.vehicleIcon||"🚚")} ${escapeHtml(o.vehicleName||"—")}</span>
+      </div>
+      <div class="billRow">
+        <span class="lbl">Distance</span>
+        <span class="val">${(o.distanceKm || 0).toFixed(1)} km</span>
+      </div>
+      <div class="billRow">
+        <span class="lbl">Goods</span>
+        <span class="val">${escapeHtml(o.goodsType ? capitalize(o.goodsType) : "—")}</span>
+      </div>
+      <div class="billRow">
+        <span class="lbl">Order ID</span>
+        <span class="val" style="font-family:monospace;">${orderShort}</span>
+      </div>
+      <div class="billRow total">
+        <span class="lbl">Total fare</span>
+        <span class="val">₹${distanceFare}</span>
+      </div>
+    </div>`;
+
+  /* Cancel button (only when not started) */
+  if(!hasDriver && !isCancelled && !isDelivered){
+    html += `<button class="cancelBtn" onclick="openCancelModal()">Cancel Booking</button>`;
+  }
+
+  main.innerHTML = html;
+
+  /* Map */
+  if(!isCancelled){
+    setTimeout(()=> renderMap(o), 50);
+  }
+}
+
+function capitalize(s){
+  return s ? s[0].toUpperCase() + s.slice(1) : "";
+}
+
+function renderMap(o){
+  const el = document.getElementById("map");
+  if(!el) return;
+
+  if(map){
+    try{ map.remove(); }catch(e){}
+    map = null; pickupMarker = null; dropMarker = null; driverMarker = null; routeLine = null;
+  }
+
+  map = L.map(el, { zoomControl:true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
+
+  const points = [];
+
+  if(o.pickupLat && o.pickupLng){
+    pickupMarker = L.marker([o.pickupLat, o.pickupLng], {icon:emojiPin("P","#0C831F")})
+      .addTo(map).bindPopup("Pickup");
+    points.push([o.pickupLat, o.pickupLng]);
+  }
+  if(o.dropLat && o.dropLng){
+    dropMarker = L.marker([o.dropLat, o.dropLng], {icon:emojiPin("D","#d23030")})
+      .addTo(map).bindPopup("Drop");
+    points.push([o.dropLat, o.dropLng]);
+  }
+  if(o.deliveryLat && o.deliveryLng){
+    driverMarker = L.marker([o.deliveryLat, o.deliveryLng], {icon:emojiPin(o.vehicleIcon||"🚚","#1857c1")})
+      .addTo(map).bindPopup("Driver");
+    points.push([o.deliveryLat, o.deliveryLng]);
+  }
+
+  /* Connect with line */
+  if(o.pickupLat && o.dropLat){
+    routeLine = L.polyline([[o.pickupLat, o.pickupLng], [o.dropLat, o.dropLng]], {
+      color:'#0C831F', weight:3, opacity:.5, dashArray:'8 6'
+    }).addTo(map);
+  }
+
+  if(points.length === 1){
+    map.setView(points[0], 14);
+  }else if(points.length > 1){
+    map.fitBounds(points, {padding:[40,40], maxZoom:15});
+  }
+  setTimeout(()=> map.invalidateSize(), 100);
+}
+
+/* CANCEL */
+window.openCancelModal = ()=> document.getElementById("cancelModal").classList.add("show");
+window.closeCancelModal = ()=> document.getElementById("cancelModal").classList.remove("show");
+document.getElementById("cancelModal").addEventListener("click",(e)=>{
+  if(e.target.id === "cancelModal") closeCancelModal();
+});
+
+window.confirmCancel = async ()=>{
+  if(!currentOrder){ closeCancelModal(); return; }
+  try{
+    await updateDoc(doc(db, "transport-orders", currentOrder.__id), {
+      status: "Cancelled",
+      deliveryStatus: "Cancelled"
+    });
+    closeCancelModal();
+    showToast("Booking cancelled");
+  }catch(e){
+    console.error(e);
+    showToast("Could not cancel. Try again.", true);
+  }
+};
+
+window.goBack = ()=> location.href = "/local-shop/index.html";
+</script>
+
+</body>
+</html>
