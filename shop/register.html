@@ -13,256 +13,160 @@
 
 html,body{
   font-family:'Inter',Arial,sans-serif;
-  background:#f4f4f4;
-  color:#1f1f1f;
-  overflow-x:hidden;
-  min-height:100vh;
+  background:#f4f4f4;color:#1f1f1f;
+  overflow-x:hidden;min-height:100vh;
 }
-
 button{font-family:inherit;cursor:pointer;border:none;}
 
-.app{
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+.app{min-height:100vh;display:flex;flex-direction:column;}
 
-/* ============ HERO ============ */
 .hero{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
-  padding:24px 16px 50px;
-  position:relative;
-  overflow:hidden;
+  padding:24px 16px 50px;position:relative;overflow:hidden;
 }
 .hero::before{
-  content:"";
-  position:absolute;
-  top:-40px;right:-40px;
-  width:180px;height:180px;
-  background:rgba(255,255,255,.18);
-  border-radius:50%;
+  content:"";position:absolute;top:-40px;right:-40px;
+  width:180px;height:180px;background:rgba(255,255,255,.18);border-radius:50%;
 }
 .hero::after{
-  content:"";
-  position:absolute;
-  bottom:-30px;left:-50px;
-  width:140px;height:140px;
-  background:rgba(255,255,255,.1);
-  border-radius:50%;
+  content:"";position:absolute;bottom:-30px;left:-50px;
+  width:140px;height:140px;background:rgba(255,255,255,.1);border-radius:50%;
 }
 
-.heroBar{
-  display:flex;align-items:center;gap:12px;
-  max-width:480px;margin:0 auto 20px;
-  position:relative;z-index:1;
-}
+.heroBar{display:flex;align-items:center;gap:12px;max-width:480px;margin:0 auto 20px;position:relative;z-index:1;}
 .backBtn{
-  background:rgba(255,255,255,.4);
-  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.4);width:38px;height:38px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
 }
 .backBtn:active{transform:scale(.94);}
 
-.heroContent{
-  max-width:480px;
-  margin:0 auto;
-  text-align:center;
-  position:relative;
-  z-index:1;
-}
+.heroContent{max-width:480px;margin:0 auto;text-align:center;position:relative;z-index:1;}
 .brandLogo{
-  width:64px;height:64px;
-  background:#fff;
-  border-radius:20px;
+  width:64px;height:64px;background:#fff;border-radius:20px;
   display:flex;align-items:center;justify-content:center;
-  font-size:32px;
-  margin:0 auto 12px;
+  font-size:32px;margin:0 auto 12px;
   box-shadow:0 6px 18px rgba(0,0,0,.12);
 }
-.brandTitle{
-  font-size:20px;font-weight:800;
-  color:#1f1f1f;
-  margin-bottom:4px;
-  letter-spacing:-.3px;
-}
-.brandSub{
-  font-size:13px;font-weight:500;
-  color:#3a3a3a;
-  line-height:1.4;
-}
+.brandTitle{font-size:20px;font-weight:800;color:#1f1f1f;margin-bottom:4px;letter-spacing:-.3px;}
+.brandSub{font-size:13px;font-weight:500;color:#3a3a3a;line-height:1.4;}
 
-/* ============ FORM ============ */
 .formWrap{
-  flex:1;
-  padding:0 12px;
-  margin-top:-30px;
-  position:relative;
-  z-index:2;
-  padding-bottom:30px;
+  flex:1;padding:0 12px;margin-top:-30px;
+  position:relative;z-index:2;padding-bottom:30px;
 }
 
 .formCard{
-  background:#fff;
-  border-radius:20px;
-  max-width:480px;
-  margin:0 auto;
+  background:#fff;border-radius:20px;
+  max-width:480px;margin:0 auto;
   box-shadow:0 8px 28px rgba(0,0,0,.08);
   overflow:hidden;
 }
 
-/* ============ BENEFITS STRIP ============ */
 .benefitsStrip{
-  display:flex;
-  background:linear-gradient(135deg,#dcf3e1 0%,#fff5d6 100%);
-  padding:14px 16px;
-  gap:12px;
-  align-items:center;
+  display:flex;background:linear-gradient(135deg,#dcf3e1 0%,#fff5d6 100%);
+  padding:14px 16px;gap:12px;align-items:center;
   border-bottom:1px solid #f0f0f0;
 }
-.benefitItem{
-  flex:1;
-  text-align:center;
-  line-height:1.2;
-}
+.benefitItem{flex:1;text-align:center;line-height:1.2;}
 .benefitIcon{font-size:20px;margin-bottom:3px;}
-.benefitText{
-  font-size:11px;font-weight:700;
-  color:#1f1f1f;
-}
-.benefitSep{
-  width:1px;height:30px;
-  background:rgba(0,0,0,.1);
-  flex-shrink:0;
-}
+.benefitText{font-size:11px;font-weight:700;color:#1f1f1f;}
+.benefitSep{width:1px;height:30px;background:rgba(0,0,0,.1);flex-shrink:0;}
 
-/* ============ FORM SECTIONS ============ */
 .formBody{padding:18px 18px 20px;}
 
 .sectionLabel{
   display:flex;align-items:center;gap:8px;
-  font-size:12px;font-weight:800;
-  color:#0C831F;
-  letter-spacing:.5px;
-  text-transform:uppercase;
+  font-size:12px;font-weight:800;color:#0C831F;
+  letter-spacing:.5px;text-transform:uppercase;
   margin:6px 0 10px;
 }
 .sectionLabel:first-child{margin-top:0;}
-.sectionLabel::before{
-  content:"";
-  width:18px;height:2px;background:#0C831F;
-  border-radius:1px;
-}
+.sectionLabel::before{content:"";width:18px;height:2px;background:#0C831F;border-radius:1px;}
 
-/* ============ FIELDS ============ */
 .field{margin-bottom:12px;}
-
 .fieldLabel{
-  display:block;
-  font-size:12px;font-weight:600;
-  color:#555;letter-spacing:.2px;
-  margin-bottom:5px;
+  display:block;font-size:12px;font-weight:600;
+  color:#555;letter-spacing:.2px;margin-bottom:5px;
 }
 
 .inputWrap{
-  position:relative;
-  display:flex;align-items:stretch;
-  border:1.5px solid #e5e5e5;
-  border-radius:10px;
-  background:#fafafa;
-  overflow:hidden;
-  transition:all .15s;
+  position:relative;display:flex;align-items:stretch;
+  border:1.5px solid #e5e5e5;border-radius:10px;
+  background:#fafafa;overflow:hidden;transition:all .15s;
 }
 .inputWrap.focused{border-color:#0C831F;background:#fff;}
 .inputWrap.error{border-color:#d23030;background:#fff5f5;}
 
 .inputIcon{
-  padding:0 10px;
-  display:flex;align-items:center;
-  font-size:15px;color:#888;
-  flex-shrink:0;
-  background:#f0f0f0;
-  border-right:1.5px solid #e5e5e5;
+  padding:0 10px;display:flex;align-items:center;
+  font-size:15px;color:#888;flex-shrink:0;
+  background:#f0f0f0;border-right:1.5px solid #e5e5e5;
   min-width:42px;justify-content:center;
 }
-.inputWrap.focused .inputIcon{
-  color:#0C831F;background:#dcf3e1;border-right-color:#dcf3e1;
-}
+.inputWrap.focused .inputIcon{color:#0C831F;background:#dcf3e1;border-right-color:#dcf3e1;}
 
 .inputField{
-  flex:1;
-  border:none;
-  background:transparent;
-  padding:12px 14px;
-  font-size:14px;font-weight:500;
-  font-family:inherit;
-  color:#1f1f1f;
-  outline:none;
-  width:100%;
-  min-width:0;
+  flex:1;border:none;background:transparent;
+  padding:12px 14px;font-size:14px;font-weight:500;
+  font-family:inherit;color:#1f1f1f;outline:none;
+  width:100%;min-width:0;
 }
 
-/* SELECT */
-.selectField{
-  flex:1;
-  border:none;
-  background:transparent;
-  padding:12px 38px 12px 14px;
-  font-size:14px;font-weight:500;
-  font-family:inherit;
-  color:#1f1f1f;
-  outline:none;
-  width:100%;
-  min-width:0;
-  cursor:pointer;
-  appearance:none;
-  -webkit-appearance:none;
+/* CUSTOM CATEGORY DROPDOWN (replaces native <select> for icons) */
+.catSelect{
+  flex:1;display:flex;align-items:center;
+  padding:12px 38px 12px 14px;cursor:pointer;
+  font-size:14px;font-weight:500;color:#1f1f1f;
+  position:relative;min-width:0;
   background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
-  background-repeat:no-repeat;
-  background-position:right 14px center;
+  background-repeat:no-repeat;background-position:right 14px center;
 }
-.selectField:disabled{
-  color:#999;cursor:not-allowed;
+.catSelect.placeholder{color:#999;}
+.catSelect .catIcon{font-size:17px;margin-right:8px;flex-shrink:0;}
+.catSelect .catLabel{
+  flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+
+.catDropdown{
+  display:none;position:absolute;
+  top:calc(100% + 4px);left:0;right:0;
+  background:#fff;border:1.5px solid #e5e5e5;
+  border-radius:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.12);
+  max-height:280px;overflow-y:auto;z-index:50;
+}
+.catDropdown.open{display:block;}
+.catOption{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 14px;font-size:13px;color:#1f1f1f;
+  cursor:pointer;font-weight:500;
+  border-bottom:1px solid #f4f4f4;transition:background .12s;
+}
+.catOption:last-child{border-bottom:none;}
+.catOption:hover{background:#f8f8f8;}
+.catOption.selected{background:#dcf3e1;color:#0C831F;font-weight:700;}
+.catOption .ic{font-size:18px;flex-shrink:0;}
 
 .eyeBtn{
-  background:transparent;
-  padding:0 14px;
-  font-size:15px;color:#888;
-  flex-shrink:0;
+  background:transparent;padding:0 14px;
+  font-size:15px;color:#888;flex-shrink:0;
 }
 .eyeBtn:hover{color:#1f1f1f;}
 
 .errorText{
-  display:none;
-  font-size:11px;color:#d23030;
-  font-weight:500;
-  margin-top:4px;padding-left:2px;
+  display:none;font-size:11px;color:#d23030;
+  font-weight:500;margin-top:4px;padding-left:2px;
 }
 .errorText.show{display:block;}
+.helperText{font-size:11px;color:#888;font-weight:500;margin-top:4px;padding-left:2px;}
 
-.helperText{
-  font-size:11px;color:#888;
-  font-weight:500;
-  margin-top:4px;padding-left:2px;
-}
-
-/* ============ LOCATION CAPTURE ============ */
 .locationField{
-  background:#fff5d6;
-  border:1.5px dashed #f0d76a;
-  border-radius:10px;
-  padding:12px 14px;
-  margin-bottom:12px;
+  background:#fff5d6;border:1.5px dashed #f0d76a;
+  border-radius:10px;padding:12px 14px;margin-bottom:12px;
 }
-.locationField.captured{
-  background:#dcf3e1;
-  border:1.5px solid #0C831F;
-}
-
-.locationTop{
-  display:flex;align-items:flex-start;gap:10px;
-}
+.locationField.captured{background:#dcf3e1;border:1.5px solid #0C831F;}
+.locationTop{display:flex;align-items:flex-start;gap:10px;}
 .locationIcon{
   width:34px;height:34px;border-radius:50%;
   background:rgba(255,255,255,.6);
@@ -270,174 +174,103 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:16px;flex-shrink:0;
 }
 .locationField.captured .locationIcon{background:#fff;}
-
 .locationText{flex:1;line-height:1.3;min-width:0;}
-.locationTitle{
-  font-size:13px;font-weight:700;color:#1f1f1f;
-  margin-bottom:2px;
-}
+.locationTitle{font-size:13px;font-weight:700;color:#1f1f1f;margin-bottom:2px;}
 .locationSub{
   font-size:11px;color:#666;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .locationField.captured .locationTitle{color:#0C831F;}
-
 .locationBtn{
-  background:#fff;
-  color:#8a6500;
+  background:#fff;color:#8a6500;
   border:1.5px solid #f0d76a;
   padding:6px 12px;border-radius:8px;
-  font-size:11px;font-weight:700;
-  flex-shrink:0;
+  font-size:11px;font-weight:700;flex-shrink:0;
 }
-.locationField.captured .locationBtn{
-  border-color:#0C831F;
-  color:#0C831F;
-}
+.locationField.captured .locationBtn{border-color:#0C831F;color:#0C831F;}
 .locationBtn:active{transform:scale(.94);}
 
-/* ============ SUBMIT ============ */
 .submitBtn{
-  width:100%;
-  background:#0C831F;
-  color:#fff;
-  padding:14px;
-  border-radius:12px;
-  font-size:15px;font-weight:800;
-  letter-spacing:.4px;
+  width:100%;background:#0C831F;color:#fff;
+  padding:14px;border-radius:12px;
+  font-size:15px;font-weight:800;letter-spacing:.4px;
   display:flex;align-items:center;justify-content:center;gap:8px;
-  margin-top:6px;
-  transition:all .12s;
-  position:relative;
+  margin-top:6px;transition:all .12s;position:relative;
 }
 .submitBtn:active{transform:scale(.98);}
 .submitBtn:hover{background:#0a6e1a;}
-.submitBtn:disabled{
-  background:#a0d3a8;
-  cursor:not-allowed;
-}
+.submitBtn:disabled{background:#a0d3a8;cursor:not-allowed;}
 .submitBtn.loading .submitText{visibility:hidden;}
 .submitBtn .spinner{
-  position:absolute;
-  width:18px;height:18px;
+  position:absolute;width:18px;height:18px;
   border:2.5px solid rgba(255,255,255,.3);
-  border-top-color:#fff;
-  border-radius:50%;
-  display:none;
-  animation:spin .7s linear infinite;
+  border-top-color:#fff;border-radius:50%;
+  display:none;animation:spin .7s linear infinite;
 }
 .submitBtn.loading .spinner{display:block;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* PROGRESS STATUS during signup */
 .progressNote{
-  background:#fff5d6;
-  border-radius:8px;
-  padding:8px 12px;
-  font-size:12px;font-weight:600;
-  color:#8a6500;
-  text-align:center;
-  margin-top:10px;
-  display:none;
+  background:#fff5d6;border-radius:8px;
+  padding:8px 12px;font-size:12px;font-weight:600;
+  color:#8a6500;text-align:center;margin-top:10px;display:none;
 }
 .progressNote.show{display:block;}
 
-/* ============ TERMS ============ */
 .terms{
-  font-size:11px;color:#888;
-  text-align:center;
+  font-size:11px;color:#888;text-align:center;
   margin-top:12px;line-height:1.5;
 }
 .terms a{color:#0C831F;text-decoration:none;font-weight:600;}
 
-/* ============ LOGIN LINK ============ */
 .loginLink{
-  background:#f8f8f8;
-  border-radius:0 0 20px 20px;
-  padding:14px;
-  text-align:center;
-  font-size:13px;color:#555;
+  background:#f8f8f8;border-radius:0 0 20px 20px;
+  padding:14px;text-align:center;font-size:13px;color:#555;
 }
-.loginLink a{
-  color:#0C831F;
-  font-weight:700;
-  text-decoration:none;
-  margin-left:4px;
-}
+.loginLink a{color:#0C831F;font-weight:700;text-decoration:none;margin-left:4px;}
 .loginLink a:hover{text-decoration:underline;}
 
-.footer{
-  text-align:center;
-  font-size:11px;color:#999;
-  padding:14px;
-  flex-shrink:0;
-}
+.footer{text-align:center;font-size:11px;color:#999;padding:14px;flex-shrink:0;}
 
-/* ============ TOAST ============ */
 .toast{
-  position:fixed;bottom:24px;
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1f1f1f;color:#fff;
-  padding:12px 20px;border-radius:10px;
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s;
-  z-index:1700;max-width:90%;text-align:center;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ============ SUCCESS MODAL ============ */
 .modalBg{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.55);
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
   display:none;align-items:center;justify-content:center;
-  z-index:2000;
-  padding:20px;
+  z-index:2000;padding:20px;
 }
 .modalBg.show{display:flex;animation:fadeIn .25s;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 .modal{
-  background:#fff;width:100%;max-width:380px;
-  border-radius:18px;
-  padding:30px 24px 24px;text-align:center;
-  animation:scaleIn .3s ease;
+  background:#fff;width:100%;max-width:380px;border-radius:18px;
+  padding:30px 24px 24px;text-align:center;animation:scaleIn .3s ease;
 }
-@keyframes scaleIn{
-  from{transform:scale(.85);opacity:0;}
-  to{transform:scale(1);opacity:1;}
-}
+@keyframes scaleIn{from{transform:scale(.85);opacity:0;}to{transform:scale(1);opacity:1;}}
 
 .successIcon{
-  width:80px;height:80px;
-  border-radius:50%;
+  width:80px;height:80px;border-radius:50%;
   background:linear-gradient(135deg,#0C831F,#0fa029);
   display:flex;align-items:center;justify-content:center;
-  margin:0 auto 16px;
-  font-size:42px;
-  color:#fff;
-  box-shadow:0 8px 22px rgba(12,131,31,.3);
-  animation:popIn .5s ease;
+  margin:0 auto 16px;font-size:42px;color:#fff;
+  box-shadow:0 8px 22px rgba(12,131,31,.3);animation:popIn .5s ease;
 }
-@keyframes popIn{
-  0%{transform:scale(0);}
-  60%{transform:scale(1.15);}
-  100%{transform:scale(1);}
-}
+@keyframes popIn{0%{transform:scale(0);}60%{transform:scale(1.15);}100%{transform:scale(1);}}
 
-.modal h3{
-  font-size:20px;font-weight:800;
-  color:#1f1f1f;margin-bottom:6px;
-}
-.modal p{
-  font-size:13px;color:#666;
-  line-height:1.5;margin-bottom:18px;
-}
+.modal h3{font-size:20px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.5;margin-bottom:18px;}
 
 .btnPrimary{
-  width:100%;
-  background:#0C831F;color:#fff;
+  width:100%;background:#0C831F;color:#fff;
   padding:13px;border-radius:10px;
   font-size:14px;font-weight:700;
 }
@@ -455,7 +288,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <div class="app">
 
-  <!-- ============ HERO ============ -->
   <header class="hero">
     <div class="heroBar">
       <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
@@ -467,31 +299,19 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </header>
 
-  <!-- ============ FORM ============ -->
   <main class="formWrap">
     <div class="formCard">
 
-      <!-- Benefits strip -->
       <div class="benefitsStrip">
-        <div class="benefitItem">
-          <div class="benefitIcon">🛍️</div>
-          <div class="benefitText">Sell online</div>
-        </div>
+        <div class="benefitItem"><div class="benefitIcon">🛍️</div><div class="benefitText">Sell online</div></div>
         <div class="benefitSep"></div>
-        <div class="benefitItem">
-          <div class="benefitIcon">📈</div>
-          <div class="benefitText">Grow sales</div>
-        </div>
+        <div class="benefitItem"><div class="benefitIcon">📈</div><div class="benefitText">Grow sales</div></div>
         <div class="benefitSep"></div>
-        <div class="benefitItem">
-          <div class="benefitIcon">⚡</div>
-          <div class="benefitText">Quick setup</div>
-        </div>
+        <div class="benefitItem"><div class="benefitIcon">⚡</div><div class="benefitText">Quick setup</div></div>
       </div>
 
       <div class="formBody">
 
-        <!-- ============ SHOP INFO ============ -->
         <div class="sectionLabel">Shop Information</div>
 
         <div class="field">
@@ -503,18 +323,19 @@ button{font-family:inherit;cursor:pointer;border:none;}
           <div class="errorText" id="nameError">Please enter your shop name</div>
         </div>
 
+        <!-- CUSTOM ICONIZED CATEGORY DROPDOWN -->
         <div class="field">
-          <label class="fieldLabel" for="shopSelect">Shop category</label>
-          <div class="inputWrap" id="categoryWrap">
-            <span class="inputIcon">📂</span>
-            <select class="selectField" id="shopSelect" disabled>
-              <option>Loading categories…</option>
-            </select>
+          <label class="fieldLabel">Shop category</label>
+          <div class="inputWrap" id="categoryWrap" style="position:relative;">
+            <span class="inputIcon" id="catSelectIcon">📂</span>
+            <div class="catSelect placeholder" id="catSelect" tabindex="0">
+              <span class="catLabel" id="catSelectLabel">Loading categories…</span>
+            </div>
+            <div class="catDropdown" id="catDropdown"></div>
           </div>
           <div class="errorText" id="categoryError">Please select a category</div>
         </div>
 
-        <!-- ============ ACCOUNT ============ -->
         <div class="sectionLabel">Account Details</div>
 
         <div class="field">
@@ -539,7 +360,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
           <div class="helperText">Use at least 6 characters</div>
         </div>
 
-        <!-- ============ LOCATION ============ -->
         <div class="sectionLabel">Shop Location</div>
 
         <div class="field">
@@ -562,13 +382,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
           </div>
         </div>
 
-        <!-- ============ SUBMIT ============ -->
         <button class="submitBtn" id="submitBtn" onclick="register()">
           <span class="submitText">Create Shop Account</span>
           <span class="spinner"></span>
         </button>
 
-        <!-- Progress note while signing up -->
         <div class="progressNote" id="progressNote">⏳ Creating your shop…</div>
 
         <div class="terms">
@@ -576,24 +394,18 @@ button{font-family:inherit;cursor:pointer;border:none;}
         </div>
       </div>
 
-      <!-- Login link -->
       <div class="loginLink">
         Already have a shop?<a href="login.html">Sign in</a>
       </div>
     </div>
   </main>
 
-  <!-- ============ FOOTER ============ -->
-  <footer class="footer">
-    Local Shop · Merchant Portal v2.0
-  </footer>
+  <footer class="footer">Local Shop · Merchant Portal v2.0</footer>
 
 </div>
 
-<!-- TOAST -->
 <div id="toast" class="toast"></div>
 
-<!-- SUCCESS MODAL -->
 <div class="modalBg" id="successModal">
   <div class="modal">
     <div class="successIcon">✓</div>
@@ -603,7 +415,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
-<!-- FIREBASE LOGIC -->
 <script type="module">
 import { auth, db } from "/local-shop/js/firebase.js";
 import {
@@ -614,26 +425,33 @@ import {
   addDoc, collection, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* References */
 const fields = {
   name:         { input: document.getElementById("name"),         wrap: document.getElementById("nameWrap"),         err: document.getElementById("nameError") },
   email:        { input: document.getElementById("email"),        wrap: document.getElementById("emailWrap"),        err: document.getElementById("emailError") },
   password:     { input: document.getElementById("password"),     wrap: document.getElementById("passwordWrap"),     err: document.getElementById("passwordError") },
   locationText: { input: document.getElementById("locationText"), wrap: document.getElementById("locationTextWrap"), err: document.getElementById("locationTextError") },
-  category:     { input: document.getElementById("shopSelect"),   wrap: document.getElementById("categoryWrap"),     err: document.getElementById("categoryError") },
 };
 
-const submitBtn   = document.getElementById("submitBtn");
-const eyeBtn      = document.getElementById("eyeBtn");
-const toast       = document.getElementById("toast");
-const successModal= document.getElementById("successModal");
-const locationField = document.getElementById("locationField");
-const locationTitle = document.getElementById("locationTitle");
-const locationSub   = document.getElementById("locationSub");
-const locationBtn   = document.getElementById("locationBtn");
-const progressNote  = document.getElementById("progressNote");
+const submitBtn       = document.getElementById("submitBtn");
+const eyeBtn          = document.getElementById("eyeBtn");
+const toast           = document.getElementById("toast");
+const successModal    = document.getElementById("successModal");
+const locationField   = document.getElementById("locationField");
+const locationTitle   = document.getElementById("locationTitle");
+const locationSub     = document.getElementById("locationSub");
+const locationBtn     = document.getElementById("locationBtn");
+const progressNote    = document.getElementById("progressNote");
+const categoryWrap    = document.getElementById("categoryWrap");
+const categoryError   = document.getElementById("categoryError");
+const catSelect       = document.getElementById("catSelect");
+const catSelectIcon   = document.getElementById("catSelectIcon");
+const catSelectLabel  = document.getElementById("catSelectLabel");
+const catDropdown     = document.getElementById("catDropdown");
 
 let userLocation = null;
+let shopTypes = [];   // [{name, icon}]
+let chosenCategory = null;
+let chosenIcon = "🏪";
 
 /* ---------- TOAST ---------- */
 function showToast(msg, isError=false){
@@ -650,21 +468,11 @@ onAuthStateChanged(auth, (user)=>{
   }
 });
 
-/* ---------- INPUT FOCUS / VALIDATION ---------- */
+/* ---------- FOCUS / VALIDATION FOR INPUTS ---------- */
 Object.values(fields).forEach(({input, wrap, err})=>{
-  input.addEventListener("focus", ()=>{
-    wrap.classList.add("focused");
-    wrap.classList.remove("error");
-  });
-  input.addEventListener("blur", ()=> wrap.classList.remove("focused"));
-  input.addEventListener("input", ()=>{
-    wrap.classList.remove("error");
-    err.classList.remove("show");
-  });
-  input.addEventListener("change", ()=>{
-    wrap.classList.remove("error");
-    err.classList.remove("show");
-  });
+  input.addEventListener("focus", ()=>{ wrap.classList.add("focused"); wrap.classList.remove("error"); });
+  input.addEventListener("blur",  ()=>  wrap.classList.remove("focused"));
+  input.addEventListener("input", ()=>{ wrap.classList.remove("error"); err.classList.remove("show"); });
 });
 
 /* ---------- TOGGLE PASSWORD ---------- */
@@ -675,35 +483,69 @@ window.togglePassword = ()=>{
   eyeBtn.textContent = pwVisible ? "🙈" : "👁️";
 };
 
-/* ---------- LOAD CATEGORIES ---------- */
+/* ---------- LOAD CATEGORIES (with icons) ---------- */
 async function loadCategories(){
-  const select = fields.category.input;
   try{
     const snap = await getDocs(collection(db, "shops"));
-    const cats = [];
+    shopTypes = [];
     snap.forEach(doc=>{
       const data = doc.data();
       if(data.name){
-        cats.push(data.name);
+        shopTypes.push({
+          name: data.name,
+          icon: data.icon || "🏪"
+        });
       }
     });
 
-    if(cats.length === 0){
-      select.innerHTML = `<option value="">No categories available</option>`;
-      select.disabled = true;
+    if(shopTypes.length === 0){
+      catSelectLabel.textContent = "No categories available";
       return;
     }
 
-    select.innerHTML = `<option value="" disabled selected>Choose a category…</option>` +
-      cats.map(c => `<option value="${escapeAttr(c)}">${escapeHtml(c)}</option>`).join("");
-    select.disabled = false;
+    catSelectLabel.textContent = "Choose a category…";
+    catDropdown.innerHTML = shopTypes.map(s=>`
+      <div class="catOption" data-name="${escapeAttr(s.name)}" data-icon="${escapeAttr(s.icon)}">
+        <span class="ic">${escapeHtml(s.icon)}</span>
+        <span>${escapeHtml(s.name)}</span>
+      </div>
+    `).join("");
+
+    /* Wire up option clicks */
+    catDropdown.querySelectorAll(".catOption").forEach(opt=>{
+      opt.addEventListener("click", ()=>{
+        chosenCategory = opt.dataset.name;
+        chosenIcon = opt.dataset.icon || "🏪";
+        catSelectLabel.textContent = chosenCategory;
+        catSelectIcon.textContent  = chosenIcon;
+        catSelect.classList.remove("placeholder");
+        catDropdown.classList.remove("open");
+        categoryWrap.classList.remove("error");
+        categoryError.classList.remove("show");
+        catDropdown.querySelectorAll(".catOption").forEach(o=> o.classList.remove("selected"));
+        opt.classList.add("selected");
+      });
+    });
+
   }catch(e){
     console.error(e);
-    select.innerHTML = `<option value="">Could not load — try again</option>`;
-    select.disabled = true;
+    catSelectLabel.textContent = "Could not load — try again";
   }
 }
 loadCategories();
+
+/* ---------- DROPDOWN TOGGLE ---------- */
+catSelect.addEventListener("click", ()=>{
+  if(shopTypes.length === 0) return;
+  catDropdown.classList.toggle("open");
+});
+
+/* Click outside closes dropdown */
+document.addEventListener("click", (e)=>{
+  if(!categoryWrap.contains(e.target)){
+    catDropdown.classList.remove("open");
+  }
+});
 
 /* ---------- LOCATION ---------- */
 window.captureLocation = ()=>{
@@ -716,14 +558,12 @@ window.captureLocation = ()=>{
   navigator.geolocation.getCurrentPosition(async (pos)=>{
     userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
 
-    /* Reverse geocode to fill area field if empty */
     try{
       const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${userLocation.lat}&lon=${userLocation.lng}&format=json`);
       const data = await res.json();
       const a = data.address || {};
       const place = a.suburb || a.neighbourhood || a.village || a.town || a.city || a.state || "Captured";
 
-      // Auto-fill area name if user hasn't entered one
       if(!fields.locationText.input.value.trim()){
         const fullArea = [a.suburb || a.neighbourhood, a.city || a.town || a.village]
           .filter(Boolean).join(", ");
@@ -762,19 +602,19 @@ function validateAll(){
     email:        fields.email.input.value.trim(),
     password:     fields.password.input.value,
     locationText: fields.locationText.input.value.trim(),
-    category:     fields.category.input.value
+    category:     chosenCategory
   };
 
   let valid = true;
 
   if(!v.name){ setError("name", "Please enter your shop name"); valid = false; }
-  if(!v.category){ setError("category", "Please select a category"); valid = false; }
-  if(!isValidEmail(v.email)){
-    setError("email", v.email ? "Please enter a valid email" : "Please enter your email"); valid = false;
+  if(!v.category){
+    categoryWrap.classList.add("error");
+    categoryError.classList.add("show");
+    valid = false;
   }
-  if(v.password.length < 6){
-    setError("password", "Password must be at least 6 characters"); valid = false;
-  }
+  if(!isValidEmail(v.email)){ setError("email", v.email ? "Please enter a valid email" : "Please enter your email"); valid = false; }
+  if(v.password.length < 6){ setError("password", "Password must be at least 6 characters"); valid = false; }
   if(!v.locationText){ setError("locationText", "Area name is required"); valid = false; }
 
   return valid ? v : false;
@@ -782,9 +622,7 @@ function validateAll(){
 
 /* ---------- HELPERS ---------- */
 function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 function escapeAttr(str){
   return String(str).replace(/"/g, "&quot;");
@@ -793,28 +631,23 @@ function escapeAttr(str){
 /* ---------- REGISTER ---------- */
 window.register = async ()=>{
   const v = validateAll();
-  if(!v){
-    showToast("Please fix the errors above", true);
-    return;
-  }
+  if(!v){ showToast("Please fix the errors above", true); return; }
   if(!userLocation){
     showToast("Please capture GPS location first", true);
     locationField.scrollIntoView({behavior:"smooth", block:"center"});
     return;
   }
 
-  /* Loading state */
   submitBtn.classList.add("loading");
   submitBtn.disabled = true;
   progressNote.classList.add("show");
   progressNote.textContent = "⏳ Creating your account…";
 
   try{
-    /* Create Firebase user */
     const userCred = await createUserWithEmailAndPassword(auth, v.email, v.password);
     progressNote.textContent = "💾 Saving your shop details…";
 
-    /* Save shop profile */
+    /* FIX: save the proper icon from the matched shop type */
     await addDoc(collection(db, "localshop-details"), {
       shopName:  v.name,
       email:     v.email,
@@ -822,18 +655,16 @@ window.register = async ()=>{
       location:  v.locationText,
       lat:       userLocation.lat,
       lng:       userLocation.lng,
-      icon:      "🏪",
+      icon:      chosenIcon,
       ownerUid:  userCred.user.uid,
       verified:  true,
       createdAt: new Date()
     });
 
-    /* Save to localStorage */
     localStorage.setItem("shopName",     v.name);
     localStorage.setItem("shopEmail",    v.email);
     localStorage.setItem("shopCategory", v.category);
 
-    /* Show success modal */
     progressNote.classList.remove("show");
     submitBtn.classList.remove("loading");
     submitBtn.disabled = false;
