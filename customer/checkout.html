@@ -10,238 +10,355 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
 html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
-body{padding-bottom:90px;}
+body{padding-bottom:120px;}
 button{font-family:inherit;cursor:pointer;border:none;}
 
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
-  padding:14px 16px;
-  position:sticky;top:0;z-index:1000;
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
 .topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
 .backBtn{
-  background:rgba(255,255,255,.4);width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
 }
 .backBtn:active{transform:scale(.94);}
 .titleBlock{flex:1;min-width:0;line-height:1.2;}
 .pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
-.pageSub{font-size:13px;color:#3a3a3a;margin-top:2px;}
-
-.deliveryBanner{
-  max-width:900px;margin:12px auto 0;
-  background:#fff;border-radius:12px;padding:12px 14px;
-  display:flex;align-items:center;gap:12px;
-  box-shadow:0 1px 4px rgba(0,0,0,.04);
-}
-.bannerIcon{
-  width:42px;height:42px;background:#fff5d6;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:22px;flex-shrink:0;
-}
-.bannerText{flex:1;line-height:1.25;}
-.bannerTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
-.bannerSub{font-size:12px;color:#666;margin-top:2px;}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
 
 .container{max-width:900px;margin:0 auto;padding:14px 12px 0;}
 
 .section{
-  background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
-
-.sectionHeader{
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:12px;
-}
-.sectionTitle{font-size:15px;font-weight:700;color:#1f1f1f;}
-.itemCount{font-size:12px;color:#666;font-weight:500;}
-
-.shopBadge{
+.sectionLabel{
   display:flex;align-items:center;gap:8px;
-  background:#fff5d6;
-  border-radius:8px;padding:8px 12px;
+  font-size:12px;font-weight:800;color:#0C831F;
+  letter-spacing:.4px;text-transform:uppercase;
   margin-bottom:10px;
-  font-size:12px;font-weight:700;color:#8a6500;
 }
-.shopBadge .ic{
-  width:24px;height:24px;border-radius:50%;
-  background:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:13px;
+.sectionLabel::before{
+  content:"";width:18px;height:2px;background:#0C831F;border-radius:1px;
 }
 
-.miniItem{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 0;border-bottom:1px solid #f4f4f4;
-  font-size:13px;
-}
-.miniItem:last-child{border-bottom:none;padding-bottom:0;}
-.miniItem:first-child{padding-top:0;}
-.miniDot{width:8px;height:8px;border-radius:50%;background:#0C831F;flex-shrink:0;}
-.miniName{flex:1;color:#1f1f1f;font-weight:500;}
-.miniQty{color:#777;font-size:12px;margin-right:4px;}
-.miniPrice{font-weight:700;color:#1f1f1f;}
-
-.warningStrip{
-  background:#fff5f5;
-  border:1px solid #ffd2d2;
-  border-radius:10px;
-  padding:10px 12px;margin-bottom:10px;
-  font-size:12px;color:#c41818;line-height:1.4;
-  display:flex;align-items:flex-start;gap:8px;
-}
-.warningStrip .ic{font-size:16px;flex-shrink:0;}
-
-.billRow{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:6px 0;font-size:13px;color:#3a3a3a;
-}
-.billRow b{font-weight:600;color:#1f1f1f;}
-.billDivider{border-top:1px dashed #e0e0e0;margin:8px 0;}
-.billTotal{font-size:15px;font-weight:800;color:#1f1f1f;padding-top:6px;}
-.freeTag{color:#0C831F;font-weight:700;}
-.strike{text-decoration:line-through;color:#999;margin-right:4px;font-weight:400;}
-
-.field{margin-bottom:12px;}
+/* ============ FIELDS ============ */
+.field{margin-bottom:10px;}
 .field:last-child{margin-bottom:0;}
-
-.field label{
-  display:block;font-size:12px;font-weight:600;color:#555;
-  margin-bottom:6px;letter-spacing:.2px;
+.fieldLabel{
+  display:block;font-size:11px;font-weight:600;
+  color:#666;margin-bottom:5px;
 }
-
-.input,.textarea{
-  width:100%;padding:12px 14px;
-  border:1.5px solid #e5e5e5;border-radius:10px;
-  font-size:14px;font-family:inherit;
-  background:#fafafa;color:#1f1f1f;outline:none;
-  transition:border-color .15s, background .15s;
-}
-.input:focus,.textarea:focus{border-color:#0C831F;background:#fff;}
-.input.errored,.textarea.errored,.phoneWrap.errored{border-color:#d23030;background:#fff5f5;}
-
-.textarea{resize:vertical;min-height:80px;line-height:1.4;}
-
-.phoneWrap{
+.inputWrap{
   display:flex;align-items:stretch;
   border:1.5px solid #e5e5e5;border-radius:10px;
   background:#fafafa;overflow:hidden;
-  transition:border-color .15s, background .15s;
+  transition:all .15s;
 }
-.phoneWrap.focused{border-color:#0C831F;background:#fff;}
+.inputWrap.focused{border-color:#0C831F;background:#fff;}
+.inputWrap.error{border-color:#d23030;background:#fff5f5;}
 .phonePrefix{
-  padding:12px 12px 12px 14px;
-  font-size:14px;font-weight:600;color:#555;
-  border-right:1.5px solid #e5e5e5;
-  background:#f0f0f0;
-  display:flex;align-items:center;
+  padding:0 10px;display:flex;align-items:center;
+  font-size:13px;font-weight:700;color:#555;
+  background:#f0f0f0;border-right:1.5px solid #e5e5e5;
 }
-.phoneInput{
+.inputWrap.focused .phonePrefix{
+  background:#dcf3e1;color:#0C831F;border-right-color:#dcf3e1;
+}
+.inputField{
   flex:1;border:none;background:transparent;
-  padding:12px 14px;font-size:14px;font-family:inherit;
-  outline:none;width:100%;min-width:0;
+  padding:11px 12px;font-size:14px;font-weight:500;
+  font-family:inherit;color:#1f1f1f;outline:none;
+  width:100%;min-width:0;
 }
-
-.error{color:#d23030;font-size:12px;margin-top:4px;display:none;font-weight:500;}
-.error.show{display:block;}
-
-.locateBtn{
-  display:flex;align-items:center;gap:6px;
-  padding:8px 12px;background:#fff5d6;color:#8a6500;
-  border-radius:8px;font-size:12px;font-weight:600;
-  margin-top:8px;
-  border:1px dashed #e5c14d;width:fit-content;
+.inputField.textarea{resize:vertical;min-height:60px;padding:10px 12px;}
+.errorText{
+  display:none;font-size:11px;color:#d23030;
+  font-weight:500;margin-top:4px;
 }
-.locateBtn:active{transform:scale(.97);}
+.errorText.show{display:block;}
 
-.payOption{
-  display:flex;align-items:center;gap:12px;
-  padding:12px;
-  border:1.5px solid #0C831F;
-  border-radius:10px;background:#f0fbf2;
+.locBtn{
+  background:#dcf3e1;color:#0C831F;
+  padding:9px 14px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  display:inline-flex;align-items:center;gap:5px;
+  margin-top:6px;
 }
-.payIcon{
-  width:36px;height:36px;background:#fff;border-radius:50%;
+.locBtn:active{transform:scale(.96);}
+.locConfirm{
+  margin-top:6px;font-size:11px;color:#0C831F;font-weight:600;
+  display:none;
+}
+.locConfirm.show{display:block;}
+
+/* ============ MULTI-SHOP NOTICE ============ */
+.multiShopNotice{
+  background:linear-gradient(135deg,#dbe9ff 0%,#c4dbff 100%);
+  border:1px solid #a3c5ff;
+  border-radius:12px;padding:12px 14px;margin-bottom:12px;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.msIcon{font-size:22px;flex-shrink:0;}
+.msText{flex:1;line-height:1.4;}
+.msTitle{font-size:13px;font-weight:700;color:#1857c1;}
+.msSub{font-size:12px;color:#1857c1;opacity:.85;margin-top:2px;}
+
+/* ============ SHOP GROUP ============ */
+.shopGroup{
+  background:#fff;border-radius:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  overflow:hidden;
+}
+.shopHeader{
+  padding:12px 14px;
+  background:linear-gradient(135deg,#fff5d6 0%,#ffeec1 100%);
+  display:flex;align-items:center;gap:10px;
+  border-bottom:1px solid #f0d76a;
+}
+.shopAvatar{
+  width:40px;height:40px;border-radius:50%;
+  background:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;
+  font-size:20px;flex-shrink:0;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
 }
-.payText{flex:1;line-height:1.3;}
-.payTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
-.paySub{font-size:12px;color:#0C831F;font-weight:600;margin-top:2px;}
-.payCheck{
-  width:22px;height:22px;border-radius:50%;
-  background:#0C831F;color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:700;flex-shrink:0;
+.shopInfo{flex:1;min-width:0;line-height:1.3;}
+.shopName{font-size:14px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.shopWeight{font-size:11px;color:#8a6500;font-weight:600;margin-top:2px;}
+
+.shopBody{padding:12px 14px;}
+
+.itemsList{margin-bottom:12px;}
+.itemRow{
+  display:flex;justify-content:space-between;
+  padding:6px 0;font-size:13px;
+  border-bottom:1px dashed #f4f4f4;
+}
+.itemRow:last-child{border-bottom:none;}
+.itemRow .iName{flex:1;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.itemRow .iQty{color:#888;font-weight:600;margin:0 8px;}
+.itemRow .iWt{color:#888;font-weight:500;font-size:11px;margin-right:8px;}
+.itemRow .iAmt{font-weight:700;color:#1f1f1f;flex-shrink:0;}
+
+/* ============ VEHICLE PICKER ============ */
+.vehicleSection{
+  background:#fafafa;
+  border-radius:10px;padding:12px;
+  margin-bottom:12px;
+}
+.vehicleSectionLabel{
+  font-size:11px;font-weight:700;color:#0C831F;
+  letter-spacing:.4px;text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.weightBadge{
+  background:#dcf3e1;color:#0C831F;
+  padding:3px 8px;border-radius:8px;
+  font-size:10px;font-weight:800;
 }
 
-.empty{
-  text-align:center;padding:60px 20px;
-  background:#fff;border-radius:14px;margin-top:20px;
+.vehicleGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
 }
-.empty .icon{font-size:64px;margin-bottom:14px;}
-.empty h3{font-size:18px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
-.empty p{font-size:13px;color:#777;margin-bottom:20px;}
-.shopBtnEmpty{
-  background:#0C831F;color:#fff;
-  padding:12px 26px;border-radius:10px;
-  font-size:14px;font-weight:700;letter-spacing:.3px;
+@media(min-width:560px){
+  .vehicleGrid{grid-template-columns:repeat(3,1fr);}
 }
-.shopBtnEmpty:active{transform:scale(.97);}
+@media(min-width:768px){
+  .vehicleGrid{grid-template-columns:repeat(5,1fr);}
+}
 
-.orderBar{
-  position:fixed;bottom:0;left:0;right:0;
-  background:#0C831F;color:#fff;padding:12px 16px;
-  display:flex;justify-content:space-between;align-items:center;
-  z-index:999;
-  box-shadow:0 -2px 12px rgba(0,0,0,.15);
+.vehOpt{
+  background:#fff;border:2px solid #e5e5e5;
+  border-radius:10px;padding:10px 8px;
+  text-align:center;
   cursor:pointer;
-  transition:opacity .2s, transform .2s;
+  transition:all .15s;
+  position:relative;
 }
-.orderBar.hidden{opacity:0;transform:translateY(100%);pointer-events:none;}
-.orderBar.loading{opacity:.85;cursor:wait;}
+.vehOpt:hover:not(.disabled){border-color:#b3e5bf;}
+.vehOpt.selected{
+  border-color:#0C831F;background:#f0fbf2;
+  box-shadow:0 2px 8px rgba(12,131,31,.15);
+}
+.vehOpt.disabled{
+  opacity:.5;cursor:not-allowed;
+  background:#f6f6f6;
+}
+.vehOpt.disabled .vehEmoji{filter:grayscale(.7);}
 
-.obLeft{display:flex;flex-direction:column;line-height:1.2;}
-.obAmount{font-size:17px;font-weight:800;}
-.obLabel{font-size:12px;font-weight:500;opacity:.9;margin-top:2px;}
-.obRight{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;}
+.vehEmoji{font-size:28px;line-height:1;margin-bottom:4px;}
+.vehName{font-size:12px;font-weight:700;color:#1f1f1f;line-height:1.2;}
+.vehOpt.selected .vehName{color:#0C831F;}
+.vehFee{
+  font-size:13px;font-weight:800;color:#0C831F;
+  margin-top:4px;
+}
+.vehOpt.disabled .vehFee{color:#999;text-decoration:line-through;}
+.vehTooSmall{
+  font-size:9px;color:#d23030;font-weight:700;
+  margin-top:3px;letter-spacing:.2px;
+  text-transform:uppercase;
+}
 
-.spinner{
-  width:16px;height:16px;
-  border:2px solid rgba(255,255,255,.3);
+/* Bill */
+.billRow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;font-size:13px;
+}
+.billRow:not(:last-child){border-bottom:1px dashed #f4f4f4;}
+.billRow .lbl{color:#666;}
+.billRow .val{font-weight:600;color:#1f1f1f;}
+.billRow.total{
+  padding-top:10px;margin-top:4px;
+  border-top:2px solid #f0f0f0;border-bottom:none;
+}
+.billRow.total .lbl{font-size:14px;font-weight:700;color:#1f1f1f;}
+.billRow.total .val{font-size:18px;font-weight:800;color:#0C831F;}
+
+/* Shop subtotal pill (when multi-shop) */
+.shopSubtotal{
+  background:#dcf3e1;color:#0C831F;
+  padding:6px 12px;border-radius:8px;
+  font-size:13px;font-weight:700;
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:4px;
+}
+
+/* Grand total */
+.grandTotalCard{
+  background:linear-gradient(135deg,#0C831F 0%,#0fa029 100%);
+  color:#fff;border-radius:14px;
+  padding:16px;margin-bottom:14px;
+  box-shadow:0 6px 18px rgba(12,131,31,.25);
+}
+.grandLabel{
+  font-size:11px;font-weight:600;letter-spacing:.5px;
+  text-transform:uppercase;opacity:.9;
+}
+.grandAmount{font-size:32px;font-weight:800;letter-spacing:-.5px;line-height:1.1;margin-top:2px;}
+.grandSplit{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.2);
+  font-size:12px;font-weight:500;opacity:.95;
+}
+
+/* Action bar */
+.actionBar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid #ececec;
+  padding:12px 16px;z-index:900;
+  box-shadow:0 -2px 12px rgba(0,0,0,.06);
+}
+.actionInner{
+  max-width:900px;margin:0 auto;
+  display:flex;gap:10px;align-items:center;
+}
+.actionInfo{flex:1;min-width:0;line-height:1.2;}
+.actionFare{font-size:18px;font-weight:800;color:#1f1f1f;}
+.actionFareSub{font-size:11px;color:#888;font-weight:500;margin-top:2px;}
+
+.btnPlace{
+  flex:1;max-width:240px;
+  background:#0C831F;color:#fff;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:800;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .12s;position:relative;
+}
+.btnPlace:active{transform:scale(.98);}
+.btnPlace:hover{background:#0a6e1a;}
+.btnPlace:disabled{background:#a0d3a8;cursor:not-allowed;}
+.btnPlace.loading{color:transparent;}
+.btnPlace.loading::after{
+  content:"";position:absolute;
+  width:18px;height:18px;
+  border:2.5px solid rgba(255,255,255,.3);
   border-top-color:#fff;border-radius:50%;
-  animation:spin .8s linear infinite;display:none;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:spin .7s linear infinite;
 }
-@keyframes spin{to{transform:rotate(360deg);}}
-.orderBar.loading .spinner{display:inline-block;}
-.orderBar.loading .arrow{display:none;}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
 
+/* Toast */
 .toast{
-  position:fixed;bottom:100px;
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1f1f1f;color:#fff;
-  padding:12px 20px;border-radius:10px;
+  position:fixed;bottom:90px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s;
-  z-index:1500;max-width:90%;text-align:center;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Empty cart */
+.empty{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;line-height:1.5;margin-bottom:18px;}
+.empty .btn{
+  background:#0C831F;color:#fff;
+  padding:12px 22px;border-radius:10px;
+  font-size:13px;font-weight:700;
+}
+
+/* Success modal */
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;
+  z-index:2000;padding:20px;
+}
+.modalBg.show{display:flex;animation:fadeIn .25s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:380px;border-radius:18px;
+  padding:30px 24px 24px;text-align:center;
+  animation:scaleIn .3s ease;
+}
+@keyframes scaleIn{
+  from{transform:scale(.85);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+.successIcon{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,#0C831F,#0fa029);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;font-size:42px;color:#fff;
+  box-shadow:0 8px 22px rgba(12,131,31,.3);
+  animation:popIn .5s ease;
+}
+@keyframes popIn{
+  0%{transform:scale(0);}60%{transform:scale(1.15);}100%{transform:scale(1);}
+}
+.modal h3{font-size:20px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.5;margin-bottom:18px;}
+.btnPrimary{
+  width:100%;background:#0C831F;color:#fff;
+  padding:13px;border-radius:10px;font-size:14px;font-weight:700;
+}
 
 @media(min-width:768px){
   .header{padding:16px 24px;}
   .pageTitle{font-size:20px;}
-  .container{padding:18px 20px 0;}
-  .section{padding:18px;}
-  .sectionTitle{font-size:16px;}
-  .orderBar{padding:14px 24px;}
-  .obAmount{font-size:18px;}
 }
 </style>
 </head>
@@ -252,496 +369,589 @@ button{font-family:inherit;cursor:pointer;border:none;}
   <div class="topBar">
     <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
     <div class="titleBlock">
-      <div class="pageTitle">Checkout</div>
-      <div class="pageSub" id="headerSub">Complete your order</div>
-    </div>
-  </div>
-
-  <div class="deliveryBanner" id="deliveryBanner" style="display:none;">
-    <div class="bannerIcon">⚡</div>
-    <div class="bannerText">
-      <div class="bannerTitle">Delivery in 15 minutes</div>
-      <div class="bannerSub">Shipment of <span id="bannerCount">0</span> items</div>
+      <div class="pageTitle">🧾 Checkout</div>
+      <div class="pageSub" id="pageSub">Loading cart…</div>
     </div>
   </div>
 </header>
 
-<main class="container" id="mainArea"></main>
+<main class="container" id="mainContent">
+  <!-- filled by JS -->
+</main>
 
-<div id="orderBar" class="orderBar hidden" onclick="placeOrder()">
-  <div class="obLeft">
-    <div class="obAmount">₹<span id="payAmount">0</span></div>
-    <div class="obLabel">TOTAL · <span id="payCount">0</span> items</div>
-  </div>
-  <div class="obRight">
-    <span id="orderBtnText">Place Order</span>
-    <span class="arrow">→</span>
-    <span class="spinner"></span>
+<div class="actionBar" id="actionBar" style="display:none;">
+  <div class="actionInner">
+    <div class="actionInfo">
+      <div class="actionFareSub" id="actionFareSub">—</div>
+      <div class="actionFare" id="actionFare">—</div>
+    </div>
+    <button class="btnPlace" id="btnPlace" onclick="placeOrder()" disabled>Place Order</button>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
+<div class="modalBg" id="successModal">
+  <div class="modal">
+    <div class="successIcon">✓</div>
+    <h3 id="successTitle">Order placed! 🎉</h3>
+    <p id="successMsg">Your order has been placed. Track it now to see live updates.</p>
+    <button class="btnPrimary" onclick="goToTracking()">Track Order</button>
+  </div>
+</div>
+
 <script type="module">
-import { db } from "../js/firebase.js";
-import { collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { db } from "/local-shop/js/firebase.js";
+import {
+  collection, addDoc, getDocs, query, where
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  parseWeightKg, getCartWeightKg, VEHICLES, vehicleFits
+} from "/local-shop/js/weight-utils.js";
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-let isPlacing = false;
-let userLocation = null;
+const main = document.getElementById("mainContent");
+const toast = document.getElementById("toast");
+const actionBar = document.getElementById("actionBar");
+const btnPlace = document.getElementById("btnPlace");
+const pageSub = document.getElementById("pageSub");
 
-const HANDLING_FEE = 5;
-const DELIVERY_FEE = 0;
-const FREE_DELIVERY_OVER = 199;
-
-const mainArea       = document.getElementById("mainArea");
-const headerSub      = document.getElementById("headerSub");
-const deliveryBanner = document.getElementById("deliveryBanner");
-const bannerCount    = document.getElementById("bannerCount");
-const orderBar       = document.getElementById("orderBar");
-const payAmount      = document.getElementById("payAmount");
-const payCount       = document.getElementById("payCount");
-const orderBtnText   = document.getElementById("orderBtnText");
-const toast          = document.getElementById("toast");
-
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
-}
+let cart = [];
+let shopGroups = [];          // [{ shopName, items, weightKg, subtotal, selectedVehicle }]
+let customerLat = null;
+let customerLng = null;
+let shopMeta = {};            // shopName(lower) → { lat, lng, icon, isOpen, email }
 
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#1f1f1f";
   toast.classList.add("show");
-  setTimeout(()=> toast.classList.remove("show"), 2600);
+  setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-/* CART SYNC (FIX: bfcache/storage/focus) */
-function reloadCart(){
-  cart = JSON.parse(localStorage.getItem("cart")) || [];
-  render();
-}
-window.addEventListener("pageshow", (e)=>{ if(e.persisted) reloadCart(); });
-window.addEventListener("storage", (e)=>{ if(e.key === "cart") reloadCart(); });
-window.addEventListener("focus", reloadCart);
-
-/* COMPUTE TOTALS */
-function computeBill(){
-  let itemTotal = 0, qty = 0;
-  cart.forEach(i=>{
-    itemTotal += (i.price||0) * (i.qty||1);
-    qty += (i.qty||1);
-  });
-  const deliveryFee = itemTotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
-  const grandTotal  = itemTotal + deliveryFee + HANDLING_FEE;
-  return { itemTotal, deliveryFee, handling:HANDLING_FEE, grandTotal, qty };
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
-/* GROUP ITEMS BY SHOP (FIX: multi-shop awareness) */
-function groupByShop(){
-  const groups = new Map();
-  cart.forEach(item=>{
-    const shop = item.shopName || "Unknown";
-    if(!groups.has(shop)) groups.set(shop, []);
-    groups.get(shop).push(item);
-  });
-  return groups;
+function escapeAttr(str){
+  return String(str).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
 
-/* RENDER */
-function render(){
-  if(cart.length === 0){
-    renderEmpty();
+/* =========== INIT =========== */
+async function init(){
+  cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  if(!cart.length){
+    showEmpty();
     return;
   }
 
-  const { itemTotal, deliveryFee, handling, grandTotal, qty } = computeBill();
-  const shopGroups = groupByShop();
-  const isMultiShop = shopGroups.size > 1;
+  /* Group by shop & compute weights */
+  const map = new Map();
+  cart.forEach(it=>{
+    const key = (it.shopName || "Unknown Shop").toLowerCase();
+    if(!map.has(key)){
+      map.set(key, {
+        shopName: it.shopName || "Unknown Shop",
+        items: [],
+        weightKg: 0,
+        subtotal: 0,
+        selectedVehicleId: "bike"   // default
+      });
+    }
+    const g = map.get(key);
+    const itemWt = parseWeightKg(it.weight) * (it.qty || 1);
+    g.items.push({ ...it, __wtKg: itemWt });
+    g.weightKg += itemWt;
+    g.subtotal += (Number(it.price) || 0) * (it.qty || 1);
+  });
+  shopGroups = Array.from(map.values());
 
-  /* Item rows */
-  let itemsHtml = "";
+  /* Default vehicle = smallest that fits */
+  shopGroups.forEach(g=>{
+    g.selectedVehicleId = (VEHICLES.find(v => g.weightKg <= v.maxKg) || VEHICLES[VEHICLES.length-1]).id;
+  });
 
-  /* Multi-shop warning if needed */
-  if(isMultiShop){
-    itemsHtml += `
-      <div class="warningStrip">
-        <div class="ic">⚠️</div>
-        <div>
-          Your cart has items from <b>${shopGroups.size} different shops</b>.
-          Each shop will receive its own order. You'll be redirected to track the first one after checkout.
+  /* Fetch shop meta (lat/lng/icon/isOpen) for all shops in cart */
+  await loadShopMeta();
+
+  pageSub.textContent = `${cart.length} item${cart.length!==1?"s":""} from ${shopGroups.length} shop${shopGroups.length>1?"s":""}`;
+  render();
+  actionBar.style.display = "block";
+}
+
+async function loadShopMeta(){
+  try{
+    const snap = await getDocs(collection(db, "localshop-details"));
+    snap.forEach(d=>{
+      const s = d.data();
+      const key = (s.shopName || "").toLowerCase();
+      if(!key) return;
+      shopMeta[key] = {
+        lat:    s.lat,
+        lng:    s.lng,
+        icon:   s.icon || "🏪",
+        isOpen: s.isOpen !== false,
+        email:  s.email || "",
+        category: s.category || ""
+      };
+    });
+  }catch(e){
+    console.error("Could not load shop meta:", e);
+  }
+}
+
+/* =========== RENDER =========== */
+function render(){
+  let html = "";
+
+  /* Customer info */
+  html += `
+    <section class="section">
+      <div class="sectionLabel">Delivery details</div>
+      <div class="field">
+        <label class="fieldLabel" for="custName">Your name</label>
+        <div class="inputWrap" id="nameWrap">
+          <input class="inputField" id="custName" type="text" placeholder="Full name"
+            value="${escapeAttr(localStorage.getItem('lastCustomerName') || '')}">
+        </div>
+        <div class="errorText" id="nameError">Please enter your name</div>
+      </div>
+      <div class="field">
+        <label class="fieldLabel" for="custPhone">Phone</label>
+        <div class="inputWrap" id="phoneWrap">
+          <span class="phonePrefix">+91</span>
+          <input class="inputField" id="custPhone" type="tel" placeholder="10-digit number"
+            inputmode="numeric" maxlength="10"
+            value="${escapeAttr(localStorage.getItem('lastCustomerPhone') || '')}">
+        </div>
+        <div class="errorText" id="phoneError">Enter valid 10-digit Indian number</div>
+      </div>
+      <div class="field">
+        <label class="fieldLabel" for="custAddr">Delivery address</label>
+        <div class="inputWrap" id="addrWrap">
+          <textarea class="inputField textarea" id="custAddr" placeholder="House no, area, landmark, city">${escapeHtml(localStorage.getItem('lastCustomerAddress') || '')}</textarea>
+        </div>
+        <div class="errorText" id="addrError">Address must be at least 10 characters</div>
+        <button class="locBtn" onclick="captureLocation()">📍 Use my GPS location</button>
+        <div class="locConfirm" id="locConfirm">✓ Location captured</div>
+      </div>
+    </section>
+  `;
+
+  /* Multi-shop notice */
+  if(shopGroups.length > 1){
+    html += `
+      <div class="multiShopNotice">
+        <div class="msIcon">ℹ️</div>
+        <div class="msText">
+          <div class="msTitle">Items from ${shopGroups.length} shops</div>
+          <div class="msSub">Each shop will be a separate order with its own delivery vehicle.</div>
         </div>
       </div>`;
   }
 
-  shopGroups.forEach((items, shopName)=>{
-    if(isMultiShop){
-      itemsHtml += `<div class="shopBadge"><div class="ic">🏪</div>${escapeHtml(shopName)}</div>`;
-    }
-    items.forEach(item=>{
-      const lt = (item.price||0) * (item.qty||1);
-      itemsHtml += `
-        <div class="miniItem">
-          <div class="miniDot"></div>
-          <div class="miniName">${escapeHtml(item.name||"Item")}</div>
-          <div class="miniQty">× ${item.qty||1}</div>
-          <div class="miniPrice">₹${lt}</div>
+  /* Shop groups */
+  shopGroups.forEach((g, idx)=>{
+    const meta = shopMeta[g.shopName.toLowerCase()] || {};
+    const icon = meta.icon || "🏪";
+    const isOpen = meta.isOpen !== false;
+
+    html += `<div class="shopGroup" data-idx="${idx}">`;
+
+    html += `
+      <div class="shopHeader">
+        <div class="shopAvatar">${icon}</div>
+        <div class="shopInfo">
+          <div class="shopName">${escapeHtml(g.shopName)}${!isOpen ? ' · CLOSED' : ''}</div>
+          <div class="shopWeight">📦 ${g.weightKg.toFixed(1)} kg total</div>
+        </div>
+      </div>
+      <div class="shopBody">
+    `;
+
+    /* Items */
+    html += `<div class="itemsList">`;
+    g.items.forEach(it=>{
+      const lineTotal = (Number(it.price)||0) * (it.qty||1);
+      const wtDisplay = it.weight || "";
+      html += `
+        <div class="itemRow">
+          <div class="iName">${escapeHtml(it.name || "Item")}</div>
+          ${wtDisplay ? `<div class="iWt">${escapeHtml(wtDisplay)}</div>` : ""}
+          <div class="iQty">× ${it.qty || 1}</div>
+          <div class="iAmt">₹${lineTotal}</div>
         </div>`;
     });
+    html += `</div>`;
+
+    /* Vehicle picker */
+    html += `
+      <div class="vehicleSection">
+        <div class="vehicleSectionLabel">
+          🚛 Choose delivery vehicle
+          <span class="weightBadge">${g.weightKg.toFixed(1)} KG</span>
+        </div>
+        <div class="vehicleGrid">
+    `;
+    VEHICLES.forEach(v=>{
+      const fits = g.weightKg <= v.maxKg;
+      const isSelected = g.selectedVehicleId === v.id;
+      const cls = `vehOpt ${isSelected?'selected':''} ${!fits?'disabled':''}`;
+      html += `
+        <div class="${cls}" data-shop-idx="${idx}" data-vid="${v.id}">
+          <div class="vehEmoji">${v.icon}</div>
+          <div class="vehName">${v.name}</div>
+          <div class="vehFee">₹${v.deliveryFee}</div>
+          ${!fits ? `<div class="vehTooSmall">Too small</div>` : `<div style="font-size:9px;color:#888;margin-top:2px;">${v.capacity.replace('Up to ', '≤ ')}</div>`}
+        </div>`;
+    });
+    html += `</div></div>`;
+
+    /* Subtotal for this shop */
+    const selectedVeh = VEHICLES.find(v => v.id === g.selectedVehicleId);
+    const deliveryFee = selectedVeh ? selectedVeh.deliveryFee : 0;
+    const handling = 5;
+    const platformFee = Math.round((g.subtotal + deliveryFee) * 0.05);
+    const shopTotal = g.subtotal + deliveryFee + handling + platformFee;
+
+    html += `
+      <div class="billRow">
+        <span class="lbl">Items total</span>
+        <span class="val">₹${g.subtotal}</span>
+      </div>
+      <div class="billRow">
+        <span class="lbl">Delivery fee · ${selectedVeh.name}</span>
+        <span class="val">₹${deliveryFee}</span>
+      </div>
+      <div class="billRow">
+        <span class="lbl">Handling fee</span>
+        <span class="val">₹${handling}</span>
+      </div>
+      <div class="billRow">
+        <span class="lbl">Platform fee (5%)</span>
+        <span class="val">₹${platformFee}</span>
+      </div>
+      <div class="shopSubtotal">
+        <span>${escapeHtml(g.shopName)} total</span>
+        <span>₹${shopTotal}</span>
+      </div>
+    `;
+
+    html += `</div></div>`;   // shopBody, shopGroup
   });
 
-  headerSub.textContent = `${qty} item${qty>1?"s":""} · ₹${grandTotal}`;
-  bannerCount.textContent = qty;
-  deliveryBanner.style.display = "flex";
+  /* Grand total */
+  let grandTotal = 0;
+  let grandFare = 0;
+  shopGroups.forEach(g=>{
+    const v = VEHICLES.find(x => x.id === g.selectedVehicleId);
+    const deliveryFee = v.deliveryFee;
+    const handling = 5;
+    const platformFee = Math.round((g.subtotal + deliveryFee) * 0.05);
+    grandFare += deliveryFee;
+    grandTotal += g.subtotal + deliveryFee + handling + platformFee;
+  });
 
-  mainArea.innerHTML = `
-    <div class="section">
-      <div class="sectionHeader">
-        <div class="sectionTitle">Order Summary</div>
-        <div class="itemCount">${qty} item${qty>1?"s":""}</div>
-      </div>
-      ${itemsHtml}
-    </div>
-
-    <div class="section">
-      <div class="sectionTitle" style="margin-bottom:10px;">Bill details</div>
-
-      <div class="billRow">
-        <span>🧾 Item total</span>
-        <span><b>₹${itemTotal}</b></span>
-      </div>
-
-      <div class="billRow">
-        <span>🛵 Delivery charge</span>
-        <span>
-          ${deliveryFee === 0
-            ? `<span class="strike">₹25</span><span class="freeTag">FREE</span>`
-            : `<b>₹${deliveryFee}</b>`}
-        </span>
-      </div>
-
-      <div class="billRow">
-        <span>🛍️ Handling charge</span>
-        <span><b>₹${handling}</b></span>
-      </div>
-
-      <div class="billDivider"></div>
-
-      <div class="billRow billTotal">
-        <span>To Pay</span>
-        <span>₹${grandTotal}</span>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="sectionTitle" style="margin-bottom:14px;">📍 Delivery details</div>
-
-      <div class="field">
-        <label for="name">Full name</label>
-        <input class="input" id="name" placeholder="e.g. Rahul Kumar" autocomplete="name">
-        <div class="error" id="errName">Please enter your name</div>
-      </div>
-
-      <div class="field">
-        <label for="phone">Phone number</label>
-        <div class="phoneWrap" id="phoneWrap">
-          <span class="phonePrefix">+91</span>
-          <input class="phoneInput" id="phone" placeholder="10-digit mobile number"
-            inputmode="numeric" maxlength="10" autocomplete="tel">
-        </div>
-        <div class="error" id="errPhone">Please enter a valid 10-digit mobile number (starting 6-9)</div>
-      </div>
-
-      <div class="field">
-        <label for="address">Complete address</label>
-        <textarea class="textarea" id="address" placeholder="House / flat no, building, street, area, landmark" autocomplete="street-address"></textarea>
-        <div class="error" id="errAddress">Please enter a complete address (min 10 characters)</div>
-        <button class="locateBtn" onclick="useCurrentLocation()">
-          📍 <span id="locText">Use current location</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="section">
-      <div class="sectionTitle" style="margin-bottom:12px;">💳 Payment method</div>
-      <div class="payOption">
-        <div class="payIcon">💵</div>
-        <div class="payText">
-          <div class="payTitle">Cash on Delivery</div>
-          <div class="paySub">Pay when your order arrives</div>
-        </div>
-        <div class="payCheck">✓</div>
+  html += `
+    <div class="grandTotalCard">
+      <div class="grandLabel">Grand Total · Pay on Delivery</div>
+      <div class="grandAmount">₹${grandTotal}</div>
+      <div class="grandSplit">
+        <span>${shopGroups.length} order${shopGroups.length>1?"s":""}</span>
+        <span>Delivery: ₹${grandFare}</span>
       </div>
     </div>
   `;
 
-  /* Restore previous values (in case page is re-rendered) */
-  const lastName = localStorage.getItem("lastCustomerName") || "";
-  const lastPhone = localStorage.getItem("lastCustomerPhone") || "";
-  const lastAddress = localStorage.getItem("lastCustomerAddress") || "";
-  if(lastName) document.getElementById("name").value = lastName;
-  if(lastPhone) document.getElementById("phone").value = lastPhone;
-  if(lastAddress) document.getElementById("address").value = lastAddress;
+  main.innerHTML = html;
 
-  /* Wire up phone field */
-  const phone = document.getElementById("phone");
-  const phoneWrap = document.getElementById("phoneWrap");
-  phone.addEventListener("focus", ()=> phoneWrap.classList.add("focused"));
-  phone.addEventListener("blur",  ()=> phoneWrap.classList.remove("focused"));
-  phone.addEventListener("input", ()=>{
-    phone.value = phone.value.replace(/\D/g,"").slice(0,10);
-    phoneWrap.classList.remove("errored");
-    document.getElementById("errPhone").classList.remove("show");
-  });
-
-  ["name","address"].forEach(id=>{
-    const el = document.getElementById(id);
-    el.addEventListener("input", ()=>{
-      el.classList.remove("errored");
-      document.getElementById("err" + id.charAt(0).toUpperCase() + id.slice(1)).classList.remove("show");
+  /* Wire up vehicle picker */
+  main.querySelectorAll(".vehOpt").forEach(opt=>{
+    opt.addEventListener("click", ()=>{
+      if(opt.classList.contains("disabled")) return;
+      const idx = parseInt(opt.dataset.shopIdx, 10);
+      const vid = opt.dataset.vid;
+      shopGroups[idx].selectedVehicleId = vid;
+      render();   // re-render to update totals
     });
   });
 
-  payAmount.textContent = grandTotal;
-  payCount.textContent  = qty;
-  orderBar.classList.remove("hidden");
+  /* Wire up input focus styling */
+  ["custName", "custPhone", "custAddr"].forEach(id=>{
+    const input = document.getElementById(id);
+    if(!input) return;
+    const wrap = input.closest(".inputWrap");
+    input.addEventListener("focus", ()=>{
+      wrap.classList.add("focused");
+      wrap.classList.remove("error");
+      input.parentElement.parentElement.querySelector(".errorText")?.classList.remove("show");
+    });
+    input.addEventListener("blur", ()=> wrap.classList.remove("focused"));
+  });
+
+  /* Phone digits-only */
+  const phoneInput = document.getElementById("custPhone");
+  if(phoneInput){
+    phoneInput.addEventListener("input", ()=>{
+      phoneInput.value = phoneInput.value.replace(/\D/g,"").slice(0,10);
+    });
+  }
+
+  /* Restore location-confirmation indicator if already captured */
+  if(customerLat && customerLng){
+    document.getElementById("locConfirm").classList.add("show");
+  }
+
+  /* Update action bar */
+  document.getElementById("actionFareSub").textContent =
+    `${shopGroups.length} order${shopGroups.length>1?"s":""} · Pay on delivery`;
+  document.getElementById("actionFare").textContent = `₹${grandTotal}`;
+  btnPlace.disabled = false;
 }
 
-function renderEmpty(){
-  headerSub.textContent = "Your cart is empty";
-  deliveryBanner.style.display = "none";
-  orderBar.classList.add("hidden");
-  mainArea.innerHTML = `
+/* =========== EMPTY =========== */
+function showEmpty(){
+  pageSub.textContent = "Cart is empty";
+  main.innerHTML = `
     <div class="empty">
       <div class="icon">🛒</div>
-      <h3>Nothing to checkout</h3>
-      <p>Your cart is empty.<br>Add some items first!</p>
-      <button class="shopBtnEmpty" onclick="goBack()">Go to Shop</button>
-    </div>
-  `;
+      <h3>Your cart is empty</h3>
+      <p>Add some items to your cart, then come back here to checkout.</p>
+      <button class="btn" onclick="goBack()">Browse Shops</button>
+    </div>`;
 }
 
-/* LOCATION */
-function getLocation(){
-  return new Promise((resolve)=>{
-    if(!navigator.geolocation){ resolve(null); return; }
-    navigator.geolocation.getCurrentPosition(
-      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      ()  => resolve(null),
-      { enableHighAccuracy:true, timeout:8000 }
-    );
-  });
-}
-
-window.useCurrentLocation = async ()=>{
-  const locText = document.getElementById("locText");
-  locText.textContent = "Getting location…";
-  const loc = await getLocation();
-  if(!loc){
-    locText.textContent = "Use current location";
-    showToast("Couldn't get location. Please allow access.", true);
-    return;
+/* =========== LOCATION =========== */
+window.captureLocation = ()=>{
+  if(!navigator.geolocation){
+    showToast("Geolocation not supported", true); return;
   }
-  userLocation = loc;
-  try{
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${loc.lat}&lon=${loc.lng}&format=json`);
-    const data = await res.json();
-    const a = data.address || {};
-    const parts = [
-      a.house_number, a.road, a.suburb || a.neighbourhood,
-      a.village || a.town || a.city, a.state, a.postcode
-    ].filter(Boolean);
-    document.getElementById("address").value = parts.join(", ") || data.display_name || "";
-    locText.textContent = "✓ Location added";
-    setTimeout(()=> locText.textContent = "Update location", 2000);
-  }catch(e){
-    locText.textContent = "✓ Location captured";
-  }
+  showToast("Getting your location…");
+  navigator.geolocation.getCurrentPosition((pos)=>{
+    customerLat = pos.coords.latitude;
+    customerLng = pos.coords.longitude;
+    document.getElementById("locConfirm").classList.add("show");
+    showToast("✓ Location captured");
+  }, ()=>{
+    showToast("Couldn't get location. Allow access.", true);
+  }, { enableHighAccuracy:true, timeout:10000 });
 };
 
-/* DISTANCE */
-function getDistance(lat1, lon1, lat2, lon2){
-  const R = 6371;
-  const dLat = (lat2-lat1) * Math.PI/180;
-  const dLon = (lon2-lon1) * Math.PI/180;
-  const a = Math.sin(dLat/2)**2 +
-            Math.cos(lat1*Math.PI/180) *
-            Math.cos(lat2*Math.PI/180) *
-            Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-/* PLACE ORDER (with multi-shop support) */
-window.placeOrder = async ()=>{
-  if(isPlacing) return;
-  if(cart.length === 0){ showToast("Your cart is empty", true); return; }
-
-  const name    = document.getElementById("name").value.trim();
-  const phone   = document.getElementById("phone").value.trim();
-  const address = document.getElementById("address").value.trim();
-
-  /* FIX: stricter validation */
+/* =========== VALIDATION =========== */
+function validate(){
+  const name = document.getElementById("custName").value.trim();
+  const phone = document.getElementById("custPhone").value.trim();
+  const addr = document.getElementById("custAddr").value.trim();
   let valid = true;
 
   if(!name){
-    document.getElementById("errName").classList.add("show");
-    document.getElementById("name").classList.add("errored");
+    document.getElementById("nameWrap").classList.add("error");
+    document.getElementById("nameError").classList.add("show");
     valid = false;
   }
-  /* Indian mobile: 10 digits, starts with 6-9 */
   if(phone.length !== 10 || !/^[6-9]/.test(phone)){
-    document.getElementById("errPhone").classList.add("show");
-    document.getElementById("phoneWrap").classList.add("errored");
+    document.getElementById("phoneWrap").classList.add("error");
+    document.getElementById("phoneError").classList.add("show");
     valid = false;
   }
-  if(address.length < 10){
-    document.getElementById("errAddress").classList.add("show");
-    document.getElementById("address").classList.add("errored");
+  if(addr.length < 10){
+    document.getElementById("addrWrap").classList.add("error");
+    document.getElementById("addrError").classList.add("show");
     valid = false;
   }
 
-  if(!valid){
+  /* Make sure no closed shops are in cart */
+  const closedShops = shopGroups.filter(g=>{
+    const meta = shopMeta[g.shopName.toLowerCase()] || {};
+    return meta.isOpen === false;
+  });
+  if(closedShops.length > 0){
+    showToast(`${closedShops[0].shopName} is currently closed. Please remove its items.`, true);
+    valid = false;
+  }
+
+  /* Sanity check: each shop has a fitting vehicle selected */
+  for(const g of shopGroups){
+    if(!vehicleFits(g.selectedVehicleId, g.weightKg)){
+      showToast(`Selected vehicle for ${g.shopName} is too small for the order weight.`, true);
+      valid = false;
+    }
+  }
+
+  return valid ? { name, phone, addr } : null;
+}
+
+/* =========== PLACE ORDER =========== */
+let createdOrderIds = [];
+
+window.placeOrder = async ()=>{
+  const v = validate();
+  if(!v){
     showToast("Please fix the errors above", true);
     return;
   }
 
-  /* Lock UI */
-  isPlacing = true;
-  orderBar.classList.add("loading");
-  orderBtnText.textContent = "Placing order…";
+  btnPlace.classList.add("loading");
+  btnPlace.disabled = true;
 
-  try{
-    /* Save customer info for next time */
-    localStorage.setItem("lastCustomerName", name);
-    localStorage.setItem("lastCustomerPhone", phone);
-    localStorage.setItem("lastCustomerAddress", address);
+  /* Save customer info for next time */
+  localStorage.setItem("lastCustomerName", v.name);
+  localStorage.setItem("lastCustomerPhone", v.phone);
+  localStorage.setItem("lastCustomerAddress", v.addr);
 
-    /* Get location */
-    let location = userLocation || await getLocation();
-    if(!location){
-      showToast("Please allow location access", true);
-      isPlacing = false;
-      orderBar.classList.remove("loading");
-      orderBtnText.textContent = "Place Order";
-      return;
+  createdOrderIds = [];
+  let success = 0, failed = 0;
+
+  for(const g of shopGroups){
+    const veh = VEHICLES.find(x => x.id === g.selectedVehicleId);
+    const meta = shopMeta[g.shopName.toLowerCase()] || {};
+    const handling = 5;
+    const platformFee = Math.round((g.subtotal + veh.deliveryFee) * 0.05);
+    const total = g.subtotal + veh.deliveryFee + handling + platformFee;
+
+    const baseOrder = {
+      /* Customer */
+      name:         v.name,
+      phone:        v.phone,
+      customerPhone: v.phone,
+      address:      v.addr,
+      customerLat:  customerLat,
+      customerLng:  customerLng,
+      lat:          customerLat,    // legacy field
+      lng:          customerLng,    // legacy field
+
+      /* Shop */
+      shopName:  g.shopName,
+      shopEmail: meta.email || "",
+      shopLat:   meta.lat || null,
+      shopLng:   meta.lng || null,
+      shopIcon:  meta.icon || "🏪",
+
+      /* Items + weights */
+      items:        g.items.map(it=>({
+        name:  it.name,
+        price: Number(it.price) || 0,
+        qty:   it.qty || 1,
+        weight: it.weight || null,
+        image: it.image || null,
+        productId: it.productId || null,
+        weightKg: Number(it.__wtKg.toFixed(2))
+      })),
+      cartWeightKg: Number(g.weightKg.toFixed(2)),
+
+      /* Vehicle */
+      vehicleType: veh.id,
+      vehicleName: veh.name,
+      vehicleIcon: veh.icon,
+
+      /* Pricing */
+      total:        g.subtotal,
+      deliveryFee:  veh.deliveryFee,
+      handlingFee:  handling,
+      platformFee:  platformFee,
+      grandTotal:   total,
+      shopEarning:    Math.round(g.subtotal * 0.9),
+      deliveryEarning: Math.round(veh.deliveryFee * 0.85),
+
+      /* Status */
+      status:         "Pending",
+      deliveryStatus: "Waiting",
+      pickupStep:     0,
+
+      /* Driver */
+      deliveryBoyId: null,
+
+      time: new Date()
+    };
+
+    /* Routing: bike → existing 'orders', else → 'transport-orders' */
+    const targetCollection = veh.id === "bike" ? "orders" : "transport-orders";
+
+    /* Add transport-specific fields when going to transport-orders */
+    if(targetCollection === "transport-orders"){
+      baseOrder.pickupAddress = `${g.shopName} (Shop pickup)`;
+      baseOrder.pickupLat = meta.lat || null;
+      baseOrder.pickupLng = meta.lng || null;
+      baseOrder.pickupContactName = meta.email || g.shopName;
+      baseOrder.pickupContactPhone = "";
+
+      baseOrder.dropAddress = v.addr;
+      baseOrder.dropLat = customerLat;
+      baseOrder.dropLng = customerLng;
+      baseOrder.dropContactName = v.name;
+      baseOrder.dropContactPhone = v.phone;
+
+      baseOrder.estimatedFare = veh.deliveryFee;
+      baseOrder.distanceKm = 0;          // shop-cart transport, distance not pre-computed
+      baseOrder.goodsType = "groceries";
+      baseOrder.fromShopOrder = true;    // flag so dashboard can recognize
+      baseOrder.status = "Pending";      // shop still needs to accept
+      baseOrder.deliveryStatus = "Waiting";
     }
 
-    /* FIX: group cart by shop */
-    const shopGroups = groupByShop();
-
-    /* Load all shops once */
-    const snapshot = await getDocs(collection(db, "localshop-details"));
-    const allShops = [];
-    snapshot.forEach(d=>{ allShops.push(d.data()); });
-
-    /* For each shop group, find the matching shop or fall back to nearest */
-    const placedOrderIds = [];
-
-    for(const [shopName, items] of shopGroups){
-      let shop = allShops.find(s => s.shopName === shopName);
-
-      /* Fallback: if shop not found by name, use nearest */
-      if(!shop){
-        let minDist = Infinity;
-        allShops.forEach(s=>{
-          if(s.lat && s.lng){
-            const d = getDistance(location.lat, location.lng, s.lat, s.lng);
-            if(d < minDist){ minDist = d; shop = s; }
-          }
-        });
-      }
-
-      if(!shop || !shop.email){
-        showToast(`Could not find shop: ${shopName}`, true);
-        isPlacing = false;
-        orderBar.classList.remove("loading");
-        orderBtnText.textContent = "Place Order";
-        return;
-      }
-
-      /* Compute totals for THIS shop's items */
-      let subtotal = 0;
-      items.forEach(it=>{ subtotal += (it.price||0) * (it.qty||1); });
-      const deliveryFee = subtotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
-      const grandTotal  = subtotal + deliveryFee + HANDLING_FEE;
-
-      /* Save order */
-      const docRef = await addDoc(collection(db, "orders"), {
-        /* customer */
-        name, phone, address,
-        customerPhone: phone,        /* alias for query support */
-
-        /* location — both new + legacy fields */
-        customerLat: location.lat,
-        customerLng: location.lng,
-        lat: location.lat,
-        lng: location.lng,
-
-        /* shop */
-        shopEmail: shop.email,
-        shopName:  shop.shopName,
-        shopLat:   shop.lat,
-        shopLng:   shop.lng,
-        shopIcon:  shop.icon || shop.__icon || "🏪",
-
-        /* order */
-        items,                         /* this shop's items only */
-        total:        subtotal,
-        grandTotal,
-        handlingFee:  HANDLING_FEE,
-        deliveryFee,
-
-        /* status */
-        status: "Pending",
-        deliveryStatus: "Waiting",
-        deliveryBoy: null,
-
-        /* earnings */
-        shopEarning:     subtotal * 0.9,
-        deliveryEarning: subtotal * 0.1,
-        platformFee:     subtotal * 0.05,
-
-        /* time */
-        time: new Date()
-      });
-
-      placedOrderIds.push(docRef.id);
+    try{
+      const ref = await addDoc(collection(db, targetCollection), baseOrder);
+      createdOrderIds.push({ id: ref.id, col: targetCollection });
+      success++;
+    }catch(e){
+      console.error(e);
+      failed++;
     }
+  }
 
-    /* FIX: save order IDs to localStorage for order history */
+  btnPlace.classList.remove("loading");
+
+  if(success === 0){
+    btnPlace.disabled = false;
+    showToast("Could not place orders. Try again.", true);
+    return;
+  }
+
+  if(failed > 0){
+    showToast(`${success} of ${shopGroups.length} orders placed. ${failed} failed.`, true);
+  }
+
+  /* Save first ID for tracking */
+  if(createdOrderIds[0]){
+    localStorage.setItem("lastOrderId", createdOrderIds[0].id);
+    localStorage.setItem("lastOrderCol", createdOrderIds[0].col);
+
+    /* Push all to my orders */
     const myOrders = JSON.parse(localStorage.getItem("myOrders") || "[]");
-    placedOrderIds.forEach(id => {
-      if(!myOrders.includes(id)) myOrders.push(id);
-    });
+    createdOrderIds.forEach(o => myOrders.unshift(o.id));
     localStorage.setItem("myOrders", JSON.stringify(myOrders));
-    localStorage.setItem("lastOrderId", placedOrderIds[0]);
+  }
 
-    /* Clear cart */
-    localStorage.removeItem("cart");
+  /* Clear cart */
+  localStorage.removeItem("cart");
 
-    orderBtnText.textContent = "✓ Order placed!";
-    showToast(placedOrderIds.length > 1
-      ? `${placedOrderIds.length} orders placed successfully`
-      : "Order placed successfully");
+  /* Show success modal */
+  const modal = document.getElementById("successModal");
+  document.getElementById("successTitle").textContent =
+    success > 1 ? `${success} orders placed! 🎉` : "Order placed! 🎉";
+  document.getElementById("successMsg").textContent =
+    success > 1
+      ? `Your ${success} orders are now being processed. Track each shop's order separately.`
+      : "Your order is now being processed. Track it for live updates.";
+  modal.classList.add("show");
+};
 
-    /* Redirect to tracking (use absolute path) */
-    setTimeout(()=>{
-      window.location.href = "/local-shop/customer/tracking.html?orderId=" + placedOrderIds[0];
-    }, 800);
-
-  }catch(err){
-    console.error(err);
-    showToast("Something went wrong. Try again.", true);
-    isPlacing = false;
-    orderBar.classList.remove("loading");
-    orderBtnText.textContent = "Place Order";
+window.goToTracking = ()=>{
+  if(createdOrderIds.length === 0){
+    location.href = "/local-shop/index.html";
+    return;
+  }
+  const first = createdOrderIds[0];
+  /* Use existing tracking page for bike orders, transport-tracking for the rest */
+  if(first.col === "orders"){
+    location.href = `tracking.html?orderId=${first.id}`;
+  }else{
+    location.href = `transport-tracking.html?orderId=${first.id}`;
   }
 };
 
-window.goBack = ()=> window.location.href = "/local-shop/customer/cart.html";
+window.goBack = ()=> location.href = "/local-shop/index.html";
 
-render();
+init();
 </script>
 
 </body>
