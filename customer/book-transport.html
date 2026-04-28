@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Book Transport · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:100px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px 12px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
+
+.steps{
+  display:flex;gap:6px;
+  max-width:900px;margin:10px auto 0;
+}
+.stepDot{
+  flex:1;height:4px;border-radius:2px;
+  background:rgba(255,255,255,.4);
+  transition:background .2s;
+}
+.stepDot.active{background:#0C831F;}
+.stepDot.done{background:#0C831F;}
+
+.container{max-width:900px;margin:0 auto;padding:14px 12px 0;}
+
+.stepSection{display:none;}
+.stepSection.active{display:block;}
+
+.stepHeader{
+  font-size:18px;font-weight:800;color:#1f1f1f;
+  margin-bottom:4px;
+}
+.stepDesc{font-size:13px;color:#666;margin-bottom:14px;line-height:1.4;}
+
+/* ============ STEP 1 — LOCATIONS ============ */
+.mapWrap{
+  background:#fff;border-radius:14px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);margin-bottom:12px;
+}
+#map{height:240px;background:#e9e9e9;}
+@media(min-width:600px){#map{height:300px;}}
+
+.mapHint{
+  background:#fff5d6;color:#8a6500;
+  padding:8px 12px;font-size:11px;font-weight:600;
+  text-align:center;border-top:1px solid #f0d76a;
+}
+
+.locField{
+  background:#fff;border-radius:12px;
+  margin-bottom:8px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border:1.5px solid transparent;
+  transition:border-color .15s;
+  position:relative;
+}
+.locField.focused{border-color:#0C831F;}
+.locField.set{border-color:#dcf3e1;}
+
+.locTop{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;
+}
+.locDot{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;color:#fff;
+}
+.locDot.pickup{background:#0C831F;}
+.locDot.drop{background:#d23030;}
+
+.locInputWrap{flex:1;min-width:0;}
+.locLabel{
+  font-size:10px;font-weight:700;color:#888;
+  letter-spacing:.4px;text-transform:uppercase;
+  margin-bottom:1px;
+}
+.locInput{
+  width:100%;border:none;background:transparent;
+  font-size:14px;font-weight:600;color:#1f1f1f;
+  font-family:inherit;outline:none;
+  padding:2px 0;
+}
+.locInput::placeholder{color:#bbb;font-weight:500;}
+
+.locActions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.locBtn{
+  background:#f6f6f6;color:#0C831F;
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+}
+.locBtn:active{transform:scale(.92);}
+
+.suggestList{
+  max-height:0;overflow:hidden;
+  transition:max-height .25s ease;
+  background:#fff;border-top:1px solid #f0f0f0;
+}
+.locField.suggesting .suggestList{max-height:280px;overflow-y:auto;}
+
+.suggestItem{
+  padding:10px 14px 10px 50px;
+  font-size:13px;color:#1f1f1f;cursor:pointer;
+  border-bottom:1px solid #f4f4f4;
+  line-height:1.3;
+}
+.suggestItem:hover{background:#f8f8f8;}
+.suggestItem .area{font-weight:600;}
+.suggestItem .city{font-size:11px;color:#888;margin-top:1px;}
+
+.swapBtn{
+  background:#fff;color:#0C831F;
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;
+  margin:-4px auto;
+  position:relative;z-index:2;
+  box-shadow:0 1px 6px rgba(0,0,0,.1);
+  border:1px solid #e0e0e0;
+}
+.swapBtn:active{transform:scale(.92) rotate(180deg);transition:.25s;}
+
+.distanceCard{
+  background:#fff;border-radius:12px;
+  padding:12px 14px;
+  margin-top:12px;
+  display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.distLabel{font-size:11px;color:#888;font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+.distValue{font-size:18px;font-weight:800;color:#1f1f1f;margin-top:2px;}
+.distMeta{font-size:11px;color:#666;}
+
+/* ============ STEP 2 — VEHICLE ============ */
+.routeStrip{
+  background:#fff;border-radius:12px;
+  padding:12px 14px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  display:flex;align-items:center;gap:10px;
+}
+.routeIcon{
+  width:34px;height:34px;border-radius:50%;
+  background:#dcf3e1;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.routeText{flex:1;min-width:0;line-height:1.3;}
+.routeFromTo{
+  font-size:12px;color:#444;
+  display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+}
+.routeFromTo .label{font-weight:700;color:#1f1f1f;}
+.routeFromTo .arrow{color:#bbb;}
+.routeDist{font-size:11px;color:#888;margin-top:2px;}
+
+.editBtn{
+  background:#f6f6f6;color:#666;
+  padding:6px 12px;border-radius:6px;
+  font-size:11px;font-weight:700;flex-shrink:0;
+}
+
+.vehicleList{display:flex;flex-direction:column;gap:8px;}
+
+.vehicleCard{
+  background:#fff;border-radius:14px;
+  padding:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border:2px solid transparent;
+  cursor:pointer;
+  transition:all .15s;
+  display:flex;align-items:center;gap:12px;
+}
+.vehicleCard:hover{box-shadow:0 3px 10px rgba(0,0,0,.06);}
+.vehicleCard.selected{
+  border-color:#0C831F;
+  background:#f0fbf2;
+  box-shadow:0 4px 14px rgba(12,131,31,.15);
+}
+.vehicleCard:active{transform:scale(.99);}
+
+.vehicleEmoji{
+  width:54px;height:54px;border-radius:14px;
+  background:#fff5d6;
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;flex-shrink:0;
+}
+.vehicleCard.selected .vehicleEmoji{
+  background:#dcf3e1;
+}
+
+.vehicleInfo{flex:1;min-width:0;line-height:1.3;}
+.vehicleName{
+  font-size:15px;font-weight:800;color:#1f1f1f;
+  display:flex;align-items:center;gap:8px;
+}
+.cheapBadge{
+  background:#0C831F;color:#fff;
+  padding:1px 6px;border-radius:4px;
+  font-size:9px;font-weight:800;letter-spacing:.4px;
+  text-transform:uppercase;
+}
+.vehicleCapacity{
+  font-size:12px;color:#0C831F;font-weight:600;
+  margin-top:2px;
+}
+.vehicleExamples{
+  font-size:11px;color:#666;line-height:1.4;
+  margin-top:4px;
+  display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+
+.vehicleFare{
+  text-align:right;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:flex-end;
+}
+.fareAmount{font-size:18px;font-weight:800;color:#1f1f1f;line-height:1;}
+.fareLabel{font-size:10px;color:#888;font-weight:500;margin-top:3px;letter-spacing:.2px;text-transform:uppercase;}
+
+.fareBreakdown{
+  margin-top:10px;padding-top:10px;
+  border-top:1px dashed #ddd;
+  display:none;font-size:11px;color:#666;
+  grid-template-columns:1fr auto;gap:4px 12px;
+}
+.vehicleCard.selected .fareBreakdown{display:grid;}
+
+/* ============ STEP 3 — GOODS + CONTACT ============ */
+.summaryCard{
+  background:linear-gradient(135deg,#dcf3e1 0%,#c8e8d2 100%);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+  border:1px solid #b3e5bf;
+}
+.sumRow{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:600;color:#1f1f1f;
+  margin-bottom:6px;
+}
+.sumRow:last-of-type{margin-bottom:10px;}
+.sumRow .ic{font-size:14px;flex-shrink:0;width:18px;}
+.sumRow .lbl{flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sumDivider{height:1px;background:rgba(0,0,0,.08);margin:8px 0;}
+.sumTotal{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-top:8px;border-top:1px dashed rgba(0,0,0,.1);
+}
+.sumTotal .totLbl{font-size:12px;font-weight:700;color:#666;}
+.sumTotal .totVal{font-size:22px;font-weight:800;color:#0C831F;}
+
+.formCard{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+
+.formLabel{
+  display:block;font-size:11px;font-weight:700;
+  color:#0C831F;letter-spacing:.4px;text-transform:uppercase;
+  margin-bottom:8px;
+}
+
+.goodsChips{display:flex;flex-wrap:wrap;gap:6px;}
+.goodsChip{
+  padding:8px 12px;background:#f6f6f6;
+  border:1.5px solid transparent;border-radius:20px;
+  font-size:12px;font-weight:600;color:#444;
+  display:inline-flex;align-items:center;gap:5px;
+  transition:all .12s;
+}
+.goodsChip.active{background:#dcf3e1;border-color:#0C831F;color:#0C831F;}
+
+.field{margin-bottom:10px;}
+.field:last-child{margin-bottom:0;}
+
+.fieldLabel{
+  display:block;font-size:11px;font-weight:600;
+  color:#666;margin-bottom:5px;
+}
+
+.fieldInputWrap{
+  display:flex;align-items:stretch;
+  border:1.5px solid #e5e5e5;border-radius:10px;
+  background:#fafafa;overflow:hidden;
+  transition:all .15s;
+}
+.fieldInputWrap.focused{border-color:#0C831F;background:#fff;}
+.fieldInputWrap.error{border-color:#d23030;background:#fff5f5;}
+
+.phonePrefix{
+  padding:0 10px;display:flex;align-items:center;
+  font-size:13px;font-weight:700;color:#555;
+  background:#f0f0f0;border-right:1.5px solid #e5e5e5;
+}
+.fieldInputWrap.focused .phonePrefix{background:#dcf3e1;color:#0C831F;border-right-color:#dcf3e1;}
+
+.fieldInput{
+  flex:1;border:none;background:transparent;
+  padding:11px 12px;font-size:14px;font-weight:500;
+  font-family:inherit;color:#1f1f1f;outline:none;
+  width:100%;min-width:0;
+}
+.fieldInput.textarea{resize:vertical;min-height:60px;padding:10px 12px;}
+
+.errorText{
+  display:none;font-size:11px;color:#d23030;
+  font-weight:500;margin-top:4px;
+}
+.errorText.show{display:block;}
+
+.sectionDivider{
+  display:flex;align-items:center;gap:10px;
+  margin:16px 0 10px;
+  font-size:11px;font-weight:700;color:#888;letter-spacing:.4px;
+  text-transform:uppercase;
+}
+.sectionDivider::before,.sectionDivider::after{
+  content:"";flex:1;height:1px;background:#e5e5e5;
+}
+
+/* ============ ACTION BAR ============ */
+.actionBar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid #ececec;
+  padding:12px 16px;z-index:900;
+  box-shadow:0 -2px 12px rgba(0,0,0,.06);
+  display:flex;gap:10px;align-items:center;
+  max-width:100%;
+}
+.actionInner{
+  max-width:900px;margin:0 auto;
+  display:flex;gap:10px;align-items:center;width:100%;
+}
+
+.barInfo{flex:1;min-width:0;line-height:1.2;}
+.barFare{font-size:18px;font-weight:800;color:#1f1f1f;}
+.barFareSub{font-size:11px;color:#888;font-weight:500;margin-top:2px;}
+
+.btnContinue{
+  flex:1;max-width:240px;
+  background:#0C831F;color:#fff;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:800;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .12s;
+}
+.btnContinue:active{transform:scale(.98);}
+.btnContinue:hover{background:#0a6e1a;}
+.btnContinue:disabled{background:#a0d3a8;cursor:not-allowed;}
+.btnContinue.loading{position:relative;color:transparent;}
+.btnContinue.loading::after{
+  content:"";position:absolute;
+  width:18px;height:18px;
+  border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+
+.btnBack{
+  background:#fff;color:#666;
+  border:1.5px solid #e0e0e0;
+  padding:14px 16px;border-radius:10px;
+  font-size:13px;font-weight:700;
+  flex-shrink:0;
+}
+.btnBack:active{transform:scale(.97);}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:90px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* SUCCESS MODAL */
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:center;justify-content:center;z-index:2000;padding:20px;
+}
+.modalBg.show{display:flex;animation:fadeIn .25s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:380px;border-radius:18px;
+  padding:30px 24px 24px;text-align:center;
+  animation:scaleIn .3s ease;
+}
+@keyframes scaleIn{
+  from{transform:scale(.85);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+.successIcon{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(135deg,#0C831F,#0fa029);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;font-size:42px;color:#fff;
+  box-shadow:0 8px 22px rgba(12,131,31,.3);
+  animation:popIn .5s ease;
+}
+@keyframes popIn{
+  0%{transform:scale(0);}60%{transform:scale(1.15);}100%{transform:scale(1);}
+}
+.modal h3{font-size:20px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.5;margin-bottom:18px;}
+.btnPrimary{
+  width:100%;background:#0C831F;color:#fff;
+  padding:13px;border-radius:10px;font-size:14px;font-weight:700;
+}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+}
+
+.leaflet-popup-content-wrapper{border-radius:8px;}
+.leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">📦 Book Transport</div>
+      <div class="pageSub" id="pageSub">Move your goods anywhere in city</div>
+    </div>
+  </div>
+  <div class="steps">
+    <div class="stepDot active" id="dot1"></div>
+    <div class="stepDot" id="dot2"></div>
+    <div class="stepDot" id="dot3"></div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- ============ STEP 1: LOCATIONS ============ -->
+  <section class="stepSection active" id="step1">
+    <div class="stepHeader">Where are we picking up & dropping?</div>
+    <div class="stepDesc">Drag the pins on the map to refine, or type addresses below.</div>
+
+    <div class="mapWrap">
+      <div id="map"></div>
+      <div class="mapHint" id="mapHint">📍 Tap or drag the green pin for pickup, red pin for drop</div>
+    </div>
+
+    <!-- Pickup -->
+    <div class="locField" id="pickupField">
+      <div class="locTop">
+        <div class="locDot pickup">P</div>
+        <div class="locInputWrap">
+          <div class="locLabel">Pickup location</div>
+          <input class="locInput" id="pickupInput" type="text" placeholder="e.g. House no, area, landmark" autocomplete="off">
+        </div>
+        <div class="locActions">
+          <button class="locBtn" onclick="useMyLocation('pickup')" title="Use my location">📍</button>
+        </div>
+      </div>
+      <div class="suggestList" id="pickupSuggest"></div>
+    </div>
+
+    <!-- Swap button -->
+    <div style="text-align:center;">
+      <button class="swapBtn" onclick="swapLocations()" title="Swap pickup and drop">⇅</button>
+    </div>
+
+    <!-- Drop -->
+    <div class="locField" id="dropField">
+      <div class="locTop">
+        <div class="locDot drop">D</div>
+        <div class="locInputWrap">
+          <div class="locLabel">Drop location</div>
+          <input class="locInput" id="dropInput" type="text" placeholder="e.g. House no, area, landmark" autocomplete="off">
+        </div>
+        <div class="locActions">
+          <button class="locBtn" onclick="useMyLocation('drop')" title="Use my location">📍</button>
+        </div>
+      </div>
+      <div class="suggestList" id="dropSuggest"></div>
+    </div>
+
+    <!-- Distance -->
+    <div class="distanceCard" id="distanceCard" style="display:none;">
+      <div>
+        <div class="distLabel">Estimated distance</div>
+        <div class="distValue" id="distanceValue">— km</div>
+      </div>
+      <div class="distMeta" id="distanceMeta">Door to door</div>
+    </div>
+  </section>
+
+  <!-- ============ STEP 2: VEHICLE ============ -->
+  <section class="stepSection" id="step2">
+    <div class="stepHeader">Choose a vehicle</div>
+    <div class="stepDesc">Pick the smallest vehicle that fits your goods — cheaper options are listed first.</div>
+
+    <div class="routeStrip">
+      <div class="routeIcon">📍</div>
+      <div class="routeText">
+        <div class="routeFromTo">
+          <span class="label" id="routeFromText">—</span>
+          <span class="arrow">→</span>
+          <span class="label" id="routeToText">—</span>
+        </div>
+        <div class="routeDist" id="routeDistText">—</div>
+      </div>
+      <button class="editBtn" onclick="goToStep(1)">Edit</button>
+    </div>
+
+    <div class="vehicleList" id="vehicleList"></div>
+  </section>
+
+  <!-- ============ STEP 3: GOODS + CONTACT ============ -->
+  <section class="stepSection" id="step3">
+    <div class="stepHeader">Tell us about your shipment</div>
+    <div class="stepDesc">A few quick details so the driver knows what to expect.</div>
+
+    <!-- Summary -->
+    <div class="summaryCard" id="summaryCard">
+      <div class="sumRow"><div class="ic">🚛</div><span class="lbl" id="sumVehicle">—</span></div>
+      <div class="sumRow"><div class="ic">📍</div><span class="lbl" id="sumPickup">—</span></div>
+      <div class="sumRow"><div class="ic">🏁</div><span class="lbl" id="sumDrop">—</span></div>
+      <div class="sumDivider"></div>
+      <div class="sumTotal">
+        <span class="totLbl">Total fare</span>
+        <span class="totVal" id="sumFare">₹0</span>
+      </div>
+    </div>
+
+    <!-- Goods type -->
+    <div class="formCard">
+      <label class="formLabel">📦 What are you transporting?</label>
+      <div class="goodsChips" id="goodsChips"></div>
+      <div class="field" style="margin-top:10px;">
+        <div class="fieldInputWrap" id="descWrap">
+          <textarea class="fieldInput textarea" id="goodsDesc" placeholder="Optional: describe items (e.g. 1 fridge + 2 cupboards)" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pickup contact -->
+    <div class="formCard">
+      <label class="formLabel">👤 Pickup contact</label>
+      <div class="field">
+        <label class="fieldLabel">Name</label>
+        <div class="fieldInputWrap" id="pickupNameWrap">
+          <input class="fieldInput" id="pickupName" type="text" placeholder="Sender's name">
+        </div>
+      </div>
+      <div class="field">
+        <label class="fieldLabel">Phone</label>
+        <div class="fieldInputWrap" id="pickupPhoneWrap">
+          <span class="phonePrefix">+91</span>
+          <input class="fieldInput" id="pickupPhone" type="tel" placeholder="10-digit number"
+            inputmode="numeric" maxlength="10">
+        </div>
+        <div class="errorText" id="pickupPhoneError">Enter valid 10-digit Indian number</div>
+      </div>
+    </div>
+
+    <!-- Drop contact -->
+    <div class="formCard">
+      <label class="formLabel">📬 Drop contact</label>
+      <div class="field">
+        <label class="fieldLabel">Receiver's name</label>
+        <div class="fieldInputWrap" id="dropNameWrap">
+          <input class="fieldInput" id="dropName" type="text" placeholder="Receiver's name">
+        </div>
+      </div>
+      <div class="field">
+        <label class="fieldLabel">Receiver's phone</label>
+        <div class="fieldInputWrap" id="dropPhoneWrap">
+          <span class="phonePrefix">+91</span>
+          <input class="fieldInput" id="dropPhone" type="tel" placeholder="10-digit number"
+            inputmode="numeric" maxlength="10">
+        </div>
+        <div class="errorText" id="dropPhoneError">Enter valid 10-digit Indian number</div>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="formCard">
+      <label class="formLabel">📝 Note for driver (optional)</label>
+      <div class="field">
+        <div class="fieldInputWrap">
+          <textarea class="fieldInput textarea" id="driverNote" placeholder="e.g. Lift not working, please come to 2nd floor" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Action bar -->
+<div class="actionBar">
+  <div class="actionInner">
+    <button class="btnBack" id="btnBack" onclick="goPrev()" style="display:none;">Back</button>
+    <div class="barInfo" id="barInfo">
+      <div class="barFareSub" id="barInfoLabel">Step 1 of 3</div>
+      <div class="barFare" id="barInfoMain">Set pickup & drop</div>
+    </div>
+    <button class="btnContinue" id="btnContinue" onclick="goNext()" disabled>
+      Continue →
+    </button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Success modal -->
+<div class="modalBg" id="successModal">
+  <div class="modal">
+    <div class="successIcon">✓</div>
+    <h3>Booking confirmed! 🎉</h3>
+    <p id="successMsg">Looking for a driver near you. You'll get a notification once a partner is assigned.</p>
+    <button class="btnPrimary" onclick="goToTracking()">Track Order</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script type="module">
+import { db } from "/local-shop/js/firebase.js";
+import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const toast = document.getElementById("toast");
+
+/* ============ VEHICLE CATALOG ============ */
+const VEHICLES = [
+  {
+    id: "bike",
+    name: "2-Wheeler",
+    icon: "🛵",
+    capacity: "Up to 20 kg",
+    dimensions: "Small parcel size",
+    baseFare: 40, perKm: 10, minFare: 60,
+    examples: "Documents · food packets · small parcels"
+  },
+  {
+    id: "3wheeler",
+    name: "3-Wheeler (Tempo)",
+    icon: "🛺",
+    capacity: "Up to 500 kg",
+    dimensions: "5 × 4 × 4 ft",
+    baseFare: 160, perKm: 14, minFare: 200,
+    examples: "1 AC · washing machine · single-room shifting"
+  },
+  {
+    id: "tataAce",
+    name: "Tata Ace",
+    icon: "🚐",
+    capacity: "Up to 750 kg",
+    dimensions: "7 × 4.5 × 5.5 ft",
+    baseFare: 210, perKm: 18, minFare: 300,
+    examples: "1 fridge + 2 cupboards + bed · 1 BHK shifting"
+  },
+  {
+    id: "pickup8ft",
+    name: "Pickup 8ft",
+    icon: "🚛",
+    capacity: "Up to 1,250 kg",
+    dimensions: "8 × 5 × 6 ft",
+    baseFare: 300, perKm: 22, minFare: 400,
+    examples: "2 BHK shifting · bulk goods · industrial"
+  },
+  {
+    id: "tata407",
+    name: "Tata 407",
+    icon: "🚚",
+    capacity: "Up to 2,500 kg",
+    dimensions: "9 × 5.5 × 6 ft",
+    baseFare: 625, perKm: 30, minFare: 700,
+    examples: "Full house shifting · construction materials"
+  }
+];
+
+const GOODS_TYPES = [
+  { id: "furniture", name: "Furniture", icon: "🪑" },
+  { id: "appliances", name: "Appliances", icon: "📺" },
+  { id: "boxes", name: "Boxes", icon: "📦" },
+  { id: "documents", name: "Documents", icon: "📄" },
+  { id: "groceries", name: "Groceries", icon: "🛒" },
+  { id: "industrial", name: "Industrial", icon: "🔧" },
+  { id: "other", name: "Other", icon: "📋" }
+];
+
+/* ============ STATE ============ */
+let currentStep = 1;
+let pickup = null;     // {lat, lng, address}
+let drop = null;       // {lat, lng, address}
+let distanceKm = 0;    // road-approximated km
+let selectedVehicle = null;
+let selectedGoodsType = null;
+
+let map, pickupMarker, dropMarker, routeLine;
+
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+function getDistance(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+            Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* Road-approximated distance: Haversine × 1.4 */
+function calcRoadDistance(p1, p2){
+  return getDistance(p1.lat, p1.lng, p2.lat, p2.lng) * 1.4;
+}
+
+function calcFare(vehicle, km){
+  return Math.round(Math.max(vehicle.minFare, vehicle.baseFare + km * vehicle.perKm));
+}
+
+/* ============ MAP ============ */
+function emojiIcon(emoji, bg){
+  return L.divIcon({
+    className:"",
+    html:`<div style="background:${bg};width:42px;height:42px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 3px 8px rgba(0,0,0,.25);border:2.5px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:18px;font-weight:800;line-height:1;color:#fff;">${emoji}</div>
+          </div>`,
+    iconSize:[42,42], iconAnchor:[21,42], popupAnchor:[0,-42]
+  });
+}
+
+function initMap(){
+  /* Default to Bhubaneswar */
+  map = L.map('map', { zoomControl:true }).setView([20.2961, 85.8245], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap', maxZoom:19
+  }).addTo(map);
+
+  /* Click on map → drop the next pin (pickup if not set, else drop) */
+  map.on('click', async (e)=>{
+    const ll = e.latlng;
+    if(!pickup){
+      await setPin('pickup', ll.lat, ll.lng);
+    }else if(!drop){
+      await setPin('drop', ll.lat, ll.lng);
+    }
+  });
+}
+initMap();
+
+async function reverseGeocode(lat, lng){
+  try{
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+    const data = await res.json();
+    return data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }catch(e){
+    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
+}
+
+async function setPin(which, lat, lng, addressOverride=null){
+  const address = addressOverride || await reverseGeocode(lat, lng);
+
+  if(which === 'pickup'){
+    pickup = { lat, lng, address };
+    document.getElementById("pickupInput").value = address;
+    document.getElementById("pickupField").classList.add("set");
+    if(!pickupMarker){
+      pickupMarker = L.marker([lat, lng], {icon:emojiIcon("P","#0C831F"), draggable:true})
+        .addTo(map).bindPopup("Pickup");
+      pickupMarker.on('dragend', async (e)=>{
+        const ll = e.target.getLatLng();
+        await setPin('pickup', ll.lat, ll.lng);
+      });
+    }else{
+      pickupMarker.setLatLng([lat, lng]);
+    }
+  }else{
+    drop = { lat, lng, address };
+    document.getElementById("dropInput").value = address;
+    document.getElementById("dropField").classList.add("set");
+    if(!dropMarker){
+      dropMarker = L.marker([lat, lng], {icon:emojiIcon("D","#d23030"), draggable:true})
+        .addTo(map).bindPopup("Drop");
+      dropMarker.on('dragend', async (e)=>{
+        const ll = e.target.getLatLng();
+        await setPin('drop', ll.lat, ll.lng);
+      });
+    }else{
+      dropMarker.setLatLng([lat, lng]);
+    }
+  }
+
+  fitMap();
+  drawRoute();
+  updateDistance();
+  updateActionBar();
+}
+
+function fitMap(){
+  const points = [];
+  if(pickup) points.push([pickup.lat, pickup.lng]);
+  if(drop)   points.push([drop.lat, drop.lng]);
+  if(points.length === 1){ map.setView(points[0], 14); }
+  else if(points.length > 1){ map.fitBounds(points, {padding:[40,40], maxZoom:15}); }
+  setTimeout(()=> map.invalidateSize(), 50);
+}
+
+function drawRoute(){
+  if(routeLine){ map.removeLayer(routeLine); routeLine = null; }
+  if(pickup && drop){
+    routeLine = L.polyline([[pickup.lat, pickup.lng], [drop.lat, drop.lng]], {
+      color:'#0C831F', weight:3, opacity:.6, dashArray:'8 6'
+    }).addTo(map);
+  }
+}
+
+function updateDistance(){
+  if(pickup && drop){
+    distanceKm = calcRoadDistance(pickup, drop);
+    document.getElementById("distanceCard").style.display = "flex";
+    document.getElementById("distanceValue").textContent = distanceKm.toFixed(1) + " km";
+  }else{
+    document.getElementById("distanceCard").style.display = "none";
+  }
+}
+
+/* ============ MY LOCATION ============ */
+window.useMyLocation = (which)=>{
+  if(!navigator.geolocation){ showToast("Location not supported", true); return; }
+  showToast("Getting your location…");
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    await setPin(which, pos.coords.latitude, pos.coords.longitude);
+    showToast("✓ Location captured");
+  }, ()=>{
+    showToast("Couldn't get location. Allow access.", true);
+  }, { enableHighAccuracy:true, timeout:10000 });
+};
+
+/* ============ SWAP ============ */
+window.swapLocations = ()=>{
+  if(!pickup && !drop){ showToast("Set both locations first", true); return; }
+  const tmp = pickup; pickup = drop; drop = tmp;
+
+  if(pickup){
+    document.getElementById("pickupInput").value = pickup.address;
+    document.getElementById("pickupField").classList.add("set");
+    if(pickupMarker) pickupMarker.setLatLng([pickup.lat, pickup.lng]);
+  }else{
+    document.getElementById("pickupInput").value = "";
+    document.getElementById("pickupField").classList.remove("set");
+  }
+  if(drop){
+    document.getElementById("dropInput").value = drop.address;
+    document.getElementById("dropField").classList.add("set");
+    if(dropMarker) dropMarker.setLatLng([drop.lat, drop.lng]);
+  }else{
+    document.getElementById("dropInput").value = "";
+    document.getElementById("dropField").classList.remove("set");
+  }
+
+  drawRoute();
+  updateDistance();
+  updateActionBar();
+};
+
+/* ============ ADDRESS SEARCH ============ */
+let searchDebounce = {};
+function setupSearch(which){
+  const input = document.getElementById(which + "Input");
+  const list = document.getElementById(which + "Suggest");
+  const field = document.getElementById(which + "Field");
+
+  input.addEventListener("focus", ()=> field.classList.add("focused"));
+  input.addEventListener("blur", ()=>{
+    setTimeout(()=>{
+      field.classList.remove("focused");
+      field.classList.remove("suggesting");
+    }, 200);
+  });
+
+  input.addEventListener("input", ()=>{
+    const q = input.value.trim();
+    field.classList.remove("set");
+    if(which === "pickup") pickup = null;
+    else drop = null;
+    drawRoute();
+    updateDistance();
+    updateActionBar();
+
+    clearTimeout(searchDebounce[which]);
+    if(q.length < 3){
+      list.innerHTML = "";
+      field.classList.remove("suggesting");
+      return;
+    }
+    searchDebounce[which] = setTimeout(async ()=>{
+      try{
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&countrycodes=in&format=json&limit=5`
+        );
+        const results = await res.json();
+        if(!results.length){
+          list.innerHTML = `<div style="padding:14px;font-size:12px;color:#888;text-align:center;">No matches found</div>`;
+        }else{
+          list.innerHTML = results.map(r=>{
+            const parts = (r.display_name || "").split(",");
+            const main = parts.slice(0, 2).join(", ");
+            const rest = parts.slice(2).join(", ").trim();
+            return `<div class="suggestItem" data-lat="${r.lat}" data-lng="${r.lon}" data-addr="${escapeHtml(r.display_name)}">
+              <div class="area">${escapeHtml(main)}</div>
+              ${rest ? `<div class="city">${escapeHtml(rest)}</div>` : ""}
+            </div>`;
+          }).join("");
+
+          list.querySelectorAll(".suggestItem").forEach(it=>{
+            it.addEventListener("mousedown", async (e)=>{
+              e.preventDefault();
+              const lat = parseFloat(it.dataset.lat);
+              const lng = parseFloat(it.dataset.lng);
+              const addr = it.dataset.addr;
+              await setPin(which, lat, lng, addr);
+              list.innerHTML = "";
+              field.classList.remove("suggesting");
+            });
+          });
+        }
+        field.classList.add("suggesting");
+      }catch(e){
+        console.error(e);
+      }
+    }, 300);
+  });
+}
+setupSearch("pickup");
+setupSearch("drop");
+
+/* ============ STEPS ============ */
+window.goNext = ()=>{
+  if(currentStep === 1){
+    if(!pickup || !drop){ showToast("Please set both pickup and drop", true); return; }
+    if(distanceKm < 0.1){ showToast("Pickup and drop are too close", true); return; }
+    goToStep(2);
+  }else if(currentStep === 2){
+    if(!selectedVehicle){ showToast("Please select a vehicle", true); return; }
+    goToStep(3);
+  }else{
+    placeBooking();
+  }
+};
+
+window.goPrev = ()=>{
+  if(currentStep > 1) goToStep(currentStep - 1);
+};
+
+window.goToStep = (n)=>{
+  currentStep = n;
+  document.querySelectorAll(".stepSection").forEach(s => s.classList.remove("active"));
+  document.getElementById("step" + n).classList.add("active");
+
+  for(let i=1;i<=3;i++){
+    const dot = document.getElementById("dot" + i);
+    dot.classList.toggle("done", i < n);
+    dot.classList.toggle("active", i === n);
+  }
+
+  document.getElementById("btnBack").style.display = n > 1 ? "block" : "none";
+
+  if(n === 2){
+    document.getElementById("routeFromText").textContent = (pickup?.address || "").split(",")[0] || "Pickup";
+    document.getElementById("routeToText").textContent = (drop?.address || "").split(",")[0] || "Drop";
+    document.getElementById("routeDistText").textContent = distanceKm.toFixed(1) + " km · Estimated";
+    renderVehicles();
+  }else if(n === 3){
+    renderSummary();
+    renderGoodsChips();
+    /* Pre-fill pickup contact from saved customer info */
+    document.getElementById("pickupName").value  = localStorage.getItem("lastCustomerName")  || "";
+    document.getElementById("pickupPhone").value = localStorage.getItem("lastCustomerPhone") || "";
+  }
+
+  updateActionBar();
+  window.scrollTo({top:0, behavior:"smooth"});
+};
+
+/* ============ VEHICLE LIST ============ */
+function renderVehicles(){
+  const list = document.getElementById("vehicleList");
+  list.innerHTML = VEHICLES.map((v, idx)=>{
+    const fare = calcFare(v, distanceKm);
+    const isSelected = selectedVehicle?.id === v.id;
+    const cheapBadge = idx === 0 ? `<span class="cheapBadge">Cheapest</span>` : "";
+
+    return `
+      <div class="vehicleCard ${isSelected?'selected':''}" data-vehicle-id="${v.id}">
+        <div class="vehicleEmoji">${v.icon}</div>
+        <div class="vehicleInfo">
+          <div class="vehicleName">${v.name} ${cheapBadge}</div>
+          <div class="vehicleCapacity">${v.capacity} · ${v.dimensions}</div>
+          <div class="vehicleExamples">${v.examples}</div>
+          <div class="fareBreakdown">
+            <span>Base fare</span><span>₹${v.baseFare}</span>
+            <span>${distanceKm.toFixed(1)} km × ₹${v.perKm}</span><span>₹${Math.round(distanceKm * v.perKm)}</span>
+          </div>
+        </div>
+        <div class="vehicleFare">
+          <div class="fareAmount">₹${fare}</div>
+          <div class="fareLabel">Estimate</div>
+        </div>
+      </div>`;
+  }).join("");
+
+  list.querySelectorAll(".vehicleCard").forEach(card=>{
+    card.addEventListener("click", ()=>{
+      const id = card.dataset.vehicleId;
+      selectedVehicle = VEHICLES.find(v => v.id === id);
+      list.querySelectorAll(".vehicleCard").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      updateActionBar();
+    });
+  });
+}
+
+/* ============ STEP 3 ============ */
+function renderGoodsChips(){
+  const container = document.getElementById("goodsChips");
+  container.innerHTML = GOODS_TYPES.map(g=>`
+    <button class="goodsChip" data-id="${g.id}">${g.icon} ${g.name}</button>
+  `).join("");
+
+  container.querySelectorAll(".goodsChip").forEach(chip=>{
+    chip.addEventListener("click", ()=>{
+      container.querySelectorAll(".goodsChip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      selectedGoodsType = chip.dataset.id;
+      updateActionBar();
+    });
+  });
+}
+
+function renderSummary(){
+  const fare = calcFare(selectedVehicle, distanceKm);
+  document.getElementById("sumVehicle").textContent =
+    `${selectedVehicle.icon} ${selectedVehicle.name} · ${distanceKm.toFixed(1)} km`;
+  document.getElementById("sumPickup").textContent = pickup.address.split(",").slice(0,2).join(",");
+  document.getElementById("sumDrop").textContent   = drop.address.split(",").slice(0,2).join(",");
+  document.getElementById("sumFare").textContent   = "₹" + fare;
+}
+
+/* ============ FIELD VALIDATION ============ */
+["pickupName","pickupPhone","dropName","dropPhone"].forEach(id=>{
+  const input = document.getElementById(id);
+  const wrap = document.getElementById(id + "Wrap");
+  input.addEventListener("focus", ()=>{
+    wrap.classList.add("focused");
+    wrap.classList.remove("error");
+  });
+  input.addEventListener("blur", ()=> wrap.classList.remove("focused"));
+});
+
+document.getElementById("pickupPhone").addEventListener("input", (e)=>{
+  e.target.value = e.target.value.replace(/\D/g,"").slice(0,10);
+});
+document.getElementById("dropPhone").addEventListener("input", (e)=>{
+  e.target.value = e.target.value.replace(/\D/g,"").slice(0,10);
+});
+
+function validateStep3(){
+  const pName = document.getElementById("pickupName").value.trim();
+  const pPhone = document.getElementById("pickupPhone").value.trim();
+  const dName = document.getElementById("dropName").value.trim();
+  const dPhone = document.getElementById("dropPhone").value.trim();
+
+  let valid = true;
+  if(!selectedGoodsType){
+    showToast("Select what you're transporting", true);
+    valid = false;
+  }
+  if(!pName){
+    document.getElementById("pickupNameWrap").classList.add("error");
+    valid = false;
+  }
+  if(pPhone.length !== 10 || !/^[6-9]/.test(pPhone)){
+    document.getElementById("pickupPhoneWrap").classList.add("error");
+    document.getElementById("pickupPhoneError").classList.add("show");
+    valid = false;
+  }
+  if(!dName){
+    document.getElementById("dropNameWrap").classList.add("error");
+    valid = false;
+  }
+  if(dPhone.length !== 10 || !/^[6-9]/.test(dPhone)){
+    document.getElementById("dropPhoneWrap").classList.add("error");
+    document.getElementById("dropPhoneError").classList.add("show");
+    valid = false;
+  }
+  return valid;
+}
+
+/* ============ ACTION BAR ============ */
+function updateActionBar(){
+  const btn = document.getElementById("btnContinue");
+  const lblEl = document.getElementById("barInfoLabel");
+  const mainEl = document.getElementById("barInfoMain");
+
+  if(currentStep === 1){
+    lblEl.textContent = "Step 1 of 3";
+    if(pickup && drop){
+      mainEl.textContent = distanceKm.toFixed(1) + " km · ready";
+      btn.disabled = false;
+      btn.textContent = "Continue →";
+    }else{
+      mainEl.textContent = "Set pickup & drop";
+      btn.disabled = true;
+      btn.textContent = "Continue →";
+    }
+  }else if(currentStep === 2){
+    lblEl.textContent = "Step 2 of 3";
+    if(selectedVehicle){
+      const fare = calcFare(selectedVehicle, distanceKm);
+      mainEl.textContent = `₹${fare} · ${selectedVehicle.name}`;
+      btn.disabled = false;
+      btn.textContent = "Continue →";
+    }else{
+      mainEl.textContent = "Pick a vehicle";
+      btn.disabled = true;
+      btn.textContent = "Continue →";
+    }
+  }else{
+    lblEl.textContent = "Step 3 of 3";
+    const fare = calcFare(selectedVehicle, distanceKm);
+    mainEl.textContent = `Pay ₹${fare} on delivery`;
+    btn.disabled = false;
+    btn.textContent = "Place Booking ✓";
+  }
+}
+
+/* ============ PLACE BOOKING ============ */
+async function placeBooking(){
+  if(!validateStep3()) return;
+
+  const btn = document.getElementById("btnContinue");
+  btn.classList.add("loading");
+  btn.disabled = true;
+
+  const fare = calcFare(selectedVehicle, distanceKm);
+  const pName = document.getElementById("pickupName").value.trim();
+  const pPhone = document.getElementById("pickupPhone").value.trim();
+  const dName = document.getElementById("dropName").value.trim();
+  const dPhone = document.getElementById("dropPhone").value.trim();
+  const goodsDesc = document.getElementById("goodsDesc").value.trim();
+  const note = document.getElementById("driverNote").value.trim();
+
+  /* Save sender info for next time */
+  localStorage.setItem("lastCustomerName", pName);
+  localStorage.setItem("lastCustomerPhone", pPhone);
+
+  const order = {
+    /* Customer (sender) */
+    customerName:  pName,
+    customerPhone: pPhone,
+
+    /* Pickup */
+    pickupAddress: pickup.address,
+    pickupLat: pickup.lat,
+    pickupLng: pickup.lng,
+    pickupContactName: pName,
+    pickupContactPhone: pPhone,
+
+    /* Drop */
+    dropAddress: drop.address,
+    dropLat: drop.lat,
+    dropLng: drop.lng,
+    dropContactName: dName,
+    dropContactPhone: dPhone,
+
+    /* Vehicle + fare */
+    vehicleType: selectedVehicle.id,
+    vehicleName: selectedVehicle.name,
+    vehicleIcon: selectedVehicle.icon,
+    distanceKm: Number(distanceKm.toFixed(2)),
+    estimatedFare: fare,
+    deliveryEarning: Math.round(fare * 0.85),  // 85% to driver
+    platformFee:     Math.round(fare * 0.15),  // 15% platform
+
+    /* Goods */
+    goodsType:        selectedGoodsType,
+    goodsDescription: goodsDesc,
+    driverNote:       note,
+
+    /* Status */
+    status:         "Searching",
+    deliveryStatus: "Searching",
+    pickupStep:     0,
+
+    /* Driver fields (filled when accepted) */
+    deliveryBoyId: null,
+
+    time: new Date()
+  };
+
+  try{
+    const ref = await addDoc(collection(db, "transport-orders"), order);
+    /* Save id to localStorage for tracking */
+    localStorage.setItem("lastTransportOrderId", ref.id);
+    const myOrders = JSON.parse(localStorage.getItem("myTransportOrders") || "[]");
+    myOrders.unshift(ref.id);
+    localStorage.setItem("myTransportOrders", JSON.stringify(myOrders));
+
+    document.getElementById("successModal").classList.add("show");
+  }catch(e){
+    console.error(e);
+    showToast("Could not place booking. Try again.", true);
+    btn.classList.remove("loading");
+    btn.disabled = false;
+  }
+}
+
+window.goToTracking = ()=>{
+  const id = localStorage.getItem("lastTransportOrderId");
+  if(id){
+    location.href = "transport-tracking.html?orderId=" + id;
+  }else{
+    location.href = "/local-shop/index.html";
+  }
+};
+
+window.goBack = ()=> location.href = "/local-shop/index.html";
+</script>
+
+</body>
+</html>
