@@ -103,10 +103,12 @@ button{font-family:inherit;cursor:pointer;border:none;}
   cursor:pointer;transition:box-shadow .15s;
 }
 .orderCard:hover{box-shadow:0 3px 10px rgba(0,0,0,.06);}
+.orderCard.transport{border-left:4px solid #1857c1;}
 
 .cardTop{
   display:flex;align-items:center;justify-content:space-between;
-  padding:12px 14px;border-bottom:1px solid #f4f4f4;background:#fafafa;gap:10px;
+  padding:12px 14px;border-bottom:1px solid #f4f4f4;background:#fafafa;
+  gap:8px;flex-wrap:wrap;
 }
 .cardLeft{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
 .orderNum{font-size:13px;font-weight:800;color:#1f1f1f;letter-spacing:.3px;font-family:monospace;}
@@ -120,6 +122,16 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .pill-delivered{background:#dcf3e1;color:#0C831F;}
 .pill-rejected{background:#fde0e0;color:#c41818;}
 .pill-cancelled{background:#f0f0f0;color:#888;}
+
+.vehBadge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#dbe9ff;color:#1857c1;
+  padding:3px 8px;border-radius:12px;
+  font-size:10px;font-weight:800;
+  letter-spacing:.3px;text-transform:uppercase;
+  white-space:nowrap;
+}
+.vehBadge .vbIcon{font-size:13px;line-height:1;}
 
 .custStrip{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f4f4f4;}
 .custAvatar{
@@ -335,7 +347,10 @@ function isDelivered(o){
   const dStatus = (o.deliveryStatus || "").toLowerCase();
   return status === "delivered" || dStatus === "delivered" || dStatus === "completed";
 }
-function isRejected(o){ return (o.status || "").toLowerCase() === "rejected"; }
+function isRejected(o){
+  const s = (o.status || "").toLowerCase();
+  return s === "rejected" || s === "cancelled";
+}
 
 document.querySelectorAll(".tab").forEach(tab=>{
   tab.addEventListener("click", ()=>{
@@ -363,6 +378,7 @@ onAuthStateChanged(auth, async (user)=>{
 
 async function loadOrders(){
   try{
+    /* Main orders */
     const snap = await getDocs(query(
       collection(db, "orders"),
       where("shopEmail", "==", myEmail)
@@ -370,12 +386,15 @@ async function loadOrders(){
 
     allOrders = [];
     snap.forEach(d=>{
-      const o = d.data(); o.__id = d.id;
+      const o = d.data();
+      o.__id = d.id;
+      o.__col = "orders";
       if(isDelivered(o) || isRejected(o)){
         allOrders.push(o);
       }
     });
 
+    /* Split orders */
     try{
       const snap2 = await getDocs(query(
         collection(db, "split-orders"),
@@ -384,12 +403,30 @@ async function loadOrders(){
       snap2.forEach(d=>{
         const o = d.data();
         o.__id = "split_" + d.id;
+        o.__col = "split-orders";
         o.__isSplit = true;
         if(isDelivered(o) || isRejected(o)){
           allOrders.push(o);
         }
       });
     }catch(e){ /* split-orders may not exist */ }
+
+    /* NEW: Transport orders */
+    try{
+      const snap3 = await getDocs(query(
+        collection(db, "transport-orders"),
+        where("shopEmail", "==", myEmail)
+      ));
+      snap3.forEach(d=>{
+        const o = d.data();
+        o.__id = "transport_" + d.id;
+        o.__col = "transport-orders";
+        o.__isTransport = true;
+        if(isDelivered(o) || isRejected(o)){
+          allOrders.push(o);
+        }
+      });
+    }catch(e){ /* transport-orders may not exist yet */ }
 
     allOrders.sort((a,b)=>{
       const ta = a.time?.toDate ? a.time.toDate().getTime() : 0;
@@ -453,8 +490,6 @@ function renderOrders(){
     });
   }
 
-  /* FIX: use innerHTML on the same ordersDiv element so the reference stays valid.
-     The previous version replaced ordersDiv via outerHTML, breaking subsequent renders. */
   if(visible.length === 0){
     let icon = "📜", title = "No orders found", msg = "Your completed orders will appear here.";
     if(searchTerm){ icon="🔍"; title="No matches found"; msg="Try a different search term."; }
@@ -494,6 +529,7 @@ function renderCard(order){
   const id = order.__id;
   const orderShort = "#" + id.slice(-6).toUpperCase();
   const initial = (order.name || "?").trim().charAt(0).toUpperCase();
+  const isTransport = !!order.__isTransport;
 
   const status = order.status || "";
   const delivered = isDelivered(order);
@@ -506,6 +542,20 @@ function renderCard(order){
 
   const total = order.total || 0;
   const itemCount = order.items?.length || 0;
+
+  /* Vehicle badge for transport orders */
+  let vehicleBadge = "";
+  if(isTransport && order.vehicleName){
+    vehicleBadge = `
+      <div class="vehBadge">
+        <span class="vbIcon">${order.vehicleIcon || "🚚"}</span>
+        ${escapeHtml(order.vehicleName)}
+      </div>`;
+  }
+
+  let suffix = "";
+  if(order.__isSplit) suffix = " · SPLIT";
+  else if(isTransport) suffix = " · TRANSPORT";
 
   let itemsHtml = "";
   if(Array.isArray(order.items)){
@@ -528,12 +578,13 @@ function renderCard(order){
   }
 
   return `
-    <div class="orderCard">
+    <div class="orderCard ${isTransport?'transport':''}">
       <div class="cardTop">
         <div class="cardLeft">
-          <div class="orderNum">${orderShort}${order.__isSplit?" · SPLIT":""}</div>
+          <div class="orderNum">${orderShort}${suffix}</div>
           <div class="timeAgo">${timeAgo(order.time)}</div>
         </div>
+        ${vehicleBadge}
         <div class="statusPill ${pillClass}">${escapeHtml(pillText)}</div>
       </div>
 
