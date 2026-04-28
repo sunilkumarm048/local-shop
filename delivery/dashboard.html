@@ -11,28 +11,16 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
-html,body{
-  font-family:'Inter',Arial,sans-serif;
-  background:#f4f4f4;
-  color:#1f1f1f;
-  overflow-x:hidden;
-}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
 body{padding-bottom:30px;}
-
 button{font-family:inherit;cursor:pointer;border:none;}
 
-/* ============ HEADER ============ */
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
-  padding:14px 16px;
-  position:sticky;top:0;z-index:1000;
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-.topBar{
-  display:flex;align-items:center;gap:12px;
-  max-width:1100px;margin:0 auto;
-}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
 
 .menuBtn{
   background:rgba(255,255,255,.4);
@@ -52,23 +40,20 @@ button{font-family:inherit;cursor:pointer;border:none;}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* ONLINE TOGGLE */
 .onlineToggle{
   display:flex;align-items:center;gap:6px;
   background:rgba(255,255,255,.5);
   padding:7px 12px;border-radius:20px;
   font-size:12px;font-weight:800;
   flex-shrink:0;color:#1f1f1f;
-  letter-spacing:.3px;
-  cursor:pointer;
+  letter-spacing:.3px;cursor:pointer;
   transition:all .15s;
 }
 .onlineToggle.offline{background:rgba(255,255,255,.3);color:#888;}
 .onlineToggle:active{transform:scale(.95);}
 
 .onlineDot{
-  width:8px;height:8px;border-radius:50%;
-  background:#0C831F;
+  width:8px;height:8px;border-radius:50%;background:#0C831F;
   box-shadow:0 0 0 0 rgba(12,131,31,.6);
   animation:livePulse 1.6s infinite;
 }
@@ -79,12 +64,9 @@ button{font-family:inherit;cursor:pointer;border:none;}
   100%{box-shadow:0 0 0 0 rgba(12,131,31,0);}
 }
 
-/* SIDEBAR */
 .sidebarBg{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.5);
-  z-index:1500;display:none;opacity:0;
-  transition:opacity .25s;
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:1500;display:none;opacity:0;transition:opacity .25s;
 }
 .sidebarBg.show{display:block;opacity:1;}
 
@@ -105,8 +87,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   display:flex;align-items:center;gap:12px;
 }
 .sbAvatar{
-  width:50px;height:50px;border-radius:50%;
-  background:#fff;
+  width:50px;height:50px;border-radius:50%;background:#fff;
   display:flex;align-items:center;justify-content:center;
   font-size:24px;flex-shrink:0;
   box-shadow:0 2px 6px rgba(0,0,0,.1);
@@ -134,6 +115,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .sbItem .ic{font-size:18px;width:28px;text-align:center;flex-shrink:0;}
 .sbItem .arrow{margin-left:auto;color:#bbb;font-size:14px;}
 .sbDanger{color:#d23030;}
+.sbDivider{height:1px;background:#f0f0f0;margin:8px 4px;}
 
 .sbFooter{
   padding:14px 20px;
@@ -141,11 +123,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:11px;color:#999;text-align:center;
 }
 
-/* MAIN */
-.container{
-  max-width:1100px;margin:0 auto;
-  padding:14px 12px 0;
-}
+.container{max-width:1100px;margin:0 auto;padding:14px 12px 0;}
 
 .statsBar{
   display:grid;grid-template-columns:repeat(3,1fr);
@@ -157,12 +135,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
 .statValue{font-size:18px;font-weight:800;color:#1f1f1f;line-height:1;}
-.statLabel{
-  font-size:11px;color:#666;font-weight:500;
-  margin-top:4px;letter-spacing:.2px;
-}
+.statLabel{font-size:11px;color:#666;font-weight:500;margin-top:4px;letter-spacing:.2px;}
 
-/* NEW ORDER BANNER */
 .newOrderBanner{
   background:linear-gradient(135deg,#0C831F 0%,#0fa029 100%);
   color:#fff;border-radius:14px;
@@ -201,8 +175,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .noDetails{
   background:rgba(255,255,255,.15);border-radius:10px;
-  padding:10px 12px;margin-bottom:14px;
-  position:relative;z-index:1;
+  padding:10px 12px;margin-bottom:14px;position:relative;z-index:1;
 }
 .noLine{
   display:flex;align-items:center;gap:8px;
@@ -223,7 +196,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .noAccept{background:#fff;color:#0C831F;}
 .noReject{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);}
 
-/* EMPTY STATE */
 .noOrderBox{
   background:#fff;border-radius:14px;
   padding:24px 20px;text-align:center;
@@ -240,11 +212,9 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .sectionTitle{
   font-size:14px;font-weight:700;color:#555;
-  margin:0 4px 10px;
-  letter-spacing:.3px;text-transform:uppercase;
+  margin:0 4px 10px;letter-spacing:.3px;text-transform:uppercase;
 }
 
-/* ORDER CARD */
 .orderCard{
   background:#fff;border-radius:14px;
   margin-bottom:12px;
@@ -264,16 +234,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .statusPill{
   padding:4px 10px;border-radius:20px;
   font-size:10px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.4px;
-  white-space:nowrap;
+  text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;
 }
 .pill-step0{background:#fff5d6;color:#8a6500;}
 .pill-step1{background:#dbe9ff;color:#1857c1;}
 .pill-step2{background:#dcf3e1;color:#0C831F;}
 
-.journey{
-  display:flex;padding:14px;gap:8px;align-items:flex-start;
-}
+.journey{display:flex;padding:14px;gap:8px;align-items:flex-start;}
 .jStep{flex:1;text-align:center;position:relative;}
 .jLine{
   position:absolute;top:14px;left:55%;right:-45%;
@@ -338,15 +305,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .mapWrap{
   height:200px;margin:0 14px 14px;
-  border-radius:10px;overflow:hidden;
-  background:#e9e9e9;
+  border-radius:10px;overflow:hidden;background:#e9e9e9;
 }
 
 .cardActions{
   display:flex;gap:8px;
   padding:10px 14px 12px;
-  border-top:1px solid #f4f4f4;
-  flex-wrap:wrap;
+  border-top:1px solid #f4f4f4;flex-wrap:wrap;
 }
 .actionBtn{
   flex:1;min-width:120px;
@@ -363,26 +328,20 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .btn-deliver{background:#0C831F;color:#fff;}
 .btn-deliver:hover{background:#0a6e1a;}
 
-/* TOAST */
 .toast{
-  position:fixed;bottom:24px;
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1f1f1f;color:#fff;
-  padding:12px 20px;border-radius:10px;
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s;
-  z-index:1700;max-width:90%;text-align:center;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* MODAL */
 .modalBg{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.5);
-  display:none;align-items:flex-end;justify-content:center;
-  z-index:2000;
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
 }
 .modalBg.show{display:flex;animation:fadeIn .2s;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -407,13 +366,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
   .modalBg{align-items:center;padding:20px;}
   .modal{border-radius:16px;max-width:420px;}
 }
-
 @media(min-width:768px){
   .header{padding:16px 24px;}
   .container{padding:18px 20px 0;}
 }
 
-/* Leaflet popup */
 .leaflet-popup-content-wrapper{border-radius:8px;}
 .leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
 </style>
@@ -445,9 +402,19 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </div>
   <nav class="sbNav">
+    <div class="sbItem" onclick="goProfile()">
+      <div class="ic">👤</div>
+      <div>My Profile</div>
+      <div class="arrow">›</div>
+    </div>
     <div class="sbItem" onclick="goWallet()">
       <div class="ic">💰</div>
       <div>Wallet & Earnings</div>
+      <div class="arrow">›</div>
+    </div>
+    <div class="sbItem" onclick="goHistory()">
+      <div class="ic">📜</div>
+      <div>Order History</div>
       <div class="arrow">›</div>
     </div>
     <div class="sbItem" onclick="goAnalytics()">
@@ -455,6 +422,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
       <div>Analytics</div>
       <div class="arrow">›</div>
     </div>
+    <div class="sbDivider"></div>
     <div class="sbItem sbDanger" onclick="logout()">
       <div class="ic">🚪</div>
       <div>Logout</div>
@@ -513,7 +481,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  collection, onSnapshot, doc, updateDoc, getDoc, getDocs
+  collection, onSnapshot, doc, updateDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const newOrderArea = document.getElementById("newOrder");
@@ -525,23 +493,18 @@ const toast        = document.getElementById("toast");
 let myEmail = null;
 let isOnline = localStorage.getItem("isOnline") !== "false";
 let watchId  = null;
-let currentUserDoc = null;
 
 const ordersCache = { orders: [], "split-orders": [] };
-const renderedMaps = {};            // mapId -> Leaflet instance
-const renderedOrderState = {};      // mapId -> last-rendered "step|shopLat|shopLng|custLat|custLng" key
-const skippedOrderIds = new Set();  // orders the user has skipped this session
+const renderedMaps = {};
+const renderedOrderState = {};
+const skippedOrderIds = new Set();
 
 let knownOrderIds = new Set();
-let firstLoadDone = false;
-
-const audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
-audio.volume = 0.7;
+/* FIX: per-collection firstLoad tracking so split-orders init doesn't trigger a sound burst */
+let firstLoadDone = { orders: false, "split-orders": false };
 
 function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
 function getDistance(lat1, lon1, lat2, lon2){
@@ -552,11 +515,9 @@ function getDistance(lat1, lon1, lat2, lon2){
   const a = Math.sin(dLat/2)**2 +
             Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
             Math.sin(dLon/2)**2;
-  const c = 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return R*c;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-/* TOAST */
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#1f1f1f";
@@ -564,7 +525,25 @@ function showToast(msg, isError=false){
   setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-/* MODAL */
+/* FIX: Web Audio API beep instead of unreliable soundjay URL */
+function playBeep(){
+  if(!isOnline) return;
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
+  }catch(e){}
+}
+
 let confirmCb = null;
 function openModal({icon="❓", title, msg, confirmText="Confirm", danger=false, onConfirm}){
   document.getElementById("modalIcon").textContent  = icon;
@@ -588,11 +567,13 @@ document.getElementById("confirmModal").addEventListener("click",(e)=>{
   if(e.target.id === "confirmModal") closeModal();
 });
 
-/* SIDEBAR */
 window.toggleMenu = ()=>{
   document.getElementById("sidebar").classList.toggle("show");
   document.getElementById("sidebarBg").classList.toggle("show");
 };
+/* FIX: New sidebar links */
+window.goProfile   = ()=> location.href = "profile.html";
+window.goHistory   = ()=> location.href = "delivery-history.html";
 window.goWallet    = ()=> location.href = "wallet.html";
 window.goAnalytics = ()=> location.href = "analytics.html";
 
@@ -609,6 +590,10 @@ window.logout = ()=>{
           navigator.geolocation.clearWatch(watchId);
           watchId = null;
         }
+        // Mark offline before logging out
+        if(myEmail){
+          try{ await updateDoc(doc(db,"delivery", myEmail), { available: false }); }catch(e){}
+        }
         await signOut(auth);
         showToast("Logged out");
         setTimeout(()=> location.href = "login.html", 600);
@@ -617,7 +602,6 @@ window.logout = ()=>{
   });
 };
 
-/* ONLINE TOGGLE */
 function updateOnlineUI(){
   const t = document.getElementById("onlineToggle");
   const lbl = document.getElementById("onlineLabel");
@@ -636,17 +620,15 @@ window.toggleOnline = async ()=>{
   localStorage.setItem("isOnline", isOnline);
   updateOnlineUI();
 
-  // Persist availability flag so backend / nearest-shop logic can see it
   try{
     if(myEmail){
       await updateDoc(doc(db,"delivery", myEmail), { available: isOnline });
     }
-  }catch(e){ /* silent */ }
+  }catch(e){}
 
   showToast(isOnline ? "✓ You're now ONLINE" : "You're now OFFLINE");
 };
 
-/* LOCATION TRACKING */
 function startLiveLocation(){
   if(!navigator.geolocation) return;
   if(watchId !== null) return;
@@ -655,7 +637,6 @@ function startLiveLocation(){
     window.myLat = pos.coords.latitude;
     window.myLng = pos.coords.longitude;
 
-    // Always update active orders so the customer can track
     const tasks = [];
     [...ordersCache.orders, ...ordersCache["split-orders"]].forEach(o=>{
       if(o.deliveryBoyId === myEmail
@@ -668,7 +649,6 @@ function startLiveLocation(){
       }
     });
 
-    // Only update profile location while online (used for nearest-rider matching)
     if(isOnline && myEmail){
       tasks.push(updateDoc(doc(db,"delivery", myEmail), {
         lat: window.myLat, lng: window.myLng
@@ -676,21 +656,15 @@ function startLiveLocation(){
     }
     try{ await Promise.allSettled(tasks); }catch(e){}
 
-    // Re-render new-order banner if GPS just locked for the first time
     if(!window.__gpsLocked){
       window.__gpsLocked = true;
       renderNewOrder();
     }
   }, (err)=>{
     console.log("Geolocation error:", err);
-  }, {
-    enableHighAccuracy:true,
-    maximumAge:0,
-    timeout:15000
-  });
+  }, { enableHighAccuracy:true, maximumAge:0, timeout:15000 });
 }
 
-/* AUTH */
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
     showToast("Login required", true);
@@ -702,8 +676,8 @@ onAuthStateChanged(auth, async (user)=>{
   try{
     const snap = await getDoc(doc(db,"delivery", myEmail));
     if(snap.exists()){
-      currentUserDoc = snap.data();
-      document.getElementById("sbName").textContent = currentUserDoc.name || "Delivery Partner";
+      const d = snap.data();
+      document.getElementById("sbName").textContent = d.name || "Delivery Partner";
       document.getElementById("sbEmail").textContent = myEmail;
     }else{
       document.getElementById("sbEmail").textContent = myEmail;
@@ -717,7 +691,6 @@ onAuthStateChanged(auth, async (user)=>{
   listen("split-orders");
 });
 
-/* COLLECTION LISTENER */
 function listen(col){
   onSnapshot(collection(db, col), (snap)=>{
     const list = [];
@@ -729,7 +702,7 @@ function listen(col){
       d.__col = col;
       list.push(d);
 
-      if(firstLoadDone && d.deliveryStatus === "Ready" && !d.deliveryBoyId
+      if(firstLoadDone[col] && d.deliveryStatus === "Ready" && !d.deliveryBoyId
          && !knownOrderIds.has(d.__id) && !skippedOrderIds.has(d.__id)){
         foundNewReady = true;
       }
@@ -737,10 +710,8 @@ function listen(col){
     });
 
     ordersCache[col] = list;
-    if(foundNewReady && isOnline){
-      try{ audio.currentTime = 0; audio.play().catch(()=>{}); }catch(e){}
-    }
-    firstLoadDone = true;
+    if(foundNewReady && isOnline) playBeep();
+    firstLoadDone[col] = true;
 
     renderNewOrder();
     renderActiveOrders();
@@ -751,7 +722,6 @@ function listen(col){
   });
 }
 
-/* STATS */
 function renderStats(){
   const all = [...ordersCache.orders, ...ordersCache["split-orders"]];
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
@@ -759,16 +729,19 @@ function renderStats(){
   let active = 0, deliveredToday = 0, earningToday = 0;
   all.forEach(o=>{
     if(o.deliveryBoyId !== myEmail) return;
-    const isDone = o.deliveryStatus === "Delivered"
-                || o.status === "Delivered"
-                || o.deliveryStatus === "Completed";
+    const status  = (o.status||"").toLowerCase();
+    const dStatus = (o.deliveryStatus||"").toLowerCase();
+    const isDone = status === "delivered" || dStatus === "delivered" || dStatus === "completed";
+    /* FIX: also exclude WaitingCustomerConfirm from active (delivery boy is done) */
+    const isWaitingConfirm = status === "waitingcustomerconfirm" || dStatus === "waitingcustomerconfirm";
+
     if(isDone){
       const t = o.time?.toDate ? o.time.toDate() : new Date(o.time);
       if(t >= todayStart){
         deliveredToday++;
         earningToday += (o.deliveryEarning || 0);
       }
-    }else{
+    }else if(!isWaitingConfirm){
       active++;
     }
   });
@@ -782,7 +755,6 @@ function renderStats(){
     : `${active} active order${active>1?"s":""}`;
 }
 
-/* NEW ORDER PICKER */
 function renderNewOrder(){
   if(!isOnline){
     newOrderArea.innerHTML = `
@@ -800,15 +772,12 @@ function renderNewOrder(){
   all.forEach(o=>{
     if(o.deliveryStatus !== "Ready") return;
     if(o.deliveryBoyId) return;
-    if(skippedOrderIds.has(o.__id)) return;   // honour skips
+    if(skippedOrderIds.has(o.__id)) return;
 
     const dist = getDistance(window.myLat, window.myLng, o.shopLat, o.shopLng);
     if(dist !== null){
-      if(dist < candidateDist){
-        candidate = o; candidateDist = dist;
-      }
+      if(dist < candidateDist){ candidate = o; candidateDist = dist; }
     }else if(!candidate){
-      // GPS not locked yet — fall back to first available
       candidate = o;
     }
   });
@@ -847,18 +816,22 @@ function renderNewOrder(){
     </div>`;
 }
 
-/* RENDER ACTIVE ORDERS */
 function renderActiveOrders(){
+  /* FIX: filter excludes WaitingCustomerConfirm so finished orders disappear from dashboard */
   const all = [...ordersCache.orders, ...ordersCache["split-orders"]]
-    .filter(o => o.deliveryBoyId === myEmail
-              && o.deliveryStatus !== "Delivered"
-              && o.deliveryStatus !== "Completed"
-              && o.status !== "Delivered");
+    .filter(o => {
+      if(o.deliveryBoyId !== myEmail) return false;
+      const status = (o.status||"").toLowerCase();
+      const dStatus = (o.deliveryStatus||"").toLowerCase();
+      if(status === "delivered" || dStatus === "delivered" || dStatus === "completed") return false;
+      if(status === "waitingcustomerconfirm" || dStatus === "waitingcustomerconfirm") return false;
+      if(status === "rejected") return false;
+      return true;
+    });
 
   if(all.length === 0){
     ordersDiv.innerHTML = "";
     activeTitle.style.display = "none";
-    // Cleanup maps
     Object.keys(renderedMaps).forEach(k=>{
       try{ renderedMaps[k].remove(); }catch(e){}
       delete renderedMaps[k];
@@ -869,10 +842,7 @@ function renderActiveOrders(){
 
   activeTitle.style.display = "block";
 
-  /* Build the set of currently-active order IDs */
   const activeIds = new Set(all.map(o => o.__id));
-
-  /* Remove cards/maps for orders no longer active */
   Object.keys(renderedMaps).forEach(k=>{
     if(!activeIds.has(k)){
       try{ renderedMaps[k].remove(); }catch(e){}
@@ -881,7 +851,6 @@ function renderActiveOrders(){
     }
   });
 
-  /* Build HTML once */
   let html = "";
   all.forEach(o=>{
     const id = o.__id, col = o.__col;
@@ -960,14 +929,12 @@ function renderActiveOrders(){
 
   ordersDiv.innerHTML = html;
 
-  /* After render: only RECREATE a map if its key has changed */
   setTimeout(()=>{
     all.forEach(o=>{
       const id = o.__id;
       const step = o.pickupStep || 0;
       const custLat = o.customerLat ?? o.lat;
       const custLng = o.customerLng ?? o.lng;
-
       const targetLat = step < 2 ? o.shopLat : custLat;
       const targetLng = step < 2 ? o.shopLng : custLng;
       if(!targetLat || !targetLng) return;
@@ -975,16 +942,6 @@ function renderActiveOrders(){
       const el = document.getElementById(`map_${id}`);
       if(!el) return;
 
-      // Build a state key that captures everything that affects the map
-      const stateKey = `${step}|${o.shopLat}|${o.shopLng}|${custLat}|${custLng}`;
-
-      // If map already exists for this state, just update rider position
-      if(renderedMaps[id] && renderedOrderState[id] === stateKey){
-        // ordersDiv.innerHTML wiped the DOM, so old map handle is dead — recreate
-        // But this branch shouldn't normally hit because innerHTML reset cleared everything
-      }
-
-      // Cleanup old map (innerHTML cleared the DOM, but the JS Leaflet object still holds references)
       if(renderedMaps[id]){
         try{ renderedMaps[id].remove(); }catch(e){}
       }
@@ -1010,7 +967,6 @@ function renderActiveOrders(){
       }
 
       renderedMaps[id] = map;
-      renderedOrderState[id] = stateKey;
       setTimeout(()=> map.invalidateSize(), 100);
     });
   }, 50);
@@ -1028,7 +984,6 @@ function emojiIcon(emoji, bg){
   });
 }
 
-/* ACTIONS */
 window.acceptNewOrder = (id, col)=>{
   openModal({
     icon:"🛵",
@@ -1040,7 +995,7 @@ window.acceptNewOrder = (id, col)=>{
         const snap = await getDoc(doc(db,"delivery", myEmail));
         const d = snap.exists() ? snap.data() : {};
         await updateDoc(doc(db, col, id), {
-          deliveryBoyId: myEmail,
+          deliveryBoyId:    myEmail,
           deliveryBoyName:  d.name || "",
           deliveryBoyPhone: d.phone || "",
           deliveryVehicle:  d.bikeNumber || "",
@@ -1057,7 +1012,6 @@ window.acceptNewOrder = (id, col)=>{
 };
 
 window.rejectNewOrder = (id, col)=>{
-  // Add to skipped set so renderNewOrder won't pick it again this session
   skippedOrderIds.add(id);
   newOrderArea.innerHTML = `
     <div class="noOrderBox">
@@ -1082,7 +1036,6 @@ window.nextStep = (id, col, step)=>{
     onConfirm: async ()=>{
       try{
         const update = { pickupStep: step + 1 };
-        // When picked up, also mark order as Out for Delivery so customer sees it
         if(step === 0){
           update.deliveryStatus = "Picked";
           update.status = "Out for Delivery";
@@ -1118,20 +1071,15 @@ window.markDelivered = (id, col)=>{
 
 window.openNavigation = (lat, lng)=>{
   if(!lat || !lng){ showToast("Location not available", true); return; }
-  const origin = (window.myLat && window.myLng)
-    ? `${window.myLat},${window.myLng}`
-    : "";
+  const origin = (window.myLat && window.myLng) ? `${window.myLat},${window.myLng}` : "";
   const url = origin
     ? `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${lat},${lng}&travelmode=driving`
     : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
   window.open(url, "_blank");
 };
 
-/* Cleanup on page leave */
 window.addEventListener("beforeunload", ()=>{
-  if(watchId !== null){
-    navigator.geolocation.clearWatch(watchId);
-  }
+  if(watchId !== null) navigator.geolocation.clearWatch(watchId);
 });
 </script>
 
