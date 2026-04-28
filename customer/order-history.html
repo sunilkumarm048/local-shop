@@ -1,12 +1,452 @@
-
 <!DOCTYPE html>
-<html>
-<head><title>Orders</title></head>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Orders · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.4);width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
+
+.tabs{
+  display:flex;gap:8px;
+  padding:12px 12px 4px;
+  max-width:900px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{
+  padding:8px 14px;background:#fff;
+  border:1px solid #e5e5e5;border-radius:22px;
+  font-size:12px;font-weight:600;color:#444;
+  white-space:nowrap;flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
+}
+.tab.active{background:#0C831F;color:#fff;border-color:#0C831F;}
+.tabCount{
+  background:rgba(0,0,0,.08);color:inherit;
+  padding:1px 7px;border-radius:10px;
+  font-size:10px;font-weight:700;
+}
+.tab.active .tabCount{background:rgba(255,255,255,.25);color:#fff;}
+
+.container{max-width:900px;margin:0 auto;padding:8px 12px 0;}
+
+.dateHeader{
+  font-size:11px;font-weight:700;color:#666;
+  letter-spacing:.4px;text-transform:uppercase;
+  margin:14px 4px 8px;
+  display:flex;align-items:center;gap:8px;
+}
+.dateHeader::before{
+  content:"";width:3px;height:12px;background:#0C831F;border-radius:2px;
+}
+
+.orderCard{
+  background:#fff;border-radius:14px;
+  margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  overflow:hidden;border:1px solid #ececec;
+  cursor:pointer;
+  transition:box-shadow .15s;
+}
+.orderCard:hover{box-shadow:0 3px 10px rgba(0,0,0,.06);}
+.orderCard:active{transform:scale(.99);}
+
+.cardTop{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;background:#fafafa;
+  border-bottom:1px solid #f4f4f4;gap:10px;
+}
+.shopBlock{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
+.shopAvatar{
+  width:34px;height:34px;border-radius:50%;
+  background:#fff5d6;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.shopText{flex:1;min-width:0;line-height:1.2;}
+.shopName{
+  font-size:13px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.timeAgo{font-size:11px;color:#888;font-weight:500;margin-top:1px;}
+
+.statusPill{
+  padding:4px 10px;border-radius:20px;
+  font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.4px;
+  white-space:nowrap;
+}
+.pill-pending{background:#fff5d6;color:#8a6500;}
+.pill-active{background:#dbe9ff;color:#1857c1;}
+.pill-out{background:#ffe8d1;color:#b65800;}
+.pill-delivered{background:#dcf3e1;color:#0C831F;}
+.pill-rejected{background:#fde0e0;color:#c41818;}
+.pill-cancelled{background:#f0f0f0;color:#888;}
+
+.cardBody{
+  padding:10px 14px;
+  font-size:13px;color:#1f1f1f;line-height:1.4;
+}
+.itemsPreview{
+  display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden;
+  color:#444;font-size:13px;
+}
+
+.cardFoot{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;
+  border-top:1px solid #f4f4f4;
+}
+.itemsCount{
+  display:flex;align-items:center;gap:5px;
+  font-size:12px;color:#666;font-weight:600;
+}
+.foot-amount{font-size:15px;font-weight:800;color:#1f1f1f;}
+.foot-amount .label{
+  font-size:10px;font-weight:600;color:#888;
+  text-transform:uppercase;
+  letter-spacing:.3px;margin-right:4px;
+}
+
+.empty{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;margin-top:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;margin-bottom:20px;line-height:1.5;}
+.shopBtn{
+  background:#0C831F;color:#fff;
+  padding:12px 26px;border-radius:10px;
+  font-size:14px;font-weight:700;letter-spacing:.3px;
+  text-decoration:none;display:inline-block;
+}
+.shopBtn:active{transform:scale(.97);}
+
+.skel{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.skelLine{
+  height:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:6px;margin-bottom:10px;
+}
+.skelLine.short{width:50%;}
+.skelLine.med{width:75%;}
+@keyframes shimmer{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+}
+</style>
+</head>
+
 <body>
 
-<h2>My Orders</h2>
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goHome()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">📜 My Orders</div>
+      <div class="pageSub" id="headerSub">Loading…</div>
+    </div>
+  </div>
 
-<p>Order history will appear here</p>
+  <div class="tabs">
+    <div class="tab active" data-filter="all">All <span class="tabCount" id="cntAll">0</span></div>
+    <div class="tab" data-filter="active">⏳ Active <span class="tabCount" id="cntActive">0</span></div>
+    <div class="tab" data-filter="delivered">✓ Delivered <span class="tabCount" id="cntDelivered">0</span></div>
+  </div>
+</header>
+
+<main class="container">
+  <div id="orders">
+    <div class="skel">
+      <div class="skelLine med"></div>
+      <div class="skelLine short"></div>
+      <div class="skelLine"></div>
+    </div>
+    <div class="skel">
+      <div class="skelLine med"></div>
+      <div class="skelLine short"></div>
+      <div class="skelLine"></div>
+    </div>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { db } from "../js/firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const ordersDiv = document.getElementById("orders");
+const headerSub = document.getElementById("headerSub");
+const toast     = document.getElementById("toast");
+
+let allOrders = [];
+let currentFilter = "all";
+
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
+
+function timeAgo(t){
+  if(!t) return "";
+  const d = t.toDate ? t.toDate() : new Date(t);
+  const sec = Math.floor((Date.now()-d.getTime())/1000);
+  if(sec < 60)    return "just now";
+  if(sec < 3600)  return Math.floor(sec/60) + "m ago";
+  if(sec < 86400) return Math.floor(sec/3600) + "h ago";
+  if(sec < 604800)return Math.floor(sec/86400) + "d ago";
+  return d.toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+}
+
+function dateGroupKey(t){
+  if(!t) return "Unknown";
+  const d = t.toDate ? t.toDate() : new Date(t);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yest = new Date(today.getTime() - 86400000);
+  const dDate = new Date(d); dDate.setHours(0,0,0,0);
+  if(dDate.getTime() === today.getTime()) return "Today";
+  if(dDate.getTime() === yest.getTime())  return "Yesterday";
+  const diff = (today.getTime() - dDate.getTime()) / 86400000;
+  if(diff < 7) return "Earlier this week";
+  if(diff < 30) return d.toLocaleDateString("en-IN", {month:"long", day:"numeric"});
+  return d.toLocaleDateString("en-IN", {month:"long", year:"numeric"});
+}
+
+function isActive(o){
+  const s = (o.status||"").toLowerCase();
+  return s !== "delivered" && s !== "rejected" && s !== "cancelled";
+}
+
+function getStatusClass(o){
+  const s = (o.status||"").toLowerCase();
+  if(s === "delivered")        return { cls:"pill-delivered", text:"Delivered" };
+  if(s === "out for delivery") return { cls:"pill-out",       text:"On the way" };
+  if(s === "ready")            return { cls:"pill-active",    text:"Ready" };
+  if(s === "accepted")         return { cls:"pill-active",    text:"Accepted" };
+  if(s === "pending")          return { cls:"pill-pending",   text:"Pending" };
+  if(s === "rejected")         return { cls:"pill-rejected",  text:"Rejected" };
+  if(s === "cancelled")        return { cls:"pill-cancelled", text:"Cancelled" };
+  return { cls:"pill-pending", text: o.status || "Processing" };
+}
+
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    currentFilter = tab.dataset.filter;
+    renderOrders();
+  });
+});
+
+/* LOAD orders from localStorage list */
+async function loadOrders(){
+  const orderIds = JSON.parse(localStorage.getItem("myOrders") || "[]");
+
+  if(orderIds.length === 0){
+    headerSub.textContent = "No orders yet";
+    ordersDiv.innerHTML = `
+      <div class="empty">
+        <div class="icon">📭</div>
+        <h3>No orders yet</h3>
+        <p>Your past orders will appear here once you place one.</p>
+        <a class="shopBtn" href="/local-shop/index.html">Start Shopping</a>
+      </div>`;
+    return;
+  }
+
+  /* Fetch each order in parallel */
+  try{
+    const promises = orderIds.map(id => getDoc(doc(db, "orders", id)));
+    const snaps = await Promise.allSettled(promises);
+
+    allOrders = [];
+    snaps.forEach((res, i)=>{
+      if(res.status === "fulfilled" && res.value.exists()){
+        const o = res.value.data();
+        o.__id = orderIds[i];
+        allOrders.push(o);
+      }
+    });
+
+    /* Sort newest first */
+    allOrders.sort((a,b)=>{
+      const ta = a.time?.toDate ? a.time.toDate().getTime() : 0;
+      const tb = b.time?.toDate ? b.time.toDate().getTime() : 0;
+      return tb - ta;
+    });
+
+    updateCounts();
+    renderOrders();
+  }catch(err){
+    console.error(err);
+    showToast("Could not load orders", true);
+    ordersDiv.innerHTML = `
+      <div class="empty">
+        <div class="icon">⚠️</div>
+        <h3>Could not load</h3>
+        <p>Please check your connection and try again.</p>
+      </div>`;
+  }
+}
+
+function updateCounts(){
+  const active = allOrders.filter(isActive).length;
+  const delivered = allOrders.filter(o => (o.status||"").toLowerCase() === "delivered").length;
+
+  document.getElementById("cntAll").textContent       = allOrders.length;
+  document.getElementById("cntActive").textContent    = active;
+  document.getElementById("cntDelivered").textContent = delivered;
+
+  headerSub.textContent = active > 0
+    ? `${active} active order${active>1?"s":""}`
+    : `${allOrders.length} total order${allOrders.length>1?"s":""}`;
+}
+
+function renderOrders(){
+  let visible = allOrders;
+  if(currentFilter === "active")    visible = allOrders.filter(isActive);
+  else if(currentFilter === "delivered") visible = allOrders.filter(o => (o.status||"").toLowerCase() === "delivered");
+
+  if(visible.length === 0){
+    let title = "No orders found", msg = "Your orders will appear here.";
+    if(currentFilter === "active"){ title = "No active orders"; msg = "All your active orders will appear here."; }
+    else if(currentFilter === "delivered"){ title = "No delivered orders yet"; msg = "Once delivered, orders will appear here."; }
+    ordersDiv.innerHTML = `
+      <div class="empty">
+        <div class="icon">📭</div>
+        <h3>${title}</h3>
+        <p>${msg}</p>
+      </div>`;
+    return;
+  }
+
+  /* Group by date */
+  const groups = new Map();
+  visible.forEach(o=>{
+    const key = dateGroupKey(o.time);
+    if(!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(o);
+  });
+
+  let html = "";
+  groups.forEach((orders, dateKey)=>{
+    html += `<div class="dateHeader">${escapeHtml(dateKey)}</div>`;
+    orders.forEach(o=> html += renderCard(o));
+  });
+  ordersDiv.innerHTML = html;
+
+  /* Wire up clicks */
+  ordersDiv.querySelectorAll(".orderCard").forEach(c=>{
+    c.addEventListener("click", ()=>{
+      location.href = "/local-shop/customer/tracking.html?orderId=" + c.dataset.orderId;
+    });
+  });
+}
+
+function renderCard(order){
+  const status = getStatusClass(order);
+  const itemCount = order.items?.length || 0;
+  const total = order.grandTotal || order.total || 0;
+  const icon = order.shopIcon || "🏪";
+
+  /* Items preview */
+  const previewItems = (order.items || []).slice(0, 3)
+    .map(i => `${i.name} × ${i.qty || 1}`)
+    .join(", ");
+  const more = (order.items || []).length > 3 ? ` +${order.items.length - 3} more` : "";
+
+  return `
+    <div class="orderCard" data-order-id="${order.__id}">
+      <div class="cardTop">
+        <div class="shopBlock">
+          <div class="shopAvatar">${icon}</div>
+          <div class="shopText">
+            <div class="shopName">${escapeHtml(order.shopName || "Shop")}</div>
+            <div class="timeAgo">${timeAgo(order.time)}</div>
+          </div>
+        </div>
+        <div class="statusPill ${status.cls}">${escapeHtml(status.text)}</div>
+      </div>
+
+      <div class="cardBody">
+        <div class="itemsPreview">${escapeHtml(previewItems)}${more}</div>
+      </div>
+
+      <div class="cardFoot">
+        <div class="itemsCount">📦 ${itemCount} item${itemCount!==1?"s":""}</div>
+        <div class="foot-amount">
+          <span class="label">Total</span>₹${total}
+        </div>
+      </div>
+    </div>`;
+}
+
+window.goHome = ()=> location.href = "/local-shop/index.html";
+
+loadOrders();
+</script>
 
 </body>
 </html>
