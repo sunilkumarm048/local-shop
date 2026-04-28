@@ -97,10 +97,15 @@ button{font-family:inherit;cursor:pointer;border:none;}
   50%{box-shadow:0 0 0 5px rgba(240,185,29,.32);}
 }
 
+/* Highlight transport orders with a slight blue tint to differentiate */
+.orderCard.transport{
+  border-left:4px solid #1857c1;
+}
+
 .cardTop{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 14px;border-bottom:1px solid #f4f4f4;
-  background:#fafafa;gap:10px;
+  background:#fafafa;gap:10px;flex-wrap:wrap;
 }
 .cardLeft{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
 .orderNum{
@@ -118,6 +123,24 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .pill-accepted{background:#dcf3e1;color:#0C831F;}
 .pill-ready   {background:#dbe9ff;color:#1857c1;}
 .pill-out     {background:#ffe8d1;color:#b65800;}
+
+/* Vehicle badge */
+.vehBadge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#dbe9ff;color:#1857c1;
+  padding:3px 8px;border-radius:12px;
+  font-size:10px;font-weight:800;
+  letter-spacing:.3px;text-transform:uppercase;
+  white-space:nowrap;
+}
+.vehBadge .vbIcon{font-size:13px;line-height:1;}
+
+.weightChip{
+  background:#fff5d6;color:#8a6500;
+  padding:3px 8px;border-radius:12px;
+  font-size:10px;font-weight:800;letter-spacing:.3px;
+  white-space:nowrap;
+}
 
 .custStrip{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f4f4f4;}
 .custAvatar{
@@ -340,7 +363,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  collection, onSnapshot, doc, updateDoc, getDoc, addDoc
+  collection, onSnapshot, doc, updateDoc, getDoc, addDoc, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
@@ -349,14 +372,15 @@ const toast     = document.getElementById("toast");
 const soundBtn  = document.getElementById("soundBtn");
 
 let currentFilter = "all";
-let allOrdersCache = [];
-let myShopEmail = null;
-let knownOrderIds = new Set();
-let firstLoadDone = false;
-let soundEnabled = localStorage.getItem("soundEnabled") !== "false";
 
-const audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
-audio.volume = 0.7;
+/* FIX: separate caches for each collection. The combined cache is built in renderFromCache(). */
+const ordersCache = { "orders": [], "transport-orders": [] };
+let myShopEmail = null;
+
+let knownOrderIds = new Set();
+/* FIX: per-collection firstLoad tracking */
+let firstLoadDone = { "orders": false, "transport-orders": false };
+let soundEnabled = localStorage.getItem("soundEnabled") !== "false";
 
 function updateSoundUI(){
   soundBtn.textContent = soundEnabled ? "🔔" : "🔕";
@@ -370,11 +394,22 @@ window.toggleSound = ()=>{
 };
 updateSoundUI();
 
+/* FIX: Web Audio API beep instead of unreliable soundjay URL */
 function playSound(){
   if(!soundEnabled) return;
   try{
-    audio.currentTime = 0;
-    audio.play().catch(()=>{});
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.5);
   }catch(e){}
 }
 
@@ -447,32 +482,54 @@ onAuthStateChanged(auth, (user)=>{
   }
   myShopEmail = user.email;
 
-  onSnapshot(collection(db,"orders"), (snap)=>{
-    allOrdersCache = [];
+  /* Listen to BOTH collections */
+  listenToCollection("orders");
+  listenToCollection("transport-orders");
+});
+
+function listenToCollection(col){
+  /* Filter at the query level for transport-orders so we don't get unrelated bookings */
+  let q;
+  if(col === "transport-orders"){
+    /* Only transport orders that came from a shop checkout (not direct Porter-style bookings) */
+    q = query(collection(db, col), where("shopEmail", "==", myShopEmail));
+  }else{
+    q = collection(db, col);
+  }
+
+  onSnapshot(q, (snap)=>{
+    const list = [];
     let foundNewPending = false;
 
     snap.forEach(docSnap=>{
       const d = docSnap.data();
       d.__id = docSnap.id;
+      d.__col = col;
 
-      const visible = (d.shopEmail === myShopEmail) || !d.shopEmail;
-      if(!visible) return;
+      /* For 'orders' collection, filter by shopEmail (legacy compat keeps unset visible) */
+      if(col === "orders"){
+        const visible = (d.shopEmail === myShopEmail) || !d.shopEmail;
+        if(!visible) return;
+      }
 
-      if(d.status === "Delivered" || d.status === "Rejected") return;
+      /* Skip terminal statuses */
+      if(d.status === "Delivered" || d.status === "Rejected" || d.status === "Cancelled") return;
 
-      allOrdersCache.push(d);
+      list.push(d);
 
-      if(firstLoadDone && d.status === "Pending" && !knownOrderIds.has(d.__id)){
+      if(firstLoadDone[col] && d.status === "Pending" && !knownOrderIds.has(d.__id)){
         foundNewPending = true;
       }
       knownOrderIds.add(d.__id);
     });
 
+    ordersCache[col] = list;
+
     if(foundNewPending){
       playSound();
       showToast("🔔 New order received");
     }
-    firstLoadDone = true;
+    firstLoadDone[col] = true;
 
     updateCounts();
     renderFromCache();
@@ -481,11 +538,15 @@ onAuthStateChanged(auth, (user)=>{
     headerSub.textContent = "Connection error";
     showToast("Could not load orders", true);
   });
-});
+}
+
+function getCombinedOrders(){
+  return [...ordersCache.orders, ...ordersCache["transport-orders"]];
+}
 
 function updateCounts(){
   let pending=0, accepted=0, ready=0;
-  allOrdersCache.forEach(o=>{
+  getCombinedOrders().forEach(o=>{
     const k = statusKey(o.status);
     if(k === "pending") pending++;
     else if(k === "accepted") accepted++;
@@ -504,7 +565,7 @@ function updateCounts(){
 function renderFromCache(){
   ordersDiv.innerHTML = "";
 
-  let visible = allOrdersCache.filter(o=>{
+  let visible = getCombinedOrders().filter(o=>{
     if(currentFilter === "all") return true;
     return statusKey(o.status) === currentFilter;
   });
@@ -531,6 +592,8 @@ function renderFromCache(){
   let html = "";
   visible.forEach(order=>{
     const id = order.__id;
+    const col = order.__col;
+    const isTransport = col === "transport-orders";
     const status = order.status || "Pending";
     const sk = statusKey(status);
     const fresh = sk === "pending" ? "fresh" : "";
@@ -538,12 +601,28 @@ function renderFromCache(){
     const orderShort = "#" + id.slice(-6).toUpperCase();
     const total = order.total || 0;
 
+    /* Vehicle badge for transport orders */
+    let vehicleBadge = "";
+    if(isTransport && order.vehicleName){
+      vehicleBadge = `
+        <div class="vehBadge">
+          <span class="vbIcon">${order.vehicleIcon || "🚚"}</span>
+          ${escapeHtml(order.vehicleName)}
+        </div>`;
+    }
+
+    /* Weight chip for orders that have weight info */
+    let weightChip = "";
+    if(order.cartWeightKg && order.cartWeightKg > 0){
+      weightChip = `<div class="weightChip">${order.cartWeightKg.toFixed(1)} KG</div>`;
+    }
+
     let itemsHtml = "";
     if(Array.isArray(order.items)){
       order.items.forEach((it, i)=>{
         const qty = it.qty || 1;
         const lineT = (it.price || 0) * qty;
-        const enabled = sk === "pending";
+        const enabled = sk === "pending" && !isTransport;  /* No partial accept on transport orders */
         itemsHtml += `
           <div class="itemRow">
             <input type="checkbox" class="itemCheck" id="item_${id}_${i}" ${enabled ? "checked" : "checked disabled"}>
@@ -556,26 +635,30 @@ function renderFromCache(){
 
     let actionsHtml = "";
     if(sk === "pending"){
+      const partialBtn = isTransport ? "" :
+        `<button class="actionBtn btn-partial" onclick="partialAccept('${id}','${col}')">⚡ Partial</button>`;
       actionsHtml = `
-        <button class="actionBtn btn-reject" onclick="rejectOrder('${id}')">Reject</button>
-        <button class="actionBtn btn-partial" onclick="partialAccept('${id}')">⚡ Partial</button>
-        <button class="actionBtn btn-accept" onclick="acceptOrder('${id}')">Accept All ✓</button>`;
+        <button class="actionBtn btn-reject" onclick="rejectOrder('${id}','${col}')">Reject</button>
+        ${partialBtn}
+        <button class="actionBtn btn-accept" onclick="acceptOrder('${id}','${col}')">Accept All ✓</button>`;
     }else if(sk === "accepted"){
-      actionsHtml = `<button class="actionBtn btn-ready" onclick="markReady('${id}')">Mark Ready ✓</button>`;
+      actionsHtml = `<button class="actionBtn btn-ready" onclick="markReady('${id}','${col}')">Mark Ready ✓</button>`;
     }else if(sk === "ready"){
       actionsHtml = `<button class="actionBtn btn-disabled">📦 Ready · Waiting for pickup</button>`;
     }
 
-    const partialHint = sk === "pending"
+    const partialHint = sk === "pending" && !isTransport
       ? `<span class="partialHint">Uncheck items for partial accept</span>` : ``;
 
     html += `
-      <div class="orderCard ${fresh}">
+      <div class="orderCard ${fresh} ${isTransport?'transport':''}">
         <div class="cardTop">
           <div class="cardLeft">
             <div class="orderNum">${orderShort}</div>
             <div class="timeAgo">· ${timeAgo(order.time)}</div>
           </div>
+          ${vehicleBadge}
+          ${weightChip}
           <div class="statusPill pill-${sk}">${escapeHtml(status)}</div>
         </div>
 
@@ -608,8 +691,8 @@ function renderFromCache(){
   ordersDiv.innerHTML = html;
 }
 
-/* ---------- ACCEPT (FIXED: no longer overwrites shopLat/Lng) ---------- */
-window.acceptOrder = (id)=>{
+/* ---------- ACCEPT (handles both collections) ---------- */
+window.acceptOrder = (id, col)=>{
   openModal({
     icon:"✅",
     title:"Accept this order?",
@@ -617,10 +700,7 @@ window.acceptOrder = (id)=>{
     confirmText:"Yes, Accept",
     onConfirm: async ()=>{
       try{
-        /* The order already has shopLat/shopLng from checkout
-           (set when the customer's nearest shop was selected).
-           Do NOT overwrite with current device GPS — owner could be at home. */
-        await updateDoc(doc(db,"orders",id), {
+        await updateDoc(doc(db, col, id), {
           status: "Accepted",
           shopEmail: auth.currentUser.email
         });
@@ -633,7 +713,7 @@ window.acceptOrder = (id)=>{
   });
 };
 
-window.markReady = (id)=>{
+window.markReady = (id, col)=>{
   openModal({
     icon:"📦",
     title:"Mark order as ready?",
@@ -641,7 +721,7 @@ window.markReady = (id)=>{
     confirmText:"Yes, Ready",
     onConfirm: async ()=>{
       try{
-        await updateDoc(doc(db,"orders",id), {
+        await updateDoc(doc(db, col, id), {
           status:"Ready",
           deliveryStatus:"Ready"
         });
@@ -653,7 +733,7 @@ window.markReady = (id)=>{
   });
 };
 
-window.rejectOrder = (id)=>{
+window.rejectOrder = (id, col)=>{
   openModal({
     icon:"⚠️",
     title:"Reject this order?",
@@ -662,7 +742,7 @@ window.rejectOrder = (id)=>{
     danger:true,
     onConfirm: async ()=>{
       try{
-        await updateDoc(doc(db,"orders",id), {status:"Rejected"});
+        await updateDoc(doc(db, col, id), {status:"Rejected"});
         showToast("Order rejected");
       }catch(e){
         showToast("Could not reject", true);
@@ -671,9 +751,14 @@ window.rejectOrder = (id)=>{
   });
 };
 
-/* ---------- PARTIAL ACCEPT (FIXED: now uses split-orders collection) ---------- */
-window.partialAccept = async (id)=>{
-  const ref  = doc(db,"orders",id);
+/* ---------- PARTIAL ACCEPT (only for 'orders' collection — transport is whole-or-nothing) ---------- */
+window.partialAccept = async (id, col)=>{
+  if(col !== "orders"){
+    showToast("Partial accept not available for transport orders", true);
+    return;
+  }
+
+  const ref  = doc(db, col, id);
   const snap = await getDoc(ref);
   if(!snap.exists()){ showToast("Order not found", true); return; }
   const order = snap.data();
@@ -701,8 +786,6 @@ window.partialAccept = async (id)=>{
     confirmText:"Yes, Confirm",
     onConfirm: async ()=>{
       try{
-        /* Update current order with selected items only.
-           Do NOT overwrite shopLat/Lng (already correct from checkout). */
         await updateDoc(ref, {
           items: selected,
           total: selected.reduce((s,i)=> s + (i.price * (i.qty||1)), 0),
@@ -710,8 +793,6 @@ window.partialAccept = async (id)=>{
           shopEmail: auth.currentUser.email
         });
 
-        /* Create entry in split-orders collection (FIX: was going to wrong place)
-           Split-orders page reads from this collection. */
         await addDoc(collection(db,"split-orders"), {
           parentOrderId: id,
           name:    order.name,
@@ -724,7 +805,7 @@ window.partialAccept = async (id)=>{
           status:  "Pending",
           deliveryStatus: "Waiting",
           assigned: false,
-          shopEmail: null,    // any other shop can claim
+          shopEmail: null,
           shopName:  null,
           time: new Date()
         });
