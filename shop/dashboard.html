@@ -33,22 +33,61 @@ button{font-family:inherit;cursor:pointer;border:none;}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   margin-top:2px;
 }
+
+/* CLICKABLE STATUS TOGGLE */
 .statusToggle{
   display:flex;align-items:center;gap:6px;
   background:rgba(255,255,255,.5);
   padding:6px 12px;border-radius:20px;
   font-size:12px;font-weight:700;flex-shrink:0;
+  cursor:pointer;
+  transition:background .15s, transform .12s;
+  border:none;font-family:inherit;color:#1f1f1f;
 }
+.statusToggle:active{transform:scale(.94);}
+.statusToggle:hover{background:rgba(255,255,255,.7);}
+.statusToggle.closed{background:rgba(255,255,255,.85);color:#c41818;}
+.statusToggle.loading{opacity:.6;cursor:wait;}
+
 .statusDot{
   width:8px;height:8px;border-radius:50%;background:#0C831F;
   box-shadow:0 0 0 0 rgba(12,131,31,.6);
   animation:liveDot 1.6s infinite;
+  transition:background .15s;
+}
+.statusToggle.closed .statusDot{
+  background:#d23030;
+  box-shadow:0 0 0 0 rgba(210,48,48,.6);
+  animation:liveDotRed 1.6s infinite;
 }
 @keyframes liveDot{
   0%{box-shadow:0 0 0 0 rgba(12,131,31,.6);}
   70%{box-shadow:0 0 0 8px rgba(12,131,31,0);}
   100%{box-shadow:0 0 0 0 rgba(12,131,31,0);}
 }
+@keyframes liveDotRed{
+  0%{box-shadow:0 0 0 0 rgba(210,48,48,.6);}
+  70%{box-shadow:0 0 0 8px rgba(210,48,48,0);}
+  100%{box-shadow:0 0 0 0 rgba(210,48,48,0);}
+}
+
+/* CLOSED BANNER under header when shop is offline */
+.closedBanner{
+  max-width:1100px;margin:12px auto 0;
+  background:#fde0e0;border:1px solid #f8b4b4;
+  border-radius:12px;padding:12px 14px;
+  display:none;align-items:center;gap:12px;
+  color:#8a1a1a;
+}
+.closedBanner.show{display:flex;}
+.closedBanner .ic{
+  width:36px;height:36px;background:#fff;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.closedBanner .text{flex:1;line-height:1.3;}
+.closedBanner b{display:block;font-weight:700;font-size:13px;}
+.closedBanner span{font-size:11px;}
 
 .container{max-width:1100px;margin:0 auto;padding:14px 12px 0;}
 .section{margin-bottom:18px;}
@@ -219,8 +258,17 @@ button{font-family:inherit;cursor:pointer;border:none;}
       <div class="greeting" id="greeting">Hi, welcome back</div>
       <div class="shopName" id="shopNameDisplay">My Shop</div>
     </div>
-    <div class="statusToggle">
-      <span class="statusDot"></span> OPEN
+    <button class="statusToggle loading" id="statusToggle" onclick="toggleStatus()" title="Toggle shop open/closed">
+      <span class="statusDot"></span>
+      <span id="statusText">…</span>
+    </button>
+  </div>
+
+  <div class="closedBanner" id="closedBanner">
+    <div class="ic">🚫</div>
+    <div class="text">
+      <b>Your shop is currently CLOSED</b>
+      <span>Customers can't place orders. Tap the toggle above to re-open.</span>
     </div>
   </div>
 </header>
@@ -317,7 +365,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </section>
 
   <section class="section">
-    <button class="logoutBtn" onclick="logout()">
+    <button class="logoutBtn" onclick="logoutClick()">
       🚪 Logout
     </button>
   </section>
@@ -326,15 +374,15 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <div id="toast" class="toast"></div>
 
-<!-- LOGOUT MODAL -->
+<!-- GENERIC CONFIRM MODAL (used for logout AND close-shop confirm) -->
 <div class="modalBg" id="confirmModal">
   <div class="modal">
-    <div class="icon">🚪</div>
-    <h3>Logout from your shop?</h3>
-    <p>You'll need to sign in again to access your dashboard.</p>
+    <div class="icon" id="modalIcon">🚪</div>
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalMsg">This action cannot be undone.</p>
     <div class="modalActions">
       <button class="btnSecondary" onclick="closeModal()">Cancel</button>
-      <button class="btnDanger" onclick="confirmLogout()">Yes, Logout</button>
+      <button class="btnDanger" id="modalConfirmBtn">Confirm</button>
     </div>
   </div>
 </div>
@@ -345,10 +393,9 @@ import {
   signOut, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  collection, query, where, onSnapshot, getDocs
+  collection, query, where, onSnapshot, getDocs, doc, updateDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ---------- AUTH GUARD ---------- */
 let shopEmail = localStorage.getItem("shopEmail");
 const shopName = localStorage.getItem("shopName") || (shopEmail ? shopEmail.split("@")[0] : "My Shop");
 
@@ -358,24 +405,111 @@ const hr = new Date().getHours();
 const greet = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
 document.getElementById("greeting").textContent = `${greet} 👋`;
 
-/* Wait for Firebase auth */
-onAuthStateChanged(auth, (user)=>{
+let myShopDocId = null;       // doc id in localshop-details
+let isOpen = true;            // current OPEN/CLOSED state
+
+const statusToggle = document.getElementById("statusToggle");
+const statusText   = document.getElementById("statusText");
+const closedBanner = document.getElementById("closedBanner");
+
+onAuthStateChanged(auth, async (user)=>{
   if(!user || !shopEmail){
     showToast("Please login first", true);
     setTimeout(()=> location.href = "login.html", 800);
     return;
   }
   shopEmail = user.email;
+  await loadShopStatus(user);
   loadData();
 });
 
-/* ---------- TOAST ---------- */
 const toast = document.getElementById("toast");
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#1f1f1f";
   toast.classList.add("show");
   setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+
+/* ---------- SHOP OPEN/CLOSED STATUS ---------- */
+async function loadShopStatus(user){
+  try{
+    const q = query(
+      collection(db, "localshop-details"),
+      where("ownerUid", "==", user.uid)
+    );
+    const snap = await getDocs(q);
+
+    if(snap.empty){
+      statusToggle.classList.remove("loading");
+      statusText.textContent = "OPEN";
+      return;
+    }
+
+    snap.forEach(d=>{
+      myShopDocId = d.id;
+      const data = d.data();
+      // default to true if field is missing (older shops)
+      isOpen = data.isOpen !== false;
+    });
+
+    updateStatusUI();
+  }catch(e){
+    console.error("Could not load shop status", e);
+    statusToggle.classList.remove("loading");
+    statusText.textContent = "OPEN";
+  }
+}
+
+function updateStatusUI(){
+  statusToggle.classList.remove("loading");
+  if(isOpen){
+    statusText.textContent = "OPEN";
+    statusToggle.classList.remove("closed");
+    closedBanner.classList.remove("show");
+  }else{
+    statusText.textContent = "CLOSED";
+    statusToggle.classList.add("closed");
+    closedBanner.classList.add("show");
+  }
+}
+
+window.toggleStatus = ()=>{
+  if(!myShopDocId){
+    showToast("Loading shop info — try again", true);
+    return;
+  }
+
+  if(isOpen){
+    /* OPEN → CLOSED: ask for confirmation */
+    openConfirmModal({
+      icon:  "🚫",
+      title: "Close your shop?",
+      msg:   "Customers won't be able to place new orders until you re-open.",
+      confirmText: "Yes, Close Shop",
+      onConfirm: ()=> setShopStatus(false)
+    });
+  }else{
+    /* CLOSED → OPEN: instant */
+    setShopStatus(true);
+  }
+};
+
+async function setShopStatus(newStatus){
+  try{
+    statusToggle.classList.add("loading");
+    await updateDoc(doc(db, "localshop-details", myShopDocId), {
+      isOpen: newStatus
+    });
+    isOpen = newStatus;
+    localStorage.setItem("isShopOpen", String(newStatus));
+    updateStatusUI();
+    showToast(newStatus ? "✓ Your shop is now OPEN" : "Shop closed — customers can't order");
+  }catch(e){
+    console.error(e);
+    statusToggle.classList.remove("loading");
+    showToast("Could not update status", true);
+  }
 }
 
 /* ---------- LOAD STATS ---------- */
@@ -428,23 +562,20 @@ function processOrdersSnap(snap, target){
 
 function loadData(){
   try{
-    /* Main orders listener */
     const ordersQ = query(collection(db, "orders"), where("shopEmail","==",shopEmail));
     onSnapshot(ordersQ, (snap)=>{
       processOrdersSnap(snap, mainOrdersStats);
       recomputeAndRender();
     });
 
-    /* Split orders listener (FIX: was missing) */
     try{
       const splitQ = query(collection(db, "split-orders"), where("shopEmail","==",shopEmail));
       onSnapshot(splitQ, (snap)=>{
         processOrdersSnap(snap, splitOrdersStats);
         recomputeAndRender();
-      }, ()=>{ /* split-orders may not exist */ });
+      }, ()=>{});
     }catch(e){}
 
-    /* Products count */
     (async ()=>{
       try{
         const pSnap = await getDocs(query(collection(db,"products"), where("shopEmail","==",shopEmail)));
@@ -469,10 +600,8 @@ function setStat(id, val){
   el.textContent = val;
 }
 
-/* ---------- pageshow listener (refresh on back nav) ---------- */
 window.addEventListener("pageshow", (e)=>{
   if(e.persisted){
-    // Refresh shop name display in case localStorage changed
     const sn = localStorage.getItem("shopName");
     if(sn) document.getElementById("shopNameDisplay").textContent = sn;
   }
@@ -487,27 +616,51 @@ window.goAnalytics = ()=> location.href = "analytics.html";
 window.goAdd       = ()=> location.href = "add-product.html";
 window.goProducts  = ()=> location.href = "my-products.html";
 
-/* ---------- LOGOUT (modal + Firebase signOut) ---------- */
-window.logout = ()=>{
+/* ---------- GENERIC CONFIRM MODAL ---------- */
+let pendingConfirmCb = null;
+function openConfirmModal({icon="❓", title, msg, confirmText="Confirm", onConfirm}){
+  document.getElementById("modalIcon").textContent  = icon;
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent   = msg;
+  document.getElementById("modalConfirmBtn").textContent = confirmText;
+  pendingConfirmCb = onConfirm;
   document.getElementById("confirmModal").classList.add("show");
-};
+}
 window.closeModal = ()=>{
   document.getElementById("confirmModal").classList.remove("show");
+  pendingConfirmCb = null;
 };
-window.confirmLogout = async ()=>{
+document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
+  const cb = pendingConfirmCb;
   closeModal();
-  try{
-    await signOut(auth);
-  }catch(e){ /* ignore */ }
-  localStorage.removeItem("shopEmail");
-  localStorage.removeItem("shopName");
-  localStorage.removeItem("shopCategory");
-  showToast("Logged out");
-  setTimeout(()=> location.href = "login.html", 600);
-};
+  if(cb) cb();
+});
 document.getElementById("confirmModal").addEventListener("click",(e)=>{
   if(e.target.id === "confirmModal") closeModal();
 });
+
+/* ---------- LOGOUT ---------- */
+window.logoutClick = ()=>{
+  openConfirmModal({
+    icon:  "🚪",
+    title: "Logout from your shop?",
+    msg:   "You'll need to sign in again to access your dashboard.",
+    confirmText: "Yes, Logout",
+    onConfirm: doLogout
+  });
+};
+
+async function doLogout(){
+  try{
+    await signOut(auth);
+  }catch(e){}
+  localStorage.removeItem("shopEmail");
+  localStorage.removeItem("shopName");
+  localStorage.removeItem("shopCategory");
+  localStorage.removeItem("isShopOpen");
+  showToast("Logged out");
+  setTimeout(()=> location.href = "login.html", 600);
+}
 </script>
 
 </body>
