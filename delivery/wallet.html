@@ -10,28 +10,16 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
-html,body{
-  font-family:'Inter',Arial,sans-serif;
-  background:#f4f4f4;
-  color:#1f1f1f;
-  overflow-x:hidden;
-}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
 body{padding-bottom:30px;}
-
 button{font-family:inherit;cursor:pointer;border:none;}
 
-/* ============ HEADER ============ */
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
-  padding:14px 16px;
-  position:sticky;top:0;z-index:1000;
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-.topBar{
-  display:flex;align-items:center;gap:12px;
-  max-width:700px;margin:0 auto;
-}
+.topBar{display:flex;align-items:center;gap:12px;max-width:700px;margin:0 auto;}
 .backBtn{
   background:rgba(255,255,255,.4);
   width:38px;height:38px;border-radius:50%;
@@ -39,7 +27,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
 }
 .backBtn:active{transform:scale(.94);}
-
 .titleBlock{flex:1;min-width:0;line-height:1.2;}
 .pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
 .pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
@@ -52,93 +39,60 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .helpBtn:active{transform:scale(.94);}
 
-/* ============ BALANCE HERO ============ */
-.balanceHero{
-  max-width:700px;margin:14px auto 0;
-  padding:0 12px;
-}
+.balanceHero{max-width:700px;margin:14px auto 0;padding:0 12px;}
 
 .balanceCard{
   background:linear-gradient(135deg,#0C831F 0%,#0fa029 60%,#15b332 100%);
-  border-radius:18px;
-  padding:22px 20px;
-  color:#fff;
-  position:relative;
-  overflow:hidden;
+  border-radius:18px;padding:22px 20px;color:#fff;
+  position:relative;overflow:hidden;
   box-shadow:0 8px 24px rgba(12,131,31,.25);
 }
-
 .balanceCard::before{
-  content:"";
-  position:absolute;
-  top:-40px;right:-30px;
-  width:160px;height:160px;
-  background:rgba(255,255,255,.08);
-  border-radius:50%;
+  content:"";position:absolute;top:-40px;right:-30px;
+  width:160px;height:160px;background:rgba(255,255,255,.08);border-radius:50%;
 }
 .balanceCard::after{
-  content:"";
-  position:absolute;
-  bottom:-50px;left:-30px;
-  width:120px;height:120px;
-  background:rgba(255,255,255,.05);
-  border-radius:50%;
+  content:"";position:absolute;bottom:-50px;left:-30px;
+  width:120px;height:120px;background:rgba(255,255,255,.05);border-radius:50%;
 }
 
 .balanceTop{
   display:flex;justify-content:space-between;align-items:flex-start;
-  margin-bottom:14px;
-  position:relative;z-index:1;
+  margin-bottom:14px;position:relative;z-index:1;
 }
-
 .balanceLabel{
-  font-size:12px;font-weight:600;
-  opacity:.9;letter-spacing:.5px;
-  text-transform:uppercase;
+  font-size:12px;font-weight:600;opacity:.9;
+  letter-spacing:.5px;text-transform:uppercase;
 }
-
 .walletIcon{
   width:42px;height:42px;
-  background:rgba(255,255,255,.2);
-  border-radius:50%;
+  background:rgba(255,255,255,.2);border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:22px;
-  backdrop-filter:blur(10px);
+  font-size:22px;backdrop-filter:blur(10px);
 }
-
 .balanceAmount{
-  font-size:38px;font-weight:800;
-  letter-spacing:-1px;
-  line-height:1.1;
+  font-size:38px;font-weight:800;letter-spacing:-1px;line-height:1.1;
   position:relative;z-index:1;
 }
 .balanceAmount.loading{
-  display:inline-block;
-  width:120px;height:36px;
+  display:inline-block;width:120px;height:36px;
   background:linear-gradient(90deg,rgba(255,255,255,.15) 25%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.15) 75%);
-  background-size:200% 100%;
-  animation:shimmer 1.4s infinite;
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
   border-radius:8px;vertical-align:middle;
 }
 @keyframes shimmer{
   0%{background-position:200% 0;}
   100%{background-position:-200% 0;}
 }
-
 .balanceMeta{
-  font-size:12px;font-weight:500;
-  opacity:.85;margin-top:6px;
+  font-size:12px;font-weight:500;opacity:.85;margin-top:6px;
   position:relative;z-index:1;
 }
 
 .withdrawBtn{
-  width:100%;
-  background:#fff;
-  color:#0C831F;
-  padding:14px;
-  border-radius:12px;
-  font-size:15px;font-weight:800;
-  letter-spacing:.3px;
+  width:100%;background:#fff;color:#0C831F;
+  padding:14px;border-radius:12px;
+  font-size:15px;font-weight:800;letter-spacing:.3px;
   margin-top:18px;
   display:flex;align-items:center;justify-content:center;gap:6px;
   position:relative;z-index:1;
@@ -147,44 +101,28 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .withdrawBtn:active{transform:scale(.98);}
 .withdrawBtn:disabled{
   background:rgba(255,255,255,.5);
-  color:rgba(12,131,31,.6);
-  cursor:not-allowed;
+  color:rgba(12,131,31,.6);cursor:not-allowed;
 }
 
-/* ============ STATS ROW ============ */
 .statsRow{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin-top:12px;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;margin-top:12px;
 }
 .statBox{
-  background:#fff;
-  border-radius:12px;
-  padding:12px 8px;
-  text-align:center;
+  background:#fff;border-radius:12px;
+  padding:12px 8px;text-align:center;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
-.statValue{
-  font-size:16px;font-weight:800;color:#1f1f1f;
-  line-height:1.1;
-}
+.statValue{font-size:16px;font-weight:800;color:#1f1f1f;line-height:1.1;}
 .statLabel{
   font-size:10px;color:#666;font-weight:500;
-  margin-top:4px;letter-spacing:.2px;
-  text-transform:uppercase;
+  margin-top:4px;letter-spacing:.2px;text-transform:uppercase;
 }
 
-/* ============ MAIN ============ */
-.container{
-  max-width:700px;margin:0 auto;
-  padding:14px 12px 0;
-}
+.container{max-width:700px;margin:0 auto;padding:14px 12px 0;}
 
 .section{
-  background:#fff;
-  border-radius:14px;
-  padding:14px;
+  background:#fff;border-radius:14px;padding:14px;
   margin-bottom:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
@@ -193,21 +131,9 @@ button{font-family:inherit;cursor:pointer;border:none;}
   display:flex;justify-content:space-between;align-items:center;
   margin-bottom:12px;
 }
+.sectionTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
 
-.sectionTitle{
-  font-size:14px;font-weight:700;color:#1f1f1f;
-}
-
-.sectionLink{
-  font-size:12px;color:#0C831F;font-weight:600;
-  cursor:pointer;
-}
-
-/* ============ TIPS / INFO ============ */
-.infoRow{
-  display:flex;align-items:flex-start;gap:10px;
-  padding:10px 0;
-}
+.infoRow{display:flex;align-items:flex-start;gap:10px;padding:10px 0;}
 .infoRow:not(:last-child){border-bottom:1px solid #f4f4f4;}
 .infoIcon{
   width:34px;height:34px;border-radius:50%;
@@ -219,11 +145,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .infoTitle{font-size:13px;font-weight:600;color:#1f1f1f;}
 .infoSub{font-size:12px;color:#666;margin-top:2px;}
 
-/* ============ TXN ROW ============ */
-.txnRow{
-  display:flex;align-items:center;gap:10px;
-  padding:10px 0;
-}
+.txnRow{display:flex;align-items:center;gap:10px;padding:10px 0;}
 .txnRow:not(:last-child){border-bottom:1px solid #f4f4f4;}
 
 .txnIcon{
@@ -241,12 +163,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .txnDate{font-size:11px;color:#888;margin-top:2px;}
-
-.txnAmount{
-  font-size:14px;font-weight:800;color:#1f1f1f;
-  flex-shrink:0;
-}
-
+.txnAmount{font-size:14px;font-weight:800;color:#1f1f1f;flex-shrink:0;}
 .txnStatus{
   font-size:10px;font-weight:700;
   padding:2px 7px;border-radius:10px;
@@ -257,45 +174,31 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .txnStatus.approved{background:#dcf3e1;color:#0C831F;}
 .txnStatus.rejected{background:#fde0e0;color:#c41818;}
 
-/* ============ EMPTY ============ */
-.empty{
-  text-align:center;padding:24px 12px;
-}
+.empty{text-align:center;padding:24px 12px;}
 .empty .icon{font-size:36px;margin-bottom:6px;opacity:.6;}
 .empty p{font-size:12px;color:#888;line-height:1.4;}
 
-/* SKELETON */
 .skelLine{
   height:14px;
   background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
-  background-size:200% 100%;animation:shimmerLight 1.4s infinite;
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
   border-radius:6px;margin-bottom:8px;
 }
-@keyframes shimmerLight{
-  0%{background-position:200% 0;}
-  100%{background-position:-200% 0;}
-}
 
-/* ============ TOAST ============ */
 .toast{
-  position:fixed;bottom:24px;
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1f1f1f;color:#fff;
-  padding:12px 20px;border-radius:10px;
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s;
-  z-index:1700;max-width:90%;text-align:center;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ============ WITHDRAW MODAL ============ */
 .modalBg{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.5);
-  display:none;align-items:flex-end;justify-content:center;
-  z-index:2000;
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
 }
 .modalBg.show{display:flex;animation:fadeIn .2s;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -303,15 +206,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .modal{
   background:#fff;width:100%;max-width:500px;
   border-radius:20px 20px 0 0;
-  padding:22px 20px 24px;
-  animation:slideUp .25s ease;
+  padding:22px 20px 24px;animation:slideUp .25s ease;
 }
 @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 
-.modalHeader{
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:14px;
-}
+.modalHeader{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
 .modalIcon{
   width:42px;height:42px;border-radius:50%;
   background:#dcf3e1;
@@ -323,10 +222,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .modalSub{font-size:12px;color:#666;margin-top:2px;}
 
 .modalBalance{
-  background:#f6f6f6;
-  border-radius:10px;
-  padding:10px 12px;
-  margin-bottom:14px;
+  background:#f6f6f6;border-radius:10px;padding:10px 12px;margin-bottom:14px;
   display:flex;justify-content:space-between;align-items:center;
 }
 .modalBalance .lbl{font-size:12px;color:#666;font-weight:500;}
@@ -334,51 +230,34 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .amountWrap{position:relative;margin-bottom:8px;}
 .amountInput{
-  width:100%;
-  padding:14px 14px 14px 38px;
-  border:1.5px solid #e5e5e5;
-  border-radius:10px;
-  font-size:18px;font-weight:700;
-  font-family:inherit;
-  background:#fafafa;
-  color:#1f1f1f;
-  outline:none;
+  width:100%;padding:14px 14px 14px 38px;
+  border:1.5px solid #e5e5e5;border-radius:10px;
+  font-size:18px;font-weight:700;font-family:inherit;
+  background:#fafafa;color:#1f1f1f;outline:none;
   transition:all .15s;
 }
 .amountInput:focus{border-color:#0C831F;background:#fff;}
 .rupeeSign{
-  position:absolute;
-  left:14px;top:50%;
+  position:absolute;left:14px;top:50%;
   transform:translateY(-50%);
   font-size:18px;font-weight:700;color:#888;
 }
-
 .amountError{
   font-size:12px;color:#d23030;font-weight:500;
-  margin-top:4px;
-  display:none;
+  margin-top:4px;display:none;
 }
 .amountError.show{display:block;}
 
-/* Quick amount chips */
-.chipRow{
-  display:flex;gap:6px;
-  margin-bottom:16px;flex-wrap:wrap;
-}
+.chipRow{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
 .chip{
   flex:1;min-width:64px;
   padding:8px;border-radius:8px;
-  background:#f6f6f6;
-  border:1.5px solid transparent;
+  background:#f6f6f6;border:1.5px solid transparent;
   font-size:12px;font-weight:700;color:#1f1f1f;
   transition:all .12s;
 }
 .chip:active{transform:scale(.96);}
-.chip.active{
-  background:#dcf3e1;
-  border-color:#0C831F;
-  color:#0C831F;
-}
+.chip.active{background:#dcf3e1;border-color:#0C831F;color:#0C831F;}
 
 .modalActions{display:flex;gap:10px;}
 .btnPrimary  {flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
@@ -396,13 +275,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
   .container{padding:18px 20px 0;}
   .balanceAmount{font-size:42px;}
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- ============ HEADER ============ -->
 <header class="header">
   <div class="topBar">
     <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
@@ -414,7 +291,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </header>
 
-<!-- ============ BALANCE HERO ============ -->
 <div class="balanceHero">
   <div class="balanceCard">
     <div class="balanceTop">
@@ -429,7 +305,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </button>
   </div>
 
-  <!-- Stats -->
   <div class="statsRow">
     <div class="statBox">
       <div class="statValue" id="statToday">₹0</div>
@@ -446,10 +321,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
-<!-- ============ MAIN ============ -->
 <main class="container">
 
-  <!-- Withdrawal History -->
   <section class="section">
     <div class="sectionHeader">
       <div class="sectionTitle">Withdrawal Requests</div>
@@ -462,7 +335,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </section>
 
-  <!-- Info / Tips -->
   <section class="section">
     <div class="sectionHeader">
       <div class="sectionTitle">How withdrawals work</div>
@@ -478,24 +350,22 @@ button{font-family:inherit;cursor:pointer;border:none;}
       <div class="infoIcon">💵</div>
       <div class="infoText">
         <div class="infoTitle">Minimum ₹100</div>
-        <div class="infoSub">You can withdraw any amount between ₹100 and your available balance.</div>
+        <div class="infoSub">Withdraw any amount between ₹100 and your available balance.</div>
       </div>
     </div>
     <div class="infoRow">
       <div class="infoIcon">🏦</div>
       <div class="infoText">
         <div class="infoTitle">Direct to bank</div>
-        <div class="infoSub">Funds are transferred to your registered bank account.</div>
+        <div class="infoSub">Funds go to your registered bank account.</div>
       </div>
     </div>
   </section>
 
 </main>
 
-<!-- ============ TOAST ============ -->
 <div id="toast" class="toast"></div>
 
-<!-- ============ WITHDRAW MODAL ============ -->
 <div class="modalBg" id="withdrawModal">
   <div class="modal">
     <div class="modalHeader">
@@ -530,8 +400,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  doc, getDoc, addDoc, collection, query, where,
-  onSnapshot, orderBy, limit
+  addDoc, collection, query, where, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const balanceAmount = document.getElementById("balanceAmount");
@@ -545,9 +414,13 @@ const toast         = document.getElementById("toast");
 
 const MIN_WITHDRAW = 100;
 let myEmail = null;
+
+/* FIX: balance derived from orders − withdrawals (real-time) */
+let totalEarned = 0;
+let splitEarned = 0;
+let pendingOrApprovedWithdrawals = 0;
 let availableBalance = 0;
 
-/* ---------- TOAST ---------- */
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#1f1f1f";
@@ -556,9 +429,7 @@ function showToast(msg, isError=false){
 }
 
 function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
 function fmtDate(t){
@@ -572,7 +443,6 @@ function fmtDate(t){
   return d.toLocaleDateString("en-IN", {day:"numeric", month:"short"});
 }
 
-/* ---------- AUTH ---------- */
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
     showToast("Login required", true);
@@ -581,56 +451,44 @@ onAuthStateChanged(auth, async (user)=>{
   }
   myEmail = user.email;
 
-  await loadBalance();
-  loadStats();
+  loadOrdersListener();
+  loadSplitOrdersListener();
   loadWithdrawHistory();
 });
 
-/* ---------- LOAD BALANCE ---------- */
-async function loadBalance(){
-  try{
-    const ref = doc(db, "delivery", myEmail);
-    const snap = await getDoc(ref);
-    if(snap.exists()){
-      availableBalance = Number(snap.data().earnings || 0);
-    }else{
-      availableBalance = 0;
-    }
-    balanceAmount.classList.remove("loading");
-    balanceAmount.textContent = "₹" + availableBalance.toLocaleString("en-IN");
-    balanceMeta.textContent = availableBalance > 0
-      ? "Withdraw anytime · processed in 24 hrs"
+/* FIX: real-time balance calculation */
+function recomputeBalance(){
+  const earnedTotal = totalEarned + splitEarned;
+  availableBalance = Math.max(0, earnedTotal - pendingOrApprovedWithdrawals);
+
+  balanceAmount.classList.remove("loading");
+  balanceAmount.textContent = "₹" + availableBalance.toLocaleString("en-IN");
+  balanceMeta.textContent = availableBalance > 0
+    ? "Withdraw anytime · processed in 24 hrs"
+    : earnedTotal > 0
+      ? "Withdrawals pending — balance will refresh once processed"
       : "Complete deliveries to start earning";
 
-    // Disable withdraw button if balance < min
-    if(availableBalance < MIN_WITHDRAW){
-      withdrawBtn.disabled = true;
-      withdrawBtn.innerHTML = `💸 Min ₹${MIN_WITHDRAW} to withdraw`;
-    }
-  }catch(err){
-    console.error(err);
-    balanceAmount.classList.remove("loading");
-    balanceAmount.textContent = "₹0";
-    balanceMeta.textContent = "Could not load balance";
+  if(availableBalance < MIN_WITHDRAW){
+    withdrawBtn.disabled = true;
+    withdrawBtn.innerHTML = `💸 Min ₹${MIN_WITHDRAW} to withdraw`;
+  }else{
+    withdrawBtn.disabled = false;
+    withdrawBtn.innerHTML = `💸 Withdraw to Bank`;
   }
 }
 
-/* ---------- LOAD STATS (today/week/lifetime from delivered orders) ---------- */
-function loadStats(){
-  // Listen to orders where I'm the delivery boy
-  const q = query(collection(db,"orders"), where("deliveryBoyId","==", myEmail));
-
+function loadOrdersListener(){
+  const q = query(collection(db,"orders"), where("deliveryBoyId","==",myEmail));
   onSnapshot(q, (snap)=>{
-    let today = 0, week = 0, total = 0;
-
-    const now = new Date();
+    let total = 0, today = 0, week = 0;
     const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-    const weekStart  = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const weekStart  = new Date(Date.now() - 7 * 86400000);
 
     snap.forEach(d=>{
       const o = d.data();
-      const status = (o.status || "").toLowerCase();
-      const dStatus = (o.deliveryStatus || "").toLowerCase();
+      const status = (o.status||"").toLowerCase();
+      const dStatus = (o.deliveryStatus||"").toLowerCase();
       const isDone = status === "delivered" || dStatus === "delivered" || dStatus === "completed";
       if(!isDone) return;
 
@@ -642,26 +500,60 @@ function loadStats(){
       if(t >= weekStart)  week  += earn;
     });
 
+    totalEarned = total;
     statToday.textContent = "₹" + Math.round(today);
     statWeek.textContent  = "₹" + Math.round(week);
-    statTotal.textContent = "₹" + Math.round(total);
+    statTotal.textContent = "₹" + Math.round(total + splitEarned);
+
+    recomputeBalance();
   }, (err)=>{
     console.error(err);
+    balanceAmount.classList.remove("loading");
+    balanceAmount.textContent = "₹0";
+    balanceMeta.textContent = "Could not load earnings";
   });
 }
 
-/* ---------- LOAD WITHDRAW HISTORY ---------- */
+function loadSplitOrdersListener(){
+  try{
+    const q = query(collection(db,"split-orders"), where("deliveryBoyId","==",myEmail));
+    onSnapshot(q, (snap)=>{
+      let total = 0;
+      snap.forEach(d=>{
+        const o = d.data();
+        const status = (o.status||"").toLowerCase();
+        const dStatus = (o.deliveryStatus||"").toLowerCase();
+        const isDone = status === "delivered" || dStatus === "delivered" || dStatus === "completed";
+        if(isDone) total += Number(o.deliveryEarning || 0);
+      });
+      splitEarned = total;
+      statTotal.textContent = "₹" + Math.round(totalEarned + splitEarned);
+      recomputeBalance();
+    });
+  }catch(e){ /* split-orders may not exist */ }
+}
+
 function loadWithdrawHistory(){
   try{
-    // Note: orderBy + where on different fields requires a composite index in Firestore
-    // If you don't have it, simplify to just where() and sort client-side
     const q = query(collection(db,"withdrawRequests"), where("email","==", myEmail));
 
     onSnapshot(q, (snap)=>{
       const rows = [];
-      snap.forEach(d=> rows.push({...d.data(), __id:d.id}));
+      let pending = 0;
 
-      // Sort newest first
+      snap.forEach(d=>{
+        const w = {...d.data(), __id:d.id};
+        rows.push(w);
+        const status = (w.status || "Pending").toLowerCase();
+        /* FIX: count pending + approved as deducted from available */
+        if(status !== "rejected"){
+          pending += Number(w.amount || 0);
+        }
+      });
+
+      pendingOrApprovedWithdrawals = pending;
+      recomputeBalance();
+
       rows.sort((a,b)=>{
         const ta = a.time?.toDate ? a.time.toDate().getTime() : 0;
         const tb = b.time?.toDate ? b.time.toDate().getTime() : 0;
@@ -671,11 +563,7 @@ function loadWithdrawHistory(){
       renderHistory(rows.slice(0, 10));
     }, (err)=>{
       console.error(err);
-      withdrawList.innerHTML = `
-        <div class="empty">
-          <div class="icon">⚠️</div>
-          <p>Could not load history</p>
-        </div>`;
+      withdrawList.innerHTML = `<div class="empty"><div class="icon">⚠️</div><p>Could not load history</p></div>`;
     });
   }catch(err){
     console.error(err);
@@ -716,7 +604,6 @@ function renderHistory(rows){
   withdrawList.innerHTML = html;
 }
 
-/* ---------- WITHDRAW MODAL ---------- */
 const modal      = document.getElementById("withdrawModal");
 const amountInput= document.getElementById("amountInput");
 const amountError= document.getElementById("amountError");
@@ -732,7 +619,6 @@ window.openWithdraw = ()=>{
   amountInput.value = "";
   amountError.classList.remove("show");
 
-  // Generate quick-amount chips based on balance
   const presets = [];
   if(availableBalance >= 100)  presets.push(100);
   if(availableBalance >= 500)  presets.push(500);
@@ -758,18 +644,14 @@ window.openWithdraw = ()=>{
   setTimeout(()=> amountInput.focus(), 280);
 };
 
-window.closeWithdraw = ()=>{
-  modal.classList.remove("show");
-};
+window.closeWithdraw = ()=>{ modal.classList.remove("show"); };
 
 modal.addEventListener("click", (e)=>{
   if(e.target.id === "withdrawModal") closeWithdraw();
 });
 
 amountInput.addEventListener("input", ()=>{
-  // Strip non-digits
   amountInput.value = amountInput.value.replace(/\D/g, "");
-  // Clear chip selection if manual
   chipRow.querySelectorAll(".chip").forEach(x=>x.classList.remove("active"));
   validateAmount();
 });
@@ -824,12 +706,10 @@ window.confirmWithdraw = async ()=>{
   }
 };
 
-/* ---------- HELP ---------- */
 window.showHelp = ()=>{
   showToast("Withdrawals are processed in 24 hrs to your registered bank account.");
 };
 
-/* ---------- NAV ---------- */
 window.goBack = ()=> location.href = "dashboard.html";
 </script>
 
