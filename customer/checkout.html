@@ -93,10 +93,15 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .locBtn:active{transform:scale(.96);}
 .locConfirm{
-  margin-top:6px;font-size:11px;color:#0C831F;font-weight:600;
+  margin-top:6px;font-size:11px;font-weight:600;
   display:none;
+  padding:6px 10px;border-radius:6px;
 }
 .locConfirm.show{display:block;}
+.locConfirm.success{background:#dcf3e1;color:#0C831F;}
+.locConfirm.warn{background:#fff5d6;color:#8a6500;}
+.locConfirm.error{background:#fde0e0;color:#c41818;}
+.locConfirm.loading{background:#dbe9ff;color:#1857c1;}
 
 /* ============ MULTI-SHOP NOTICE ============ */
 .multiShopNotice{
@@ -420,6 +425,7 @@ let shopGroups = [];          // [{ shopName, items, weightKg, subtotal, selecte
 let customerLat = null;
 let customerLng = null;
 let shopMeta = {};            // shopName(lower) → { lat, lng, icon, isOpen, email }
+let gpsState = "idle";        // idle | detecting | captured | failed
 
 function showToast(msg, isError=false){
   toast.textContent = msg;
@@ -434,6 +440,25 @@ function escapeHtml(str){
 
 function escapeAttr(str){
   return String(str).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
+/* Update the location confirmation indicator UI */
+function updateLocUi(){
+  const el = document.getElementById("locConfirm");
+  if(!el) return;
+
+  el.classList.remove("success","warn","error","loading","show");
+
+  if(gpsState === "detecting"){
+    el.classList.add("show","loading");
+    el.innerHTML = `⏳ Detecting your location…`;
+  }else if(gpsState === "captured"){
+    el.classList.add("show","success");
+    el.innerHTML = `✓ Location captured · live tracking enabled`;
+  }else if(gpsState === "failed"){
+    el.classList.add("show","warn");
+    el.innerHTML = `⚠️ GPS not captured · Tap the button above to enable live map tracking`;
+  }
 }
 
 /* =========== INIT =========== */
@@ -476,6 +501,9 @@ async function init(){
   pageSub.textContent = `${cart.length} item${cart.length!==1?"s":""} from ${shopGroups.length} shop${shopGroups.length>1?"s":""}`;
   render();
   actionBar.style.display = "block";
+
+  /* Auto-capture GPS on load (option B) */
+  autoCaptureLocation();
 }
 
 async function loadShopMeta(){
@@ -532,7 +560,7 @@ function render(){
         </div>
         <div class="errorText" id="addrError">Address must be at least 10 characters</div>
         <button class="locBtn" onclick="captureLocation()">📍 Use my GPS location</button>
-        <div class="locConfirm" id="locConfirm">✓ Location captured</div>
+        <div class="locConfirm" id="locConfirm"></div>
       </div>
     </section>
   `;
@@ -696,10 +724,8 @@ function render(){
     });
   }
 
-  /* Restore location-confirmation indicator if already captured */
-  if(customerLat && customerLng){
-    document.getElementById("locConfirm").classList.add("show");
-  }
+  /* Restore location-confirmation indicator after re-render */
+  updateLocUi();
 
   /* Update action bar */
   document.getElementById("actionFareSub").textContent =
@@ -721,20 +747,67 @@ function showEmpty(){
 }
 
 /* =========== LOCATION =========== */
+/* Auto-capture on page load (silent — uses cached permission if granted) */
+function autoCaptureLocation(){
+  if(!navigator.geolocation){
+    gpsState = "failed";
+    updateLocUi();
+    return;
+  }
+
+  /* Use Permissions API to check if we already have permission (avoids prompt re-spam) */
+  if(navigator.permissions && navigator.permissions.query){
+    navigator.permissions.query({ name:"geolocation" }).then((result)=>{
+      if(result.state === "denied"){
+        /* User has previously denied — don't prompt, just show warning */
+        gpsState = "failed";
+        updateLocUi();
+        return;
+      }
+      /* "granted" or "prompt" — try to get position */
+      requestLocation(/*silent*/ true);
+    }).catch(()=>{
+      /* Permissions API not supported — fall back to direct request */
+      requestLocation(/*silent*/ true);
+    });
+  }else{
+    requestLocation(/*silent*/ true);
+  }
+}
+
+/* Manual button — always shows feedback */
 window.captureLocation = ()=>{
   if(!navigator.geolocation){
-    showToast("Geolocation not supported", true); return;
+    showToast("Geolocation not supported", true);
+    gpsState = "failed";
+    updateLocUi();
+    return;
   }
-  showToast("Getting your location…");
+  requestLocation(/*silent*/ false);
+};
+
+function requestLocation(silent){
+  gpsState = "detecting";
+  updateLocUi();
+  if(!silent) showToast("Getting your location…");
+
   navigator.geolocation.getCurrentPosition((pos)=>{
     customerLat = pos.coords.latitude;
     customerLng = pos.coords.longitude;
-    document.getElementById("locConfirm").classList.add("show");
-    showToast("✓ Location captured");
-  }, ()=>{
-    showToast("Couldn't get location. Allow access.", true);
-  }, { enableHighAccuracy:true, timeout:10000 });
-};
+    gpsState = "captured";
+    updateLocUi();
+    if(!silent) showToast("✓ Location captured");
+  }, (err)=>{
+    gpsState = "failed";
+    updateLocUi();
+    if(!silent){
+      const msg = err.code === 1
+        ? "Location permission denied. Tap the button to retry."
+        : "Couldn't get location. Tap to retry.";
+      showToast(msg, true);
+    }
+  }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
+}
 
 /* =========== VALIDATION =========== */
 function validate(){
@@ -788,6 +861,13 @@ window.placeOrder = async ()=>{
   if(!v){
     showToast("Please fix the errors above", true);
     return;
+  }
+
+  /* Soft warn (one-time) if GPS still missing — let them proceed */
+  if((!customerLat || !customerLng) && !window.__gpsWarned){
+    window.__gpsWarned = true;
+    showToast("⚠️ Tap GPS button for live tracking · or continue without", true);
+    return;   // first click just warns; second click places order
   }
 
   btnPlace.classList.add("loading");
