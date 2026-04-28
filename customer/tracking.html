@@ -12,42 +12,21 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-html,body{
-  font-family:'Inter',Arial,sans-serif;
-  background:#f4f4f4;
-  color:#1f1f1f;
-  overflow-x:hidden;
-}
-
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
 body{padding-bottom:24px;}
-
 button{font-family:inherit;cursor:pointer;border:none;}
 
-/* ============ HEADER ============ */
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
   padding:14px 16px;
-  position:sticky;
-  top:0;
-  z-index:1000;
+  position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-
-.topBar{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  max-width:700px;
-  margin:0 auto;
-}
-
+.topBar{display:flex;align-items:center;gap:12px;max-width:700px;margin:0 auto;}
 .backBtn{
-  background:rgba(255,255,255,.4);
-  width:38px;height:38px;
-  border-radius:50%;
+  background:rgba(255,255,255,.4);width:38px;height:38px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:700;
-  flex-shrink:0;color:#1f1f1f;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
 }
 .backBtn:active{transform:scale(.94);}
 
@@ -58,19 +37,12 @@ button{font-family:inherit;cursor:pointer;border:none;}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-/* ============ ETA HERO CARD ============ */
 .etaCard{
-  max-width:700px;
-  margin:12px auto 0;
-  background:#fff;
-  border-radius:14px;
-  padding:16px;
+  max-width:700px;margin:12px auto 0;
+  background:#fff;border-radius:14px;padding:16px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
-  display:flex;
-  align-items:center;
-  gap:14px;
+  display:flex;align-items:center;gap:14px;
 }
-
 .etaIcon{
   width:54px;height:54px;
   background:linear-gradient(135deg,#0C831F,#0fa029);
@@ -81,14 +53,15 @@ button{font-family:inherit;cursor:pointer;border:none;}
   position:relative;
 }
 .etaIcon::after{
-  content:"";
-  position:absolute;
-  inset:-4px;
-  border-radius:50%;
-  border:2px solid #0C831F;
-  opacity:0;
+  content:"";position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid #0C831F;opacity:0;
   animation:pulse 2s infinite;
 }
+.etaIcon.rejected{
+  background:linear-gradient(135deg,#d23030,#ee5454);
+  box-shadow:0 4px 12px rgba(210,48,48,.25);
+}
+.etaIcon.rejected::after{display:none;}
 @keyframes pulse{
   0%{opacity:.6;transform:scale(1);}
   100%{opacity:0;transform:scale(1.25);}
@@ -100,247 +73,163 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .statusBadge{
   display:inline-flex;align-items:center;gap:5px;
-  padding:4px 10px;
-  border-radius:20px;
+  padding:4px 10px;border-radius:20px;
   font-size:11px;font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:.4px;
+  text-transform:uppercase;letter-spacing:.4px;
   margin-top:6px;
 }
-
 .badge-pending{background:#fff5d6;color:#8a6500;}
 .badge-accepted{background:#dcf3e1;color:#0C831F;}
 .badge-ready{background:#dbe9ff;color:#1857c1;}
 .badge-out{background:#ffe8d1;color:#b65800;}
 .badge-delivered{background:#e8d6f7;color:#6b21a8;}
-.badge-issue{background:#fde0e0;color:#c41818;}
+.badge-rejected{background:#fde0e0;color:#c41818;}
 
-/* ============ MAIN ============ */
-.container{
-  max-width:700px;
-  margin:0 auto;
-  padding:14px 12px 0;
-}
+.container{max-width:700px;margin:0 auto;padding:14px 12px 0;}
 
 .section{
-  background:#fff;
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:12px;
+  background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
 
 .sectionTitle{
-  font-size:15px;
-  font-weight:700;
-  color:#1f1f1f;
-  margin-bottom:12px;
+  font-size:15px;font-weight:700;color:#1f1f1f;margin-bottom:12px;
 }
 
-/* ============ MAP ============ */
 .mapSection{padding:0;overflow:hidden;}
+#map{height:340px;width:100%;background:#e9e9e9;}
+@media(min-width:600px){#map{height:380px;}}
 
-#map{
-  height:340px;
-  width:100%;
-  background:#e9e9e9;
-}
-
-@media(min-width:600px){
-  #map{height:380px;}
-}
-
-/* ============ STATUS TIMELINE ============ */
-.timeline{
-  position:relative;
-  padding-left:32px;
-}
-
+.timeline{position:relative;padding-left:32px;}
 .timeline::before{
-  content:"";
-  position:absolute;
+  content:"";position:absolute;
   left:11px;top:8px;bottom:8px;
-  width:2px;
-  background:#e5e5e5;
-  z-index:0;
+  width:2px;background:#e5e5e5;z-index:0;
 }
-
-.tlStep{
-  position:relative;
-  padding:6px 0 14px;
-}
+.tlStep{position:relative;padding:6px 0 14px;}
 .tlStep:last-child{padding-bottom:0;}
-
 .tlDot{
-  position:absolute;
-  left:-32px;top:6px;
-  width:24px;height:24px;
-  border-radius:50%;
-  background:#fff;
-  border:2px solid #e5e5e5;
+  position:absolute;left:-32px;top:6px;
+  width:24px;height:24px;border-radius:50%;
+  background:#fff;border:2px solid #e5e5e5;
   display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-weight:700;
-  color:#bbb;
-  z-index:1;
+  font-size:11px;font-weight:700;color:#bbb;z-index:1;
 }
-
-.tlStep.done .tlDot{
-  background:#0C831F;
-  border-color:#0C831F;
-  color:#fff;
-}
+.tlStep.done .tlDot{background:#0C831F;border-color:#0C831F;color:#fff;}
 .tlStep.done .tlDot::before{content:"✓";}
-
 .tlStep.active .tlDot{
-  background:#fff;
-  border-color:#0C831F;
-  color:#0C831F;
+  background:#fff;border-color:#0C831F;color:#0C831F;
   box-shadow:0 0 0 4px rgba(12,131,31,.15);
 }
 .tlStep.active .tlDot::before{
-  content:"";
-  width:8px;height:8px;border-radius:50%;
-  background:#0C831F;
-  animation:pulseDot 1.4s infinite;
+  content:"";width:8px;height:8px;border-radius:50%;
+  background:#0C831F;animation:pulseDot 1.4s infinite;
 }
+.tlStep.rejected .tlDot{background:#d23030;border-color:#d23030;color:#fff;}
+.tlStep.rejected .tlDot::before{content:"×";}
 @keyframes pulseDot{
   0%,100%{opacity:1;transform:scale(1);}
   50%{opacity:.4;transform:scale(.7);}
 }
-
-.tlLabel{
-  font-size:14px;
-  font-weight:600;
-  color:#1f1f1f;
-  line-height:1.3;
-}
-
-.tlStep:not(.done):not(.active) .tlLabel{color:#999;font-weight:500;}
-
-.tlNote{
-  font-size:12px;
-  color:#666;
-  margin-top:3px;
-  line-height:1.3;
-}
-
+.tlLabel{font-size:14px;font-weight:600;color:#1f1f1f;line-height:1.3;}
+.tlStep:not(.done):not(.active):not(.rejected) .tlLabel{color:#999;font-weight:500;}
+.tlNote{font-size:12px;color:#666;margin-top:3px;line-height:1.3;}
 .tlStep.active .tlNote{color:#0C831F;font-weight:600;}
+.tlStep.rejected .tlNote{color:#d23030;font-weight:600;}
 
-/* ============ DELIVERY PARTNER ============ */
-.partnerCard{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
+.partnerCard{display:flex;align-items:center;gap:12px;}
 .partnerAvatar{
-  width:50px;height:50px;
-  border-radius:50%;
+  width:50px;height:50px;border-radius:50%;
   background:linear-gradient(135deg,#F8CD46,#F0B91D);
   display:flex;align-items:center;justify-content:center;
   font-size:22px;font-weight:800;color:#fff;
   flex-shrink:0;
   box-shadow:0 2px 6px rgba(240,185,29,.3);
 }
-
 .partnerInfo{flex:1;min-width:0;line-height:1.3;}
 .partnerName{font-size:14px;font-weight:700;color:#1f1f1f;}
 .partnerMeta{font-size:12px;color:#666;margin-top:2px;}
 
 .callBtn{
-  width:42px;height:42px;
-  border-radius:50%;
-  background:#0C831F;
-  color:#fff;
+  width:42px;height:42px;border-radius:50%;
+  background:#0C831F;color:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;
-  flex-shrink:0;
-  text-decoration:none;
+  font-size:18px;flex-shrink:0;text-decoration:none;
   box-shadow:0 2px 6px rgba(12,131,31,.25);
 }
 .callBtn:active{transform:scale(.94);}
 
 .partnerEmpty{
-  text-align:center;
-  padding:14px 8px;
-  color:#888;
-  font-size:13px;
+  text-align:center;padding:14px 8px;
+  color:#888;font-size:13px;
 }
 .partnerEmpty .icon{font-size:30px;margin-bottom:6px;}
 
-/* ============ ORDER ID + ITEMS ============ */
 .idRow{
   display:flex;justify-content:space-between;align-items:center;
-  font-size:12px;color:#666;
-  padding:4px 0;
+  font-size:12px;color:#666;padding:4px 0;
 }
 .idRow b{color:#1f1f1f;font-weight:600;font-family:monospace;}
 
 .miniItem{
   display:flex;align-items:center;gap:10px;
-  padding:8px 0;
-  border-bottom:1px solid #f4f4f4;
+  padding:8px 0;border-bottom:1px solid #f4f4f4;
   font-size:13px;
 }
 .miniItem:last-child{border-bottom:none;padding-bottom:0;}
 .miniItem:first-child{padding-top:0;}
-
 .miniDot{width:8px;height:8px;border-radius:50%;background:#0C831F;flex-shrink:0;}
 .miniName{flex:1;color:#1f1f1f;font-weight:500;}
 .miniQty{color:#777;font-size:12px;margin-right:4px;}
 .miniPrice{font-weight:700;color:#1f1f1f;}
 
+.billRow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;font-size:13px;color:#3a3a3a;
+}
+.billRow b{color:#1f1f1f;font-weight:600;}
+.billDivider{border-top:1px dashed #e0e0e0;margin:6px 0;}
+
 .totalRow{
   display:flex;justify-content:space-between;
-  padding-top:10px;margin-top:8px;
-  border-top:1px dashed #e0e0e0;
-  font-size:14px;font-weight:800;
+  padding-top:6px;font-size:14px;font-weight:800;
 }
 
-/* ============ HELP ============ */
+.addressBox{
+  background:#fafafa;border-radius:10px;padding:12px;
+  font-size:13px;color:#444;line-height:1.5;
+}
+.addressBox b{color:#1f1f1f;font-weight:700;display:block;margin-bottom:4px;}
+
 .helpRow{
   display:flex;align-items:center;gap:10px;
-  padding:10px 0;
-  cursor:pointer;
+  padding:10px 0;cursor:pointer;
   font-size:13px;font-weight:600;color:#1f1f1f;
 }
 .helpRow:not(:last-child){border-bottom:1px solid #f4f4f4;}
 .helpRow .arrow{margin-left:auto;color:#bbb;}
 
-/* ============ MODAL ============ */
 .modalBg{
   position:fixed;inset:0;
   background:rgba(0,0,0,.5);
-  display:none;
-  align-items:flex-end;
-  justify-content:center;
-  z-index:2000;
-  padding:0;
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:2000;padding:0;
 }
 .modalBg.show{display:flex;animation:fadeIn .2s;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
 .modal{
-  background:#fff;
-  width:100%;
-  max-width:500px;
+  background:#fff;width:100%;max-width:500px;
   border-radius:20px 20px 0 0;
   padding:24px 20px 28px;
-  animation:slideUp .25s ease;
-  text-align:center;
+  animation:slideUp .25s ease;text-align:center;
 }
-@keyframes slideUp{
-  from{transform:translateY(100%);}
-  to{transform:translateY(0);}
-}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 
 .modal .icon{font-size:54px;margin-bottom:8px;}
 .modal h3{font-size:18px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
 .modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
-
-.modalActions{
-  display:flex;flex-direction:column;gap:10px;
-}
+.modalActions{display:flex;flex-direction:column;gap:10px;}
 
 .btnPrimary{
   background:#0C831F;color:#fff;
@@ -348,39 +237,38 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:14px;font-weight:700;letter-spacing:.3px;
 }
 .btnPrimary:active{transform:scale(.98);}
-
 .btnSecondary{
-  background:#fff;
-  color:#d23030;
+  background:#fff;color:#d23030;
   border:1.5px solid #d23030;
   padding:14px;border-radius:10px;
   font-size:14px;font-weight:700;letter-spacing:.3px;
 }
 .btnSecondary:active{transform:scale(.98);}
+.btnNeutral{
+  background:#fff;color:#666;
+  border:1.5px solid #e0e0e0;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:700;
+}
 
 @media(min-width:600px){
   .modalBg{align-items:center;padding:20px;}
   .modal{border-radius:16px;max-width:420px;}
 }
 
-/* ============ TOAST ============ */
 .toast{
-  position:fixed;
-  bottom:24px;
-  left:50%;
-  transform:translateX(-50%) translateY(20px);
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
   background:#1f1f1f;color:#fff;
   padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
   transition:all .25s;
-  z-index:1500;max-width:90%;
-  text-align:center;
+  z-index:1500;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ============ DESKTOP ============ */
 @media(min-width:768px){
   .header{padding:16px 24px;}
   .pageTitle{font-size:20px;}
@@ -388,16 +276,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
   .section{padding:18px;}
 }
 
-/* Leaflet popup tweaks */
 .leaflet-popup-content-wrapper{border-radius:8px;}
 .leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
-
 </style>
 </head>
 
 <body>
 
-<!-- ============ HEADER ============ -->
 <header class="header">
   <div class="topBar">
     <button class="backBtn" onclick="goHome()" aria-label="Back">←</button>
@@ -407,7 +292,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </div>
 
-  <!-- ETA card -->
   <div class="etaCard">
     <div class="etaIcon" id="etaIcon">⚡</div>
     <div class="etaText">
@@ -418,21 +302,17 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </header>
 
-<!-- ============ MAIN ============ -->
 <main class="container">
 
-  <!-- Map -->
   <section class="section mapSection">
     <div id="map"></div>
   </section>
 
-  <!-- Status timeline -->
   <section class="section">
     <div class="sectionTitle">Order status</div>
     <div class="timeline" id="timeline"></div>
   </section>
 
-  <!-- Delivery partner -->
   <section class="section">
     <div class="sectionTitle">Delivery partner</div>
     <div id="partnerArea">
@@ -443,15 +323,32 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </section>
 
-  <!-- Order details -->
+  <section class="section" id="addressSection" style="display:none;">
+    <div class="sectionTitle">📍 Delivery address</div>
+    <div class="addressBox">
+      <b id="custName">—</b>
+      <div id="custAddr">—</div>
+      <div id="custPhone" style="margin-top:6px;color:#0C831F;font-weight:600;"></div>
+    </div>
+  </section>
+
   <section class="section" id="orderDetails" style="display:none;">
     <div class="sectionTitle">Order details</div>
     <div id="itemsList"></div>
-    <div class="totalRow">
-      <span>Total Paid</span>
-      <span>₹<span id="totalAmount">0</span></span>
+
+    <!-- Bill breakdown -->
+    <div style="margin-top:14px;border-top:1px solid #f0f0f0;padding-top:10px;">
+      <div class="billRow"><span>Item total</span><span id="billItemTotal">—</span></div>
+      <div class="billRow"><span>Delivery</span><span id="billDelivery">—</span></div>
+      <div class="billRow"><span>Handling</span><span id="billHandling">—</span></div>
+      <div class="billDivider"></div>
+      <div class="totalRow">
+        <span>Total Paid</span>
+        <span>₹<span id="totalAmount">0</span></span>
+      </div>
     </div>
-    <div class="idRow" style="margin-top:10px;">
+
+    <div class="idRow" style="margin-top:14px;">
       <span>Order ID</span>
       <b id="orderIdFull">—</b>
     </div>
@@ -461,7 +358,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </section>
 
-  <!-- Help -->
   <section class="section">
     <div class="sectionTitle">Need help?</div>
     <div class="helpRow" onclick="contactSupport()">
@@ -476,7 +372,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 </main>
 
-<!-- ============ DELIVERY CONFIRM MODAL ============ -->
+<!-- DELIVERY CONFIRM MODAL -->
 <div class="modalBg" id="confirmModal">
   <div class="modal">
     <div class="icon">📦</div>
@@ -489,7 +385,19 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
-<!-- ============ TOAST ============ -->
+<!-- REPORT ISSUE MODAL (replaces confirm()) -->
+<div class="modalBg" id="reportModal">
+  <div class="modal">
+    <div class="icon">⚠️</div>
+    <h3>Report an issue?</h3>
+    <p>The shop and delivery team will be notified. Continue?</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="submitReport()">Yes, Report</button>
+      <button class="btnNeutral" onclick="closeReport()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -498,7 +406,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 import { db } from "../js/firebase.js";
 import { doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ---------- ORDER ID ---------- */
 const urlParams = new URLSearchParams(window.location.search);
 const orderId = urlParams.get("orderId") || localStorage.getItem("lastOrderId");
 
@@ -519,14 +426,12 @@ function showToast(msg, isError=false){
   setTimeout(()=> toast.classList.remove("show"), 2600);
 }
 
-/* ---------- MAP ---------- */
+/* MAP */
 const map = L.map('map', { zoomControl: true }).setView([20.2961, 85.8245], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution:'© OpenStreetMap',
-  maxZoom:19
+  attribution:'© OpenStreetMap', maxZoom:19
 }).addTo(map);
 
-/* Custom emoji icons */
 function emojiIcon(emoji, bg="#fff"){
   return L.divIcon({
     className:"",
@@ -541,15 +446,19 @@ function emojiIcon(emoji, bg="#fff"){
 
 let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
 let confirmShown=false;
+let lastRouteKey=null;   /* FIX: avoid redrawing route on every snapshot */
+let redirectTimer=null;
 
 function drawLine(start, end, color="#0C831F"){
+  const key = `${start.lat},${start.lng}-${end.lat},${end.lng}`;
+  if(key === lastRouteKey) return;     /* same line, skip */
   if(routeLine) map.removeLayer(routeLine);
   routeLine = L.polyline([[start.lat,start.lng],[end.lat,end.lng]], {
     color, weight:4, opacity:.85, dashArray:"6,8"
   }).addTo(map);
+  lastRouteKey = key;
 }
 
-/* ---------- STATUS TIMELINE ---------- */
 const STAGES = [
   { key:"placed",   label:"Order placed",      note:"Your order has been received" },
   { key:"accepted", label:"Accepted by shop",  note:"Shop is preparing your order" },
@@ -570,14 +479,32 @@ function getStageIndex(status){
 }
 
 function renderTimeline(status){
-  const cur = getStageIndex(status);
   const tl = document.getElementById("timeline");
+  const isRejected = (status||"").toLowerCase() === "rejected";
+
+  /* FIX: handle rejected status */
+  if(isRejected){
+    tl.innerHTML = `
+      <div class="tlStep done">
+        <div class="tlDot"></div>
+        <div class="tlLabel">Order placed</div>
+        <div class="tlNote">Your order was received</div>
+      </div>
+      <div class="tlStep rejected">
+        <div class="tlDot"></div>
+        <div class="tlLabel">Order rejected</div>
+        <div class="tlNote">Sorry, the shop couldn't accept this order</div>
+      </div>`;
+    return;
+  }
+
+  const cur = getStageIndex(status);
   let html = "";
   STAGES.forEach((s, i)=>{
     let cls = "";
     if(i < cur) cls = "done";
-    else if(i === cur && status.toLowerCase() !== "delivered") cls = "active";
-    else if(i === cur) cls = "done"; // delivered = all done
+    else if(i === cur && (status||"").toLowerCase() !== "delivered") cls = "active";
+    else if(i === cur) cls = "done";
     html += `
       <div class="tlStep ${cls}">
         <div class="tlDot"></div>
@@ -588,7 +515,6 @@ function renderTimeline(status){
   tl.innerHTML = html;
 }
 
-/* ---------- ETA / BADGE ---------- */
 function updateHero(status){
   const title = document.getElementById("etaTitle");
   const sub   = document.getElementById("etaSub");
@@ -597,6 +523,7 @@ function updateHero(status){
 
   badge.className = "statusBadge";
   badge.textContent = status || "Pending";
+  icon.classList.remove("rejected");
 
   switch((status||"").toLowerCase()){
     case "pending":
@@ -629,6 +556,13 @@ function updateHero(status){
       icon.textContent  = "🎉";
       badge.classList.add("badge-delivered");
       break;
+    case "rejected":
+      title.textContent = "Order rejected";
+      sub.textContent   = "Sorry, the shop couldn't accept this order";
+      icon.textContent  = "✕";
+      icon.classList.add("rejected");
+      badge.classList.add("badge-rejected");
+      break;
     default:
       title.textContent = status || "Processing";
       sub.textContent   = "Stay tuned for updates";
@@ -637,8 +571,7 @@ function updateHero(status){
   }
 }
 
-/* ---------- ITEMS RENDER ---------- */
-function renderItems(items, total){
+function renderItems(items, data){
   if(!items || !items.length){
     document.getElementById("orderDetails").style.display = "none";
     return;
@@ -656,7 +589,19 @@ function renderItems(items, total){
       </div>`;
   });
   document.getElementById("itemsList").innerHTML = html;
-  document.getElementById("totalAmount").textContent = total || 0;
+
+  /* FIX: full bill breakdown */
+  const itemTotal = data.total || 0;
+  const delivery = data.deliveryFee !== undefined ? data.deliveryFee : 0;
+  const handling = data.handlingFee !== undefined ? data.handlingFee : 0;
+  const grand = data.grandTotal || (itemTotal + delivery + handling);
+
+  document.getElementById("billItemTotal").textContent = "₹" + itemTotal;
+  document.getElementById("billDelivery").innerHTML  = delivery === 0
+    ? `<span style="color:#0C831F;font-weight:700;">FREE</span>`
+    : "₹" + delivery;
+  document.getElementById("billHandling").textContent = "₹" + handling;
+  document.getElementById("totalAmount").textContent = grand;
 }
 
 function escapeHtml(str){
@@ -665,7 +610,6 @@ function escapeHtml(str){
   }[m]));
 }
 
-/* ---------- DELIVERY PARTNER ---------- */
 function renderPartner(data){
   const area = document.getElementById("partnerArea");
   const name = data.deliveryBoyName;
@@ -694,7 +638,17 @@ function renderPartner(data){
     </div>`;
 }
 
-/* ---------- LIVE LISTENER ---------- */
+function renderAddress(data){
+  if(data.name || data.address){
+    document.getElementById("addressSection").style.display = "block";
+    document.getElementById("custName").textContent  = data.name || "Customer";
+    document.getElementById("custAddr").textContent  = data.address || "";
+    const phoneEl = document.getElementById("custPhone");
+    phoneEl.textContent = data.phone ? "📞 " + data.phone : "";
+  }
+}
+
+/* LIVE LISTENER */
 if(orderId){
   onSnapshot(doc(db, "orders", orderId), (snap)=>{
     if(!snap.exists()){
@@ -705,19 +659,14 @@ if(orderId){
 
     const data = snap.data();
 
-    /* Hero + timeline */
     updateHero(data.status);
     renderTimeline(data.status);
-
-    /* Partner */
     renderPartner(data);
-
-    /* Items + total */
-    const totalShown = data.grandTotal || data.total || 0;
-    renderItems(data.items, totalShown);
+    renderItems(data.items, data);
+    renderAddress(data);
     document.getElementById("shopNameField").textContent = data.shopName || "—";
 
-    /* MAP MARKERS — handle both customerLat/Lng and lat/lng (legacy) */
+    /* MAP */
     const custLat = data.customerLat ?? data.lat;
     const custLng = data.customerLng ?? data.lng;
 
@@ -732,7 +681,7 @@ if(orderId){
     if(data.shopLat && data.shopLng){
       const pos = [data.shopLat, data.shopLng];
       if(!shopMarker)
-        shopMarker = L.marker(pos, {icon:emojiIcon("🏪","#fff5d6")}).addTo(map).bindPopup(escapeHtml(data.shopName || "Shop"));
+        shopMarker = L.marker(pos, {icon:emojiIcon(data.shopIcon || "🏪","#fff5d6")}).addTo(map).bindPopup(escapeHtml(data.shopName || "Shop"));
       else
         shopMarker.setLatLng(pos);
     }
@@ -744,7 +693,6 @@ if(orderId){
       else
         deliveryMarker.setLatLng(pos);
 
-      /* Route line */
       const status = (data.status || "").toLowerCase();
       if(status === "out for delivery" && custLat && custLng){
         drawLine({lat:data.deliveryLat,lng:data.deliveryLng}, {lat:custLat,lng:custLng});
@@ -758,31 +706,28 @@ if(orderId){
     if(customerMarker) points.push(customerMarker.getLatLng());
     if(shopMarker)     points.push(shopMarker.getLatLng());
     if(deliveryMarker) points.push(deliveryMarker.getLatLng());
-    if(points.length === 1){
-      map.setView(points[0], 15);
-    }else if(points.length > 1){
-      map.fitBounds(points, {padding:[60,60], maxZoom:16});
-    }
+    if(points.length === 1) map.setView(points[0], 15);
+    else if(points.length > 1) map.fitBounds(points, {padding:[60,60], maxZoom:16});
 
-    /* Trigger map resize (fixes blank tiles when map was hidden) */
     setTimeout(()=> map.invalidateSize(), 100);
 
-    /* CUSTOMER CONFIRM */
+    /* CUSTOMER CONFIRM modal */
     if(data.deliveryStatus === "WaitingCustomerConfirm" && !confirmShown){
       confirmShown = true;
       setTimeout(()=> document.getElementById("confirmModal").classList.add("show"), 400);
     }
 
-    /* AUTO REDIRECT after delivered */
-    if((data.status || "").toLowerCase() === "delivered"){
-      setTimeout(()=>{
-        window.location.href = "https://sunilkumarm048.github.io/local-shop/";
-      }, 4000);
+    /* FIX: gentler auto-redirect after delivered (10s instead of 4) — gives user time to read */
+    const status = (data.status || "").toLowerCase();
+    if(status === "delivered" && !redirectTimer){
+      redirectTimer = setTimeout(()=>{
+        location.href = "/local-shop/customer/order-history.html";
+      }, 10000);
     }
   });
 }
 
-/* ---------- CONFIRM HANDLERS ---------- */
+/* CONFIRM HANDLERS */
 window.confirmDelivery = async (received)=>{
   document.getElementById("confirmModal").classList.remove("show");
   try{
@@ -791,9 +736,7 @@ window.confirmDelivery = async (received)=>{
         status:"Delivered", deliveryStatus:"Delivered"
       });
       showToast("✓ Order completed!");
-      setTimeout(()=>{
-        window.location.href = "https://sunilkumarm048.github.io/local-shop/";
-      }, 1500);
+      setTimeout(()=> location.href = "/local-shop/customer/order-history.html", 1500);
     }else{
       await updateDoc(doc(db,"orders",orderId), { deliveryStatus:"Issue" });
       showToast("Issue reported. We'll look into it.", true);
@@ -804,13 +747,14 @@ window.confirmDelivery = async (received)=>{
   }
 };
 
-/* ---------- HELPERS ---------- */
-window.goHome = ()=> window.location.href = "https://sunilkumarm048.github.io/local-shop/";
-
-window.contactSupport = ()=> showToast("Support: support@localshop.com");
-window.reportIssue = async ()=>{
+/* FIX: report issue uses modal instead of confirm() */
+window.reportIssue = ()=>{
   if(!orderId){ showToast("No order to report", true); return; }
-  if(!confirm("Report an issue with this order?")) return;
+  document.getElementById("reportModal").classList.add("show");
+};
+window.closeReport = ()=> document.getElementById("reportModal").classList.remove("show");
+window.submitReport = async ()=>{
+  closeReport();
   try{
     await updateDoc(doc(db,"orders",orderId), { deliveryStatus:"Issue" });
     showToast("Issue reported successfully");
@@ -819,11 +763,19 @@ window.reportIssue = async ()=>{
   }
 };
 
-/* Close modal on backdrop click */
+window.contactSupport = ()=>{
+  window.location.href = "mailto:support@localshop.com?subject=Order " + (orderId||"");
+};
+
+/* FIX: relative path */
+window.goHome = ()=> window.location.href = "/local-shop/index.html";
+
+/* Don't allow accidental modal close - require explicit choice */
 document.getElementById("confirmModal").addEventListener("click", (e)=>{
-  if(e.target.id === "confirmModal"){
-    /* don't allow accidental close — require explicit choice */
-  }
+  if(e.target.id === "confirmModal"){ /* explicitly do nothing */ }
+});
+document.getElementById("reportModal").addEventListener("click", (e)=>{
+  if(e.target.id === "reportModal") closeReport();
 });
 </script>
 
