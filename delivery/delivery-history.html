@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Delivery History · Local Shop</title>
+<title>Order History · Delivery</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   padding:14px 16px;position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-.topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
 .backBtn{
   background:rgba(255,255,255,.4);
   width:38px;height:38px;border-radius:50%;
@@ -27,11 +27,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
 }
 .backBtn:active{transform:scale(.94);}
-.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.titleBlock{flex:1;line-height:1.2;}
 .pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
 .pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
 
-.searchWrap{margin:12px auto 0;max-width:900px;position:relative;}
+.searchWrap{margin:12px auto 0;max-width:1100px;position:relative;}
 .searchWrap input{
   width:100%;padding:11px 14px 11px 38px;
   border-radius:10px;border:1px solid rgba(0,0,0,.08);
@@ -39,20 +39,36 @@ button{font-family:inherit;cursor:pointer;border:none;}
   outline:none;transition:border-color .15s;
 }
 .searchWrap input:focus{border-color:#0C831F;}
-.searchIcon{
-  position:absolute;left:13px;top:50%;
-  transform:translateY(-50%);font-size:14px;color:#666;
-}
+.searchIcon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#666;}
 
-.container{max-width:900px;margin:0 auto;padding:8px 12px 0;}
-
-.summary{
-  display:grid;grid-template-columns:repeat(3,1fr);
-  gap:8px;margin-bottom:14px;
+.tabs{
+  display:flex;gap:8px;
+  padding:12px 12px 4px;max-width:1100px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
 }
+.tabs::-webkit-scrollbar{display:none;}
+
+.tab{
+  padding:8px 14px;
+  background:#fff;border:1px solid #e5e5e5;border-radius:22px;
+  font-size:12px;font-weight:600;color:#444;
+  white-space:nowrap;flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
+  transition:all .15s;
+}
+.tab.active{background:#0C831F;color:#fff;border-color:#0C831F;}
+.tabCount{
+  background:rgba(0,0,0,.08);color:inherit;
+  padding:1px 7px;border-radius:10px;
+  font-size:10px;font-weight:700;
+}
+.tab.active .tabCount{background:rgba(255,255,255,.25);color:#fff;}
+
+.container{max-width:1100px;margin:0 auto;padding:6px 12px 0;}
+
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
 .summaryCard{
-  background:#fff;border-radius:12px;
-  padding:12px 10px;text-align:center;
+  background:#fff;border-radius:12px;padding:12px 10px;text-align:center;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
 .summaryValue{font-size:16px;font-weight:800;color:#1f1f1f;line-height:1.1;}
@@ -86,69 +102,64 @@ button{font-family:inherit;cursor:pointer;border:none;}
   cursor:pointer;transition:box-shadow .15s;
 }
 .orderCard:hover{box-shadow:0 3px 10px rgba(0,0,0,.06);}
+.orderCard.transport{border-left:4px solid #1857c1;}
 
 .cardTop{
   display:flex;align-items:center;justify-content:space-between;
-  padding:12px 14px;border-bottom:1px solid #f4f4f4;
-  background:#fafafa;gap:10px;
+  padding:12px 14px;border-bottom:1px solid #f4f4f4;background:#fafafa;
+  gap:8px;flex-wrap:wrap;
 }
 .cardLeft{display:flex;align-items:center;gap:10px;min-width:0;flex:1;}
 .orderNum{font-size:13px;font-weight:800;color:#1f1f1f;letter-spacing:.3px;font-family:monospace;}
 .timeAgo{font-size:11px;color:#888;font-weight:500;}
 
-.earningPill{
-  background:#dcf3e1;color:#0C831F;
-  padding:5px 10px;border-radius:14px;
-  font-size:13px;font-weight:800;
-  white-space:nowrap;
+.statusPill{
+  padding:4px 10px;border-radius:20px;
+  font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;
+}
+.pill-delivered{background:#dcf3e1;color:#0C831F;}
+.pill-cancelled{background:#fde0e0;color:#c41818;}
+
+.vehBadge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#dbe9ff;color:#1857c1;
+  padding:3px 8px;border-radius:12px;
+  font-size:10px;font-weight:800;
+  letter-spacing:.3px;text-transform:uppercase;
 }
 
-.cardBody{padding:12px 14px;display:flex;align-items:center;gap:10px;}
-.bodyIcon{
-  width:38px;height:38px;border-radius:50%;
-  background:#fff5d6;
+.routeStrip{
+  padding:12px 14px;
+  border-bottom:1px solid #f4f4f4;
+}
+.routeRow{
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;line-height:1.3;
+}
+.routeRow + .routeRow{margin-top:8px;}
+.routeIcon{
+  width:30px;height:30px;border-radius:8px;
+  background:#fff5d6;color:#8a6500;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;
+  font-size:14px;flex-shrink:0;
 }
-.bodyText{flex:1;min-width:0;line-height:1.3;}
-.tripLine{
-  font-size:13px;color:#444;
-  display:flex;align-items:center;gap:6px;
-  flex-wrap:wrap;
-}
-.tripLine .from{font-weight:600;color:#1f1f1f;}
-.tripLine .arrow{color:#bbb;}
-.tripLine .to{font-weight:600;color:#1f1f1f;}
-.tripMeta{font-size:11px;color:#888;margin-top:3px;}
+.routeRow.drop .routeIcon{background:#dcf3e1;color:#0C831F;}
+.routeText{flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:#1f1f1f;font-weight:500;}
 
 .cardFoot{
   display:flex;align-items:center;justify-content:space-between;
-  padding:8px 14px;
-  background:#fafafa;border-top:1px solid #f4f4f4;
-  font-size:11px;color:#888;
+  padding:10px 14px;font-size:12px;color:#666;
+  background:#fafafa;
 }
-.statusPill{
-  padding:3px 8px;border-radius:10px;
-  font-size:10px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.3px;
+.itemsCount{display:flex;align-items:center;gap:5px;font-weight:600;}
+.foot-amount{font-size:15px;font-weight:800;color:#0C831F;}
+.foot-amount .label{
+  font-size:10px;font-weight:600;color:#888;
+  text-transform:uppercase;letter-spacing:.3px;margin-right:4px;
 }
-.pill-delivered{background:#dcf3e1;color:#0C831F;}
-
-.itemsExpanded{
-  display:none;padding:0 14px 12px;
-  border-top:1px solid #f4f4f4;background:#fafafa;
-}
-.orderCard.expanded .itemsExpanded{display:block;}
-
-.itemRow{
-  display:flex;align-items:center;gap:10px;
-  padding:8px 0;font-size:12px;
-  border-bottom:1px dashed #ececec;
-}
-.itemRow:last-child{border-bottom:none;}
-.itemRow .dot{width:6px;height:6px;border-radius:50%;background:#0C831F;flex-shrink:0;}
-.itemRow .iName{flex:1;color:#1f1f1f;font-weight:500;}
-.itemRow .iQty{color:#777;font-weight:600;margin-right:4px;}
 
 .empty{
   text-align:center;padding:60px 20px;
@@ -184,9 +195,10 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-@media(min-width:768px){
-  .header{padding:16px 24px;}
-  .pageTitle{font-size:20px;}
+@media(min-width:900px){
+  .ordersList{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .orderCard{margin-bottom:0;}
+  .dateHeader{grid-column:1/-1;}
 }
 </style>
 </head>
@@ -197,14 +209,20 @@ button{font-family:inherit;cursor:pointer;border:none;}
   <div class="topBar">
     <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
     <div class="titleBlock">
-      <div class="pageTitle">📜 Delivery History</div>
+      <div class="pageTitle">📜 Order History</div>
       <div class="pageSub" id="headerSub">Loading…</div>
     </div>
   </div>
 
   <div class="searchWrap">
     <span class="searchIcon">🔍</span>
-    <input id="search" placeholder="Search by customer or shop…" oninput="onSearch()">
+    <input id="search" placeholder="Search by shop or address…" oninput="onSearch()">
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-filter="all">All <span class="tabCount" id="cntAll">0</span></div>
+    <div class="tab" data-filter="delivered">✓ Delivered <span class="tabCount" id="cntDelivered">0</span></div>
+    <div class="tab" data-filter="cancelled">✕ Cancelled <span class="tabCount" id="cntCancelled">0</span></div>
   </div>
 </header>
 
@@ -217,17 +235,25 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
     <div class="summaryCard">
       <div class="summaryValue loading" id="sumEarning"></div>
-      <div class="summaryLabel">Earned</div>
+      <div class="summaryLabel">Total earned</div>
     </div>
     <div class="summaryCard">
       <div class="summaryValue loading" id="sumAvg"></div>
-      <div class="summaryLabel">Avg per trip</div>
+      <div class="summaryLabel">Avg per delivery</div>
     </div>
   </div>
 
-  <div id="orders">
-    <div class="skel"><div class="skelLine med"></div><div class="skelLine short"></div><div class="skelLine"></div></div>
-    <div class="skel"><div class="skelLine med"></div><div class="skelLine short"></div><div class="skelLine"></div></div>
+  <div id="orders" class="ordersList">
+    <div class="skel">
+      <div class="skelLine med"></div>
+      <div class="skelLine short"></div>
+      <div class="skelLine"></div>
+    </div>
+    <div class="skel">
+      <div class="skelLine med"></div>
+      <div class="skelLine short"></div>
+      <div class="skelLine"></div>
+    </div>
   </div>
 
 </main>
@@ -245,6 +271,7 @@ const toast     = document.getElementById("toast");
 
 let myEmail = null;
 let allOrders = [];
+let currentFilter = "all";
 let searchTerm = "";
 
 function showToast(msg, isError=false){
@@ -290,11 +317,26 @@ function isDelivered(o){
   const dStatus = (o.deliveryStatus || "").toLowerCase();
   return status === "delivered" || dStatus === "delivered" || dStatus === "completed";
 }
+function isCancelled(o){
+  const s = (o.status || "").toLowerCase();
+  return s === "cancelled" || s === "rejected";
+}
+
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    currentFilter = tab.dataset.filter;
+    renderOrders();
+  });
+});
 
 window.onSearch = ()=>{
   searchTerm = document.getElementById("search").value.toLowerCase().trim();
   renderOrders();
 };
+
+window.goBack = ()=> location.href = "dashboard.html";
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
@@ -308,31 +350,30 @@ onAuthStateChanged(auth, async (user)=>{
 
 async function loadOrders(){
   try{
-    /* Main orders */
-    const snap = await getDocs(query(
-      collection(db, "orders"),
-      where("deliveryBoyId", "==", myEmail)
-    ));
-    snap.forEach(d=>{
-      const o = d.data(); o.__id = d.id;
-      if(isDelivered(o)) allOrders.push(o);
-    });
+    allOrders = [];
 
-    /* Split orders */
-    try{
-      const snap2 = await getDocs(query(
-        collection(db, "split-orders"),
-        where("deliveryBoyId", "==", myEmail)
-      ));
-      snap2.forEach(d=>{
-        const o = d.data();
-        o.__id = "split_" + d.id;
-        o.__isSplit = true;
-        if(isDelivered(o)) allOrders.push(o);
-      });
-    }catch(e){}
+    /* Pull from all 3 collections */
+    for(const col of ["orders", "split-orders", "transport-orders"]){
+      try{
+        const snap = await getDocs(query(
+          collection(db, col),
+          where("deliveryBoyId", "==", myEmail)
+        ));
+        snap.forEach(d=>{
+          const o = d.data();
+          o.__id = d.id;
+          o.__col = col;
+          o.__isSplit = (col === "split-orders");
+          o.__isTransport = (col === "transport-orders");
 
-    /* Sort newest first */
+          /* Only show delivered or cancelled (terminal states) */
+          if(isDelivered(o) || isCancelled(o)){
+            allOrders.push(o);
+          }
+        });
+      }catch(e){ console.error(`Could not load ${col}:`, e); }
+    }
+
     allOrders.sort((a,b)=>{
       const ta = a.time?.toDate ? a.time.toDate().getTime() : 0;
       const tb = b.time?.toDate ? b.time.toDate().getTime() : 0;
@@ -352,17 +393,24 @@ async function loadOrders(){
 }
 
 function updateSummary(){
-  let earning = 0;
-  allOrders.forEach(o=>{ earning += Number(o.deliveryEarning || 0); });
-  const avg = allOrders.length ? earning / allOrders.length : 0;
+  const delivered = allOrders.filter(isDelivered);
+  const cancelled = allOrders.filter(isCancelled);
 
-  setSummary("sumOrders",  allOrders.length);
+  let earning = 0;
+  delivered.forEach(o=>{ earning += Number(o.deliveryEarning || 0); });
+  const avg = delivered.length ? earning / delivered.length : 0;
+
+  setSummary("sumOrders",  delivered.length);
   setSummary("sumEarning", "₹" + Math.round(earning).toLocaleString("en-IN"));
-  setSummary("sumAvg",     "₹" + Math.round(avg));
+  setSummary("sumAvg",     "₹" + Math.round(avg).toLocaleString("en-IN"));
+
+  document.getElementById("cntAll").textContent       = allOrders.length;
+  document.getElementById("cntDelivered").textContent = delivered.length;
+  document.getElementById("cntCancelled").textContent = cancelled.length;
 
   headerSub.textContent = allOrders.length === 0
-    ? "No completed deliveries yet"
-    : `${allOrders.length} deliver${allOrders.length>1?"ies":"y"} completed`;
+    ? "No completed orders yet"
+    : `${allOrders.length} order${allOrders.length>1?"s":""} in history`;
 }
 function setSummary(id, val){
   const el = document.getElementById(id);
@@ -373,25 +421,29 @@ function setSummary(id, val){
 function renderOrders(){
   let visible = allOrders.slice();
 
+  if(currentFilter === "delivered") visible = visible.filter(isDelivered);
+  else if(currentFilter === "cancelled") visible = visible.filter(isCancelled);
+
   if(searchTerm){
     visible = visible.filter(o=>{
       const inName = (o.name || "").toLowerCase().includes(searchTerm);
-      const inAddr = (o.address || "").toLowerCase().includes(searchTerm);
-      const inShop = (o.shopName || "").toLowerCase().includes(searchTerm);
-      const inItems = (o.items || []).some(i =>
-        (i.name || "").toLowerCase().includes(searchTerm)
-      );
+      const inAddr = (o.address || o.dropAddress || "").toLowerCase().includes(searchTerm);
+      const inShop = (o.shopName || o.pickupAddress || "").toLowerCase().includes(searchTerm);
       const inId = (o.__id || "").toLowerCase().includes(searchTerm);
-      return inName || inAddr || inShop || inItems || inId;
+      return inName || inAddr || inShop || inId;
     });
   }
 
   if(visible.length === 0){
+    let icon = "📜", title = "No orders found", msg = "Your completed deliveries will appear here.";
+    if(searchTerm){ icon="🔍"; title="No matches found"; msg="Try a different search term."; }
+    else if(currentFilter === "delivered"){ icon="📦"; title="No deliveries yet"; msg="Completed deliveries appear here."; }
+    else if(currentFilter === "cancelled"){ icon="✕"; title="No cancelled orders"; msg="Cancelled orders appear here."; }
     ordersDiv.innerHTML = `
       <div class="empty">
-        <div class="icon">${searchTerm ? "🔍" : "📦"}</div>
-        <h3>${searchTerm ? "No matches found" : "No deliveries yet"}</h3>
-        <p>${searchTerm ? "Try a different search term." : "Your completed deliveries will appear here."}</p>
+        <div class="icon">${icon}</div>
+        <h3>${escapeHtml(title)}</h3>
+        <p>${escapeHtml(msg)}</p>
       </div>`;
     return;
   }
@@ -409,65 +461,66 @@ function renderOrders(){
     orders.forEach(o=> html += renderCard(o));
   });
   ordersDiv.innerHTML = html;
-
-  ordersDiv.querySelectorAll(".orderCard").forEach(c=>{
-    c.addEventListener("click", ()=>{
-      c.classList.toggle("expanded");
-    });
-  });
 }
 
 function renderCard(order){
   const id = order.__id;
   const orderShort = "#" + id.slice(-6).toUpperCase();
+  const isTransport = order.__isTransport;
+
+  const delivered = isDelivered(order);
+  const pillClass = delivered ? "pill-delivered" : "pill-cancelled";
+  const pillText  = delivered ? "Delivered" : "Cancelled";
+
   const earning = Math.round(Number(order.deliveryEarning || 0));
   const itemCount = order.items?.length || 0;
 
-  let itemsHtml = "";
-  if(Array.isArray(order.items)){
-    order.items.forEach(it=>{
-      const qty = it.qty || 1;
-      itemsHtml += `
-        <div class="itemRow">
-          <div class="dot"></div>
-          <div class="iName">${escapeHtml(it.name || "Item")}</div>
-          <div class="iQty">× ${qty}</div>
-        </div>`;
-    });
+  /* Pickup vs drop varies by collection */
+  const pickup = order.shopName || order.pickupAddress || "Pickup";
+  const drop = isTransport
+    ? (order.dropAddress || order.address || "Drop")
+    : (order.address || "Customer");
+
+  let vehicleBadge = "";
+  if(order.vehicleName && order.vehicleIcon){
+    vehicleBadge = `
+      <div class="vehBadge">${order.vehicleIcon} ${escapeHtml(order.vehicleName)}</div>`;
   }
 
+  let suffix = "";
+  if(order.__isSplit) suffix = " · SPLIT";
+  else if(isTransport) suffix = " · TRANSPORT";
+
   return `
-    <div class="orderCard">
+    <div class="orderCard ${isTransport?'transport':''}">
       <div class="cardTop">
         <div class="cardLeft">
-          <div class="orderNum">${orderShort}${order.__isSplit ? " · SPLIT" : ""}</div>
+          <div class="orderNum">${orderShort}${suffix}</div>
           <div class="timeAgo">${timeAgo(order.time)}</div>
         </div>
-        <div class="earningPill">+₹${earning}</div>
+        ${vehicleBadge}
+        <div class="statusPill ${pillClass}">${pillText}</div>
       </div>
 
-      <div class="cardBody">
-        <div class="bodyIcon">🛵</div>
-        <div class="bodyText">
-          <div class="tripLine">
-            <span class="from">🏪 ${escapeHtml(order.shopName || "Shop")}</span>
-            <span class="arrow">→</span>
-            <span class="to">🏠 ${escapeHtml(order.name || "Customer")}</span>
-          </div>
-          <div class="tripMeta">${escapeHtml(order.address || "")}</div>
+      <div class="routeStrip">
+        <div class="routeRow">
+          <div class="routeIcon">🏪</div>
+          <div class="routeText">${escapeHtml(pickup)}</div>
+        </div>
+        <div class="routeRow drop">
+          <div class="routeIcon">🏠</div>
+          <div class="routeText">${escapeHtml(drop)}</div>
         </div>
       </div>
 
       <div class="cardFoot">
-        <span>📦 ${itemCount} item${itemCount!==1?"s":""}</span>
-        <span class="statusPill pill-delivered">Delivered</span>
+        <div class="itemsCount">📦 ${itemCount} item${itemCount!==1?"s":""}</div>
+        <div class="foot-amount">
+          <span class="label">Earned</span>+₹${earning}
+        </div>
       </div>
-
-      <div class="itemsExpanded">${itemsHtml}</div>
     </div>`;
 }
-
-window.goBack = ()=> location.href = "dashboard.html";
 </script>
 
 </body>
