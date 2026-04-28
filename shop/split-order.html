@@ -10,28 +10,16 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
-html,body{
-  font-family:'Inter',Arial,sans-serif;
-  background:#f4f4f4;
-  color:#1f1f1f;
-  overflow-x:hidden;
-}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
 body{padding-bottom:30px;}
-
 button{font-family:inherit;cursor:pointer;border:none;}
 
-/* ============ HEADER ============ */
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
-  padding:14px 16px;
-  position:sticky;top:0;z-index:1000;
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-.topBar{
-  display:flex;align-items:center;gap:12px;
-  max-width:1100px;margin:0 auto;
-}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
 .backBtn{
   background:rgba(255,255,255,.4);
   width:38px;height:38px;border-radius:50%;
@@ -47,20 +35,14 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
 
-/* Info banner explaining split orders */
 .infoBanner{
-  max-width:1100px;
-  margin:12px auto 0;
-  background:#fff;
-  border-radius:12px;
-  padding:12px 14px;
+  max-width:1100px;margin:12px auto 0;
+  background:#fff;border-radius:12px;padding:12px 14px;
   display:flex;align-items:center;gap:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
 .bannerIcon{
-  width:40px;height:40px;
-  background:#fff5d6;
-  border-radius:50%;
+  width:40px;height:40px;background:#fff5d6;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
   font-size:20px;flex-shrink:0;
 }
@@ -68,11 +50,9 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .bannerTitle{font-size:13px;font-weight:700;color:#1f1f1f;}
 .bannerSub{font-size:12px;color:#666;margin-top:2px;}
 
-/* ============ FILTER TABS ============ */
 .tabs{
   display:flex;gap:8px;
-  padding:12px 12px 4px;
-  max-width:1100px;margin:0 auto;
+  padding:12px 12px 4px;max-width:1100px;margin:0 auto;
   overflow-x:auto;scrollbar-width:none;
 }
 .tabs::-webkit-scrollbar{display:none;}
@@ -93,19 +73,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .tab.active .tabCount{background:rgba(255,255,255,.25);color:#fff;}
 
-/* ============ MAIN ============ */
-.container{
-  max-width:1100px;margin:0 auto;
-  padding:6px 12px 0;
-}
+.container{max-width:1100px;margin:0 auto;padding:6px 12px 0;}
 
-/* ============ ORDER CARD ============ */
 .orderCard{
   background:#fff;border-radius:14px;
   margin-bottom:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
-  overflow:hidden;
-  border:1px solid #ececec;
+  overflow:hidden;border:1px solid #ececec;
   position:relative;
 }
 .orderCard.fresh{
@@ -118,17 +92,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
   50%{box-shadow:0 0 0 5px rgba(240,185,29,.32);}
 }
 
-/* Diagonal stripe to mark split orders visually */
 .splitRibbon{
-  position:absolute;
-  top:10px;left:-32px;
+  position:absolute;top:10px;left:-32px;
   background:#0C831F;color:#fff;
   font-size:10px;font-weight:800;
-  padding:3px 36px;
-  letter-spacing:.5px;
+  padding:3px 36px;letter-spacing:.5px;
   transform:rotate(-45deg);
-  text-transform:uppercase;
-  z-index:2;
+  text-transform:uppercase;z-index:2;
   box-shadow:0 2px 4px rgba(0,0,0,.15);
 }
 
@@ -148,38 +118,26 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .statusPill{
   padding:4px 10px;border-radius:20px;
   font-size:10px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.4px;
-  white-space:nowrap;
+  text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;
 }
 .pill-pending {background:#fff5d6;color:#8a6500;}
 .pill-accepted{background:#dcf3e1;color:#0C831F;}
 .pill-ready   {background:#dbe9ff;color:#1857c1;}
 .pill-taken   {background:#f0f0f0;color:#888;}
 
-/* PARENT LINK INFO */
 .parentLink{
-  padding:8px 14px;
-  background:#fff5d6;
+  padding:8px 14px;background:#fff5d6;
   border-bottom:1px solid #f0e3a8;
-  font-size:11px;
-  color:#8a6500;
-  font-weight:600;
+  font-size:11px;color:#8a6500;font-weight:600;
   display:flex;align-items:center;gap:6px;
 }
 .parentLink b{font-family:monospace;font-weight:800;}
 
-/* CUSTOMER */
-.custStrip{
-  display:flex;align-items:center;gap:10px;
-  padding:12px 14px;
-  border-bottom:1px solid #f4f4f4;
-}
+.custStrip{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #f4f4f4;}
 .custAvatar{
-  width:38px;height:38px;border-radius:50%;
-  background:#fff5d6;
+  width:38px;height:38px;border-radius:50%;background:#fff5d6;
   display:flex;align-items:center;justify-content:center;
-  font-size:15px;font-weight:800;color:#8a6500;
-  flex-shrink:0;
+  font-size:15px;font-weight:800;color:#8a6500;flex-shrink:0;
 }
 .custInfo{flex:1;min-width:0;line-height:1.3;}
 .custName{
@@ -200,7 +158,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .callBtn:active{transform:scale(.94);}
 
-/* ITEMS */
 .itemsArea{padding:10px 14px;}
 .itemsHeader{
   display:flex;justify-content:space-between;align-items:center;
@@ -213,15 +170,10 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .itemRow{
   display:flex;align-items:center;gap:10px;
-  padding:8px 0;
-  border-bottom:1px dashed #f0f0f0;
+  padding:8px 0;border-bottom:1px dashed #f0f0f0;
 }
 .itemRow:last-child{border-bottom:none;}
-
-.itemBullet{
-  width:8px;height:8px;border-radius:50%;
-  background:#0C831F;flex-shrink:0;
-}
+.itemBullet{width:8px;height:8px;border-radius:50%;background:#0C831F;flex-shrink:0;}
 
 .itemName{flex:1;font-size:13px;font-weight:500;color:#1f1f1f;line-height:1.3;}
 .itemQty{font-size:12px;color:#777;font-weight:600;margin-right:4px;}
@@ -229,20 +181,16 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .totalRow{
   display:flex;justify-content:space-between;align-items:center;
-  padding:10px 14px;
-  background:#fafafa;
-  border-top:1px solid #f0f0f0;
-  font-size:13px;
+  padding:10px 14px;background:#fafafa;
+  border-top:1px solid #f0f0f0;font-size:13px;
 }
 .totalLabel{font-weight:600;color:#444;}
 .totalAmount{font-weight:800;color:#1f1f1f;font-size:15px;}
 
-/* ACTIONS */
 .actions{
   display:flex;gap:8px;
   padding:10px 14px 12px;
-  border-top:1px solid #f4f4f4;
-  flex-wrap:wrap;
+  border-top:1px solid #f4f4f4;flex-wrap:wrap;
 }
 .actionBtn{
   flex:1;min-width:90px;
@@ -266,7 +214,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:12px;color:#888;font-style:italic;padding:11px;
 }
 
-/* EMPTY STATE */
 .empty{
   text-align:center;padding:60px 20px;
   background:#fff;border-radius:14px;margin-top:14px;
@@ -276,7 +223,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
 .empty p{font-size:13px;color:#777;line-height:1.5;}
 
-/* SKELETON */
 .skel{
   background:#fff;border-radius:14px;
   padding:14px;margin-bottom:12px;
@@ -295,26 +241,20 @@ button{font-family:inherit;cursor:pointer;border:none;}
   100%{background-position:-200% 0;}
 }
 
-/* TOAST */
 .toast{
-  position:fixed;bottom:24px;
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1f1f1f;color:#fff;
-  padding:12px 20px;border-radius:10px;
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s;
-  z-index:1500;max-width:90%;text-align:center;
+  transition:all .25s;z-index:1500;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* MODAL */
 .modalBg{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.5);
-  display:none;align-items:flex-end;justify-content:center;
-  z-index:2000;
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
 }
 .modalBg.show{display:flex;animation:fadeIn .2s;}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -339,13 +279,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
   .modalBg{align-items:center;padding:20px;}
   .modal{border-radius:16px;max-width:420px;}
 }
-
 @media(min-width:768px){
   .header{padding:16px 24px;}
   .pageTitle{font-size:20px;}
   .container{padding:10px 20px 0;}
 }
-
 @media(min-width:900px){
   #orders{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
   .orderCard{margin-bottom:0;}
@@ -355,7 +293,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <body>
 
-<!-- ============ HEADER ============ -->
 <header class="header">
   <div class="topBar">
     <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
@@ -373,7 +310,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
     </div>
   </div>
 
-  <!-- FILTER TABS -->
   <div class="tabs">
     <div class="tab active" data-filter="all">All <span class="tabCount" id="cntAll">0</span></div>
     <div class="tab" data-filter="pending">⏳ Available <span class="tabCount" id="cntPending">0</span></div>
@@ -382,7 +318,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </header>
 
-<!-- ============ MAIN ============ -->
 <main class="container">
   <div id="orders">
     <div class="skel">
@@ -398,7 +333,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </main>
 
-<!-- TOAST + MODAL -->
 <div id="toast" class="toast"></div>
 
 <div class="modalBg" id="confirmModal">
@@ -417,7 +351,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  collection, onSnapshot, doc, updateDoc, getDoc, runTransaction
+  collection, onSnapshot, doc, updateDoc, getDoc, getDocs,
+  query, where, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ordersDiv = document.getElementById("orders");
@@ -427,8 +362,8 @@ const toast     = document.getElementById("toast");
 let currentFilter = "all";
 let allOrdersCache = [];
 let myShopEmail = null;
+let myShopData = null;   // FIX: cache shop data once for accept-time lat/lng
 
-/* ---------- TABS ---------- */
 document.querySelectorAll(".tab").forEach(tab=>{
   tab.addEventListener("click", ()=>{
     document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
@@ -438,7 +373,6 @@ document.querySelectorAll(".tab").forEach(tab=>{
   });
 });
 
-/* ---------- TOAST ---------- */
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#1f1f1f";
@@ -446,7 +380,6 @@ function showToast(msg, isError=false){
   setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-/* ---------- MODAL ---------- */
 let confirmCb = null;
 function openModal({icon="❓", title, msg, confirmText="Confirm", danger=false, onConfirm}){
   document.getElementById("modalIcon").textContent  = icon;
@@ -470,11 +403,8 @@ document.getElementById("confirmModal").addEventListener("click",(e)=>{
   if(e.target.id === "confirmModal") closeModal();
 });
 
-/* ---------- HELPERS ---------- */
 function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 function timeAgo(t){
   if(!t) return "";
@@ -496,13 +426,25 @@ function statusKey(s){
 }
 
 /* ---------- AUTH GUARD ---------- */
-onAuthStateChanged(auth, (user)=>{
+onAuthStateChanged(auth, async (user)=>{
   if(!user){
     showToast("Login required", true);
     setTimeout(()=> location.href = "login.html", 800);
     return;
   }
   myShopEmail = user.email;
+
+  /* FIX: Pre-fetch shop's registered location from localshop-details
+     so we have it ready to attach when accepting splits */
+  try{
+    const sSnap = await getDocs(query(
+      collection(db, "localshop-details"),
+      where("ownerUid", "==", user.uid)
+    ));
+    sSnap.forEach(d=>{ myShopData = d.data(); });
+  }catch(e){
+    console.error("Could not load shop data", e);
+  }
 
   /* LIVE LISTENER on split-orders */
   onSnapshot(collection(db,"split-orders"), (snap)=>{
@@ -511,10 +453,7 @@ onAuthStateChanged(auth, (user)=>{
       const d = docSnap.data();
       d.__id = docSnap.id;
 
-      // skip closed
       if(d.status === "Delivered" || d.status === "Rejected") return;
-
-      // lock logic — same as your original
       if(d.assigned && d.shopEmail !== myShopEmail) return;
 
       allOrdersCache.push(d);
@@ -529,7 +468,6 @@ onAuthStateChanged(auth, (user)=>{
   });
 });
 
-/* ---------- COUNTS ---------- */
 function updateCounts(){
   let pending=0, accepted=0, ready=0;
   allOrdersCache.forEach(o=>{
@@ -548,7 +486,6 @@ function updateCounts(){
     : `${total} split order${total>1?"s":""} active`;
 }
 
-/* ---------- RENDER ---------- */
 function renderFromCache(){
   ordersDiv.innerHTML = "";
 
@@ -557,7 +494,6 @@ function renderFromCache(){
     return statusKey(o.status) === currentFilter;
   });
 
-  /* sort: pending first (newest), then accepted, then ready */
   const order = {pending:0, accepted:1, ready:2, out:3};
   visible.sort((a,b)=>{
     const da = order[statusKey(a.status)] ?? 9;
@@ -588,7 +524,6 @@ function renderFromCache(){
     const parentShort = order.parentOrderId ? order.parentOrderId.slice(-6).toUpperCase() : null;
     const total = order.total || 0;
 
-    /* items */
     let itemsHtml = "";
     if(Array.isArray(order.items)){
       order.items.forEach((it)=>{
@@ -604,7 +539,6 @@ function renderFromCache(){
       });
     }
 
-    /* actions */
     let actionsHtml = "";
     if(sk === "pending"){
       actionsHtml = `
@@ -665,8 +599,13 @@ function renderFromCache(){
   ordersDiv.innerHTML = html;
 }
 
-/* ---------- ACCEPT (transaction lock) ---------- */
+/* ---------- ACCEPT (FIXED: now sets shopLat/Lng/shopName/shopIcon) ---------- */
 window.acceptSplit = (id)=>{
+  if(!myShopData){
+    showToast("Shop info not loaded — refresh the page", true);
+    return;
+  }
+
   openModal({
     icon:"✂️",
     title:"Accept this split order?",
@@ -682,9 +621,15 @@ window.acceptSplit = (id)=>{
           if(order.assigned){
             throw new Error("Already taken by another shop");
           }
+          /* FIX: Include shop's registered location and metadata
+             so the delivery partner knows where to pick up */
           transaction.update(ref, {
             assigned: true,
             shopEmail: auth.currentUser.email,
+            shopName:  myShopData.shopName || "",
+            shopLat:   myShopData.lat ?? null,
+            shopLng:   myShopData.lng ?? null,
+            shopIcon:  myShopData.icon || "🏪",
             status: "Accepted"
           });
         });
@@ -697,7 +642,6 @@ window.acceptSplit = (id)=>{
   });
 };
 
-/* ---------- REJECT ---------- */
 window.rejectSplit = (id)=>{
   openModal({
     icon:"⚠️",
@@ -716,7 +660,6 @@ window.rejectSplit = (id)=>{
   });
 };
 
-/* ---------- READY (links delivery boy from parent) ---------- */
 window.markReady = (id, parentId)=>{
   openModal({
     icon:"📦",
@@ -746,7 +689,6 @@ window.markReady = (id, parentId)=>{
   });
 };
 
-/* ---------- NAV ---------- */
 window.goBack = ()=> history.length > 1 ? history.back() : (location.href = "dashboard.html");
 </script>
 
