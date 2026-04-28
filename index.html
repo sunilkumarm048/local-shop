@@ -13,8 +13,7 @@
 
 html,body{
   font-family:'Inter',Arial,sans-serif;
-  background:#fafafa;
-  color:#1f1f1f;
+  background:#fafafa;color:#1f1f1f;
   overflow-x:hidden;
 }
 body{padding-bottom:90px;}
@@ -22,26 +21,18 @@ body{padding-bottom:90px;}
 img{display:block;max-width:100%;}
 button{font-family:inherit;cursor:pointer;border:none;}
 
-/* HEADER */
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
   padding:14px 16px 12px;
   position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-.topBar{
-  display:flex;align-items:center;gap:12px;
-  max-width:1280px;margin:0 auto;
-}
-.brand{
-  font-size:22px;font-weight:800;
-  color:#1f1f1f;letter-spacing:-.5px;flex-shrink:0;
-}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1280px;margin:0 auto;}
+.brand{font-size:22px;font-weight:800;color:#1f1f1f;letter-spacing:-.5px;flex-shrink:0;}
 .brand span{color:#fff;}
 
 .deliveryInfo{flex:1;min-width:0;line-height:1.15;}
 .deliveryTime{font-size:15px;font-weight:800;color:#1f1f1f;}
-
 .location{
   font-size:13px;color:#3a3a3a;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -49,15 +40,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .location .arrow{font-size:10px;}
 
-/* PROFILE */
 .profileWrap{position:relative;flex-shrink:0;}
 .profileBtn{
   width:38px;height:38px;border-radius:50%;
   background:rgba(255,255,255,.45);
   display:flex;align-items:center;justify-content:center;
   font-size:18px;border:none;
-  transition:all .15s;
-  position:relative;z-index:1002;
+  transition:all .15s;position:relative;z-index:1002;
 }
 .profileBtn:hover{background:rgba(255,255,255,.6);}
 .profileBtn:active{transform:scale(.94);}
@@ -73,10 +62,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   transition:all .2s ease;
   z-index:1003;overflow:hidden;
 }
-.profileDropdown.show{
-  opacity:1;pointer-events:auto;
-  transform:translateY(0) scale(1);
-}
+.profileDropdown.show{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);}
 
 .dropdownHeader{
   padding:14px 16px;
@@ -97,8 +83,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .dropdownItem{
   display:flex;align-items:center;gap:12px;
-  padding:11px 16px;
-  text-decoration:none;color:#1f1f1f;
+  padding:11px 16px;text-decoration:none;color:#1f1f1f;
   font-size:14px;font-weight:600;
   transition:background .15s;cursor:pointer;
   border:none;background:transparent;
@@ -125,17 +110,14 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .itemSub{font-size:11px;color:#888;margin-top:1px;}
 .itemArrow{color:#bbb;font-size:14px;margin-left:4px;}
 
-/* SEARCH */
 .searchWrap{
   margin-top:12px;
   max-width:1280px;margin-left:auto;margin-right:auto;
   position:relative;
 }
 .searchWrap input{
-  width:100%;
-  padding:13px 14px 13px 42px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,.08);
+  width:100%;padding:13px 14px 13px 42px;
+  border-radius:12px;border:1px solid rgba(0,0,0,.08);
   font-size:14px;background:#fff;
   font-family:inherit;outline:none;
 }
@@ -146,20 +128,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:16px;color:#666;
 }
 
-/* MAIN */
 .container{max-width:1280px;margin:0 auto;padding:0 12px;}
-
 .section{padding:14px 0 4px;}
-
 .sectionHeader{
   display:flex;justify-content:space-between;align-items:center;
   margin-bottom:10px;padding:0 4px;
 }
-
-.sectionTitle{
-  font-size:17px;font-weight:700;
-  color:#1f1f1f;letter-spacing:-.2px;
-}
+.sectionTitle{font-size:17px;font-weight:700;color:#1f1f1f;letter-spacing:-.2px;}
 
 .catScroll{
   display:flex;gap:8px;
@@ -213,10 +188,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
   display:-webkit-box;-webkit-line-clamp:2;
   -webkit-box-orient:vertical;overflow:hidden;
 }
-
 .shopType{
-  font-size:10px;color:#888;
-  margin-top:2px;
+  font-size:10px;color:#888;margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
@@ -519,10 +492,9 @@ import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/
 
 let allProducts = [];
 let allShops = [];
+let openShopNames = new Set(); // FIX: tracks which shops are currently open
 
-// Shop type lookup: typeName ("Grocery Shop") → { topCategory, icon }
 let shopTypeMap = {};
-// Top-level categories with their icons (deduped, for chips)
 let topCategories = [];
 
 let selectedCategory = null;
@@ -540,7 +512,6 @@ function showToast(msg, isError=false){
   setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-/* ---------- CART SYNC ---------- */
 function reloadCart(){
   cart = JSON.parse(localStorage.getItem("cart")) || [];
   updateCart();
@@ -551,7 +522,6 @@ window.addEventListener("pageshow", (e)=>{ if(e.persisted) reloadCart(); });
 window.addEventListener("storage", (e)=>{ if(e.key === "cart") reloadCart(); });
 window.addEventListener("focus", reloadCart);
 
-/* ---------- PROFILE DROPDOWN ---------- */
 window.toggleProfile = (e)=>{
   e?.stopPropagation();
   const dd = document.getElementById("profileDropdown");
@@ -589,7 +559,6 @@ document.addEventListener("keydown", (e)=>{
   if(e.key === "Escape") closeProfile();
 });
 
-/* ---------- LOCATION ---------- */
 function getLocation(){
   if(!navigator.geolocation){
     document.getElementById("location").innerHTML = "📍 Location unavailable <span class='arrow'>▾</span>";
@@ -611,41 +580,35 @@ function getLocation(){
 }
 getLocation();
 
-/* ---------- LOAD DATA ---------- */
 async function loadData(){
   try{
     const [pSnap, cSnap, sSnap] = await Promise.all([
       getDocs(collection(db, "products")),
-      getDocs(collection(db, "shops")),           // shop TYPES (Grocery Shop, Bakery, ...)
-      getDocs(collection(db, "localshop-details")) // actual shops
+      getDocs(collection(db, "shops")),
+      getDocs(collection(db, "localshop-details"))
     ]);
 
-    /* ---- 1. Build shop-type lookup from "shops" collection ---- */
+    /* Build shop-type lookup */
     shopTypeMap = {};
-    const seenCats = new Map();   // lowercased category → { name, icon }
+    const seenCats = new Map();
 
     cSnap.docs.forEach(d=>{
       const t = d.data();
-      const typeName    = (t.name || "").trim();          // "Grocery Shop"
-      const topCategory = (t.category || typeName).trim(); // "Food & Daily Needs"
+      const typeName    = (t.name || "").trim();
+      const topCategory = (t.category || typeName).trim();
       const icon        = t.icon || "🏪";
 
       if(typeName){
         shopTypeMap[typeName.toLowerCase()] = { topCategory, icon, displayName: typeName };
       }
-
-      // Track unique top-level categories with their first-seen icon
       if(topCategory && !seenCats.has(topCategory.toLowerCase())){
-        seenCats.set(topCategory.toLowerCase(), {
-          name: topCategory,
-          icon: icon
-        });
+        seenCats.set(topCategory.toLowerCase(), { name: topCategory, icon: icon });
       }
     });
-
     topCategories = Array.from(seenCats.values());
 
-    /* ---- 2. Enrich each localshop-details doc with topCategory + icon ---- */
+    /* Enrich shops + track which are open */
+    openShopNames = new Set();
     allShops = sSnap.docs.map(d=>{
       const s = { ...d.data(), __id: d.id };
       const typeKey = (s.category || "").toLowerCase().trim();
@@ -656,15 +619,21 @@ async function loadData(){
         s.__icon        = typeInfo.icon;
         s.__typeName    = typeInfo.displayName;
       }else{
-        // Fallback: maybe s.category already IS a top-level category
         s.__topCategory = s.category || "";
         s.__icon        = s.icon || "🏪";
         s.__typeName    = s.category || "";
       }
+
+      /* FIX: track shop open/closed status. Default to OPEN if field missing. */
+      s.__isOpen = s.isOpen !== false;
+      if(s.__isOpen && s.shopName){
+        openShopNames.add(s.shopName.toLowerCase());
+      }
+
       return s;
     });
 
-    /* ---- 3. Enrich each product with its shop's topCategory ---- */
+    /* Enrich products with shop's topCategory */
     const shopByName = {};
     allShops.forEach(s=>{ shopByName[(s.shopName||"").toLowerCase()] = s; });
 
@@ -672,6 +641,7 @@ async function loadData(){
       const p = { ...d.data(), __id: d.id };
       const shop = shopByName[(p.shopName||"").toLowerCase()];
       p.__topCategory = shop?.__topCategory || p.category || "";
+      p.__shopOpen    = shop ? shop.__isOpen : true;
       return p;
     });
 
@@ -686,7 +656,6 @@ async function loadData(){
 }
 loadData();
 
-/* ---------- CATEGORIES (with icons, deduped) ---------- */
 function renderCategories(){
   const c = document.getElementById("categories");
   let html = `<div class="catChip ${!selectedCategory?'active':''}" onclick="selectCategory(null)">All</div>`;
@@ -708,15 +677,16 @@ window.selectCategory = (cat)=>{
   renderProducts();
 };
 
-/* ---------- SHOPS (with icons, filtered by top-level category) ---------- */
+/* SHOPS — FIX: only show OPEN shops in the scroll */
 function renderShops(){
   const c = document.getElementById("shops");
-  let f = selectedCategory
-    ? allShops.filter(s => s.__topCategory === selectedCategory)
-    : allShops;
+  let f = allShops.filter(s => s.__isOpen);   // hide closed shops
+  if(selectedCategory){
+    f = f.filter(s => s.__topCategory === selectedCategory);
+  }
 
   if(!f.length){
-    c.innerHTML = `<div style="padding:14px;color:#888;font-size:13px;">No shops here yet.</div>`;
+    c.innerHTML = `<div style="padding:14px;color:#888;font-size:13px;">No shops open here right now.</div>`;
     return;
   }
 
@@ -742,12 +712,12 @@ window.selectShop = (name)=>{
   renderProducts();
 };
 
-/* ---------- PRODUCTS ---------- */
+/* PRODUCTS — FIX: filter out products from closed shops */
 function renderProducts(){
   const c = document.getElementById("products");
   const title = document.getElementById("productsTitle");
 
-  let f = allProducts;
+  let f = allProducts.filter(p => p.__shopOpen);   // hide closed-shop products
   if(selectedCategory) f = f.filter(p => p.__topCategory === selectedCategory);
   if(selectedShop)     f = f.filter(p => p.shopName === selectedShop);
   if(searchTerm)       f = f.filter(p => (p.name||"").toLowerCase().includes(searchTerm));
@@ -806,7 +776,6 @@ function renderProducts(){
   c.innerHTML = html;
 }
 
-/* ---------- SEARCH ---------- */
 window.searchProducts = ()=>{
   clearTimeout(searchDebounceId);
   searchDebounceId = setTimeout(()=>{
@@ -815,10 +784,15 @@ window.searchProducts = ()=>{
   }, 150);
 };
 
-/* ---------- CART ---------- */
+/* ADD TO CART — FIX: defense in depth, block adding from closed shop */
 window.addToCart = (productId)=>{
   const p = allProducts.find(x => x.__id === productId);
   if(!p){ showToast("Product not available", true); return; }
+
+  if(p.__shopOpen === false){
+    showToast("This shop is currently closed", true);
+    return;
+  }
 
   const name = p.name || "Product";
   const existing = cart.find(c => c.name === name);
@@ -864,11 +838,8 @@ updateCart();
 
 window.openCart = ()=> location.href = "/local-shop/customer/cart.html";
 
-/* ---------- HELPERS ---------- */
 function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 function escapeAttr(str){
   return String(str).replace(/\\/g,"\\\\").replace(/'/g, "\\'").replace(/"/g, "&quot;");
