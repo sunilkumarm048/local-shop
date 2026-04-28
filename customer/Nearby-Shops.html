@@ -1,65 +1,576 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Nearby Shops</title>
-
+<meta charset="UTF-8">
+<title>Nearby Shops · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-#map{height:400px;}
-</style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;
+  position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.4);width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{
+  font-size:12px;color:#3a3a3a;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.refreshBtn{
+  background:rgba(255,255,255,.4);width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;color:#1f1f1f;
+}
+.refreshBtn:active{transform:scale(.94) rotate(180deg);transition:.4s;}
+
+/* MAP */
+.mapWrap{
+  max-width:900px;margin:12px auto 0;
+  background:#fff;border-radius:14px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+#map{height:280px;background:#e9e9e9;}
+@media(min-width:600px){#map{height:340px;}}
+
+/* CATEGORY FILTER */
+.catScroll{
+  display:flex;gap:8px;
+  padding:12px 12px 4px;
+  max-width:900px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
+}
+.catScroll::-webkit-scrollbar{display:none;}
+
+.catChip{
+  padding:8px 14px;background:#fff;
+  border:1px solid #e5e5e5;border-radius:22px;
+  font-size:13px;font-weight:600;color:#444;
+  white-space:nowrap;flex-shrink:0;
+  display:flex;align-items:center;gap:5px;
+  cursor:pointer;transition:all .15s;
+}
+.catChip.active{background:#0C831F;color:#fff;border-color:#0C831F;}
+.catChip .chipIcon{font-size:14px;}
+
+.container{max-width:900px;margin:0 auto;padding:8px 12px 0;}
+
+.sectionTitle{
+  font-size:14px;font-weight:700;color:#555;
+  margin:14px 4px 10px;
+  letter-spacing:.3px;text-transform:uppercase;
+}
+
+/* SHOP CARDS */
+.shopList{display:flex;flex-direction:column;gap:10px;}
+
+.shopCard{
+  background:#fff;border-radius:14px;
+  padding:14px;
+  display:flex;align-items:center;gap:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border:1px solid #ececec;
+  cursor:pointer;
+  transition:all .15s;
+}
+.shopCard:hover{
+  border-color:#0C831F;
+  box-shadow:0 3px 10px rgba(12,131,31,.12);
+}
+.shopCard:active{transform:scale(.99);}
+
+.shopAvatar{
+  width:54px;height:54px;border-radius:14px;
+  background:#fff5d6;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;flex-shrink:0;
+}
+
+.shopInfo{flex:1;min-width:0;line-height:1.3;}
+.shopName{
+  font-size:15px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.shopType{
+  font-size:12px;color:#666;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.shopMeta{
+  display:flex;align-items:center;gap:10px;
+  margin-top:6px;font-size:11px;color:#666;
+}
+.shopMeta .dot{
+  width:3px;height:3px;border-radius:50%;background:#bbb;
+}
+.shopMeta .area{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:140px;
+}
+
+.distanceBadge{
+  background:#dcf3e1;color:#0C831F;
+  padding:5px 10px;border-radius:18px;
+  font-size:11px;font-weight:700;
+  flex-shrink:0;
+  display:flex;align-items:center;gap:4px;
+  white-space:nowrap;
+}
+
+.shopArrow{
+  color:#bbb;font-size:18px;flex-shrink:0;
+  margin-left:4px;
+}
+
+/* EMPTY */
+.empty{
+  text-align:center;padding:50px 20px;
+  background:#fff;border-radius:14px;
+  margin-top:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty .icon{font-size:60px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;line-height:1.5;}
+
+/* SKELETON */
+.skel{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  display:flex;gap:12px;align-items:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.skelAvatar{
+  width:54px;height:54px;border-radius:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  flex-shrink:0;
+}
+.skelLines{flex:1;}
+.skelLine{
+  height:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:6px;margin-bottom:8px;
+}
+.skelLine.short{width:60%;}
+.skelLine.med{width:80%;}
+@keyframes shimmer{
+  0%{background-position:200% 0;}
+  100%{background-position:-200% 0;}
+}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+}
+
+.leaflet-popup-content-wrapper{border-radius:8px;}
+.leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
+</style>
 </head>
 
 <body>
 
-<h2>📍 Nearby Shops</h2>
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goHome()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">📍 Nearby Shops</div>
+      <div class="pageSub" id="headerSub">Finding shops near you…</div>
+    </div>
+    <button class="refreshBtn" onclick="refreshLocation()" aria-label="Refresh">🔄</button>
+  </div>
+</header>
 
-<div id="map"></div>
+<!-- MAP -->
+<div class="mapWrap">
+  <div id="map"></div>
+</div>
+
+<!-- CATEGORY FILTER -->
+<div class="catScroll" id="categories">
+  <div class="catChip active" data-cat="all">All shops</div>
+</div>
+
+<main class="container">
+  <div class="sectionTitle" id="listTitle">All shops near you</div>
+  <div id="shops" class="shopList">
+    <div class="skel">
+      <div class="skelAvatar"></div>
+      <div class="skelLines">
+        <div class="skelLine med"></div>
+        <div class="skelLine short"></div>
+      </div>
+    </div>
+    <div class="skel">
+      <div class="skelAvatar"></div>
+      <div class="skelLines">
+        <div class="skelLine med"></div>
+        <div class="skelLine short"></div>
+      </div>
+    </div>
+    <div class="skel">
+      <div class="skelAvatar"></div>
+      <div class="skelLines">
+        <div class="skelLine med"></div>
+        <div class="skelLine short"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
-
 import { db } from "../js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// INIT MAP
-let map = L.map('map').setView([20.2961, 85.8245], 13);
+const headerSub  = document.getElementById("headerSub");
+const shopsDiv   = document.getElementById("shops");
+const listTitle  = document.getElementById("listTitle");
+const catScroll  = document.getElementById("categories");
+const toast      = document.getElementById("toast");
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+let map         = null;
+let userMarker  = null;
+let shopMarkers = [];
+let userLocation = null;
 
-// GET USER LOCATION
-navigator.geolocation.getCurrentPosition(async(pos)=>{
+let allShops = [];
+let shopTypeMap = {};
+let topCategories = [];
+let selectedCategory = "all";
 
-let userLat = pos.coords.latitude;
-let userLng = pos.coords.longitude;
-
-L.marker([userLat, userLng]).addTo(map).bindPopup("You");
-
-// 🔥 GET SHOPS FROM FIRESTORE
-const snapshot = await getDocs(collection(db,"localshop-details"));
-
-let shops = [];
-
-snapshot.forEach(doc=>{
-let s = doc.data();
-
-if(s.lat && s.lng){
-shops.push(s);
-
-L.marker([s.lat, s.lng])
-.addTo(map)
-.bindPopup(s.shopName);
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-});
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
 
-map.setView([userLat, userLng], 14);
+/* Distance (km) */
+function getDistance(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180) *
+            Math.cos(lat2*Math.PI/180) *
+            Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
-});
+/* Custom map markers */
+function emojiIcon(emoji, bg="#fff"){
+  return L.divIcon({
+    className:"",
+    html:`<div style="background:${bg};width:40px;height:40px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 3px 8px rgba(0,0,0,.25);border:2px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:20px;line-height:1;">${emoji}</div>
+          </div>`,
+    iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
+  });
+}
 
+function userIcon(){
+  return L.divIcon({
+    className:"",
+    html:`<div style="background:#0C831F;width:18px;height:18px;border-radius:50%;
+          border:3px solid #fff;box-shadow:0 0 0 4px rgba(12,131,31,.25);"></div>`,
+    iconSize:[18,18], iconAnchor:[9,9]
+  });
+}
+
+/* INIT MAP */
+function initMap(){
+  map = L.map('map', { zoomControl: true }).setView([20.2961, 85.8245], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap', maxZoom:19
+  }).addTo(map);
+}
+initMap();
+
+/* GET LOCATION */
+function getLocation(){
+  return new Promise((resolve)=>{
+    if(!navigator.geolocation){ resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      ()  => resolve(null),
+      { enableHighAccuracy:true, timeout:8000 }
+    );
+  });
+}
+
+window.refreshLocation = async ()=>{
+  showToast("Updating your location…");
+  const loc = await getLocation();
+  if(loc){
+    userLocation = loc;
+    updateMap();
+    renderShops();
+    showToast("✓ Location updated");
+  }else{
+    showToast("Couldn't get location", true);
+  }
+};
+
+/* LOAD SHOPS + SHOP TYPES */
+async function load(){
+  try{
+    const [shopTypesSnap, shopsSnap] = await Promise.all([
+      getDocs(collection(db, "shops")),
+      getDocs(collection(db, "localshop-details"))
+    ]);
+
+    /* Build shop type lookup (same as index page) */
+    shopTypeMap = {};
+    const seenCats = new Map();
+
+    shopTypesSnap.docs.forEach(d=>{
+      const t = d.data();
+      const typeName    = (t.name || "").trim();
+      const topCategory = (t.category || typeName).trim();
+      const icon        = t.icon || "🏪";
+
+      if(typeName){
+        shopTypeMap[typeName.toLowerCase()] = { topCategory, icon, displayName: typeName };
+      }
+      if(topCategory && !seenCats.has(topCategory.toLowerCase())){
+        seenCats.set(topCategory.toLowerCase(), { name: topCategory, icon: icon });
+      }
+    });
+    topCategories = Array.from(seenCats.values());
+
+    /* Enrich each shop with type info */
+    allShops = shopsSnap.docs.map(d=>{
+      const s = { ...d.data(), __id: d.id };
+      const typeKey = (s.category || "").toLowerCase().trim();
+      const typeInfo = shopTypeMap[typeKey];
+      if(typeInfo){
+        s.__topCategory = typeInfo.topCategory;
+        s.__icon        = typeInfo.icon;
+        s.__typeName    = typeInfo.displayName;
+      }else{
+        s.__topCategory = s.category || "";
+        s.__icon        = s.icon || "🏪";
+        s.__typeName    = s.category || "";
+      }
+      return s;
+    });
+
+    /* Get user location */
+    userLocation = await getLocation();
+
+    renderCategories();
+    updateMap();
+    renderShops();
+
+  }catch(err){
+    console.error(err);
+    shopsDiv.innerHTML = `
+      <div class="empty">
+        <div class="icon">⚠️</div>
+        <h3>Couldn't load shops</h3>
+        <p>Please check your internet connection and try again.</p>
+      </div>`;
+  }
+}
+load();
+
+/* CATEGORY CHIPS */
+function renderCategories(){
+  let html = `<div class="catChip ${selectedCategory==='all'?'active':''}" data-cat="all" onclick="selectCat('all')">All shops</div>`;
+  topCategories.forEach(cat=>{
+    const isActive = selectedCategory === cat.name ? 'active' : '';
+    html += `
+      <div class="catChip ${isActive}" data-cat="${escapeHtml(cat.name)}" onclick="selectCat('${escapeHtml(cat.name).replace(/'/g, "\\'")}')">
+        <span class="chipIcon">${cat.icon}</span>${escapeHtml(cat.name)}
+      </div>`;
+  });
+  catScroll.innerHTML = html;
+}
+
+window.selectCat = (cat)=>{
+  selectedCategory = cat;
+  renderCategories();
+  renderShops();
+  updateMap();
+};
+
+/* MAP UPDATE */
+function updateMap(){
+  /* Clear old shop markers */
+  shopMarkers.forEach(m => map.removeLayer(m));
+  shopMarkers = [];
+
+  /* User marker */
+  if(userLocation){
+    if(!userMarker){
+      userMarker = L.marker([userLocation.lat, userLocation.lng], {icon:userIcon()})
+        .addTo(map).bindPopup("You're here");
+    }else{
+      userMarker.setLatLng([userLocation.lat, userLocation.lng]);
+    }
+  }
+
+  /* Shop markers (filtered) */
+  const visible = getFilteredShops();
+  const points = userLocation ? [[userLocation.lat, userLocation.lng]] : [];
+
+  visible.forEach(s=>{
+    if(s.lat && s.lng){
+      const m = L.marker([s.lat, s.lng], {icon:emojiIcon(s.__icon || "🏪", "#fff5d6")})
+        .addTo(map)
+        .bindPopup(`<b>${escapeHtml(s.shopName||"Shop")}</b><br>${escapeHtml(s.__typeName||"")}`);
+      shopMarkers.push(m);
+      points.push([s.lat, s.lng]);
+    }
+  });
+
+  /* Auto-fit */
+  if(points.length === 1){
+    map.setView(points[0], 14);
+  }else if(points.length > 1){
+    map.fitBounds(points, {padding:[40,40], maxZoom:15});
+  }
+
+  setTimeout(()=> map.invalidateSize(), 100);
+}
+
+/* GET FILTERED SHOPS (sorted by distance) */
+function getFilteredShops(){
+  let f = allShops;
+  if(selectedCategory !== "all"){
+    f = f.filter(s => s.__topCategory === selectedCategory);
+  }
+  /* Compute distances and sort */
+  f = f.map(s=>{
+    let dist = null;
+    if(userLocation && s.lat && s.lng){
+      dist = getDistance(userLocation.lat, userLocation.lng, s.lat, s.lng);
+    }
+    return { ...s, __dist: dist };
+  });
+  f.sort((a,b)=>{
+    if(a.__dist === null && b.__dist === null) return 0;
+    if(a.__dist === null) return 1;
+    if(b.__dist === null) return -1;
+    return a.__dist - b.__dist;
+  });
+  return f;
+}
+
+/* RENDER SHOP LIST */
+function renderShops(){
+  const visible = getFilteredShops();
+  const total = visible.length;
+
+  /* Title + subtitle */
+  if(selectedCategory === "all"){
+    listTitle.textContent = total === 0 ? "No shops yet" : "All shops near you";
+  }else{
+    listTitle.textContent = total === 0 ? `No ${selectedCategory} shops` : selectedCategory;
+  }
+
+  if(userLocation){
+    headerSub.textContent = total === 0
+      ? "No shops here yet"
+      : `${total} shop${total>1?"s":""} near you`;
+  }else{
+    headerSub.textContent = "Enable location to see distances";
+  }
+
+  if(total === 0){
+    shopsDiv.innerHTML = `
+      <div class="empty">
+        <div class="icon">🏪</div>
+        <h3>No shops here yet</h3>
+        <p>Try a different category or check back later as more shops join.</p>
+      </div>`;
+    return;
+  }
+
+  let html = "";
+  visible.forEach(s=>{
+    const name = s.shopName || "Shop";
+    const icon = s.__icon || "🏪";
+    const type = s.__typeName || "";
+    const area = s.location || s.address || "";
+
+    const distHtml = s.__dist !== null
+      ? `<div class="distanceBadge">📍 ${s.__dist.toFixed(1)} km</div>`
+      : "";
+
+    html += `
+      <div class="shopCard" onclick="visitShop('${escapeHtml(name).replace(/'/g, "\\'")}')">
+        <div class="shopAvatar">${icon}</div>
+        <div class="shopInfo">
+          <div class="shopName">${escapeHtml(name)}</div>
+          <div class="shopType">${escapeHtml(type)}</div>
+          ${area ? `<div class="shopMeta">
+            <span class="area">📌 ${escapeHtml(area)}</span>
+          </div>` : ""}
+        </div>
+        ${distHtml}
+        <div class="shopArrow">›</div>
+      </div>`;
+  });
+
+  shopsDiv.innerHTML = html;
+}
+
+/* CLICK SHOP → go to home with selectedShop hint via localStorage */
+window.visitShop = (shopName)=>{
+  /* Save shop name as hint for home page */
+  localStorage.setItem("preselectedShop", shopName);
+  showToast(`Opening ${shopName}…`);
+  setTimeout(()=> location.href = "/local-shop/index.html", 400);
+};
+
+window.goHome = ()=> location.href = "/local-shop/index.html";
 </script>
 
 </body>
