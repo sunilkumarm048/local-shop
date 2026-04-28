@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Profile · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:700px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;}
+
+/* Profile hero */
+.profileHero{
+  max-width:700px;margin:14px auto 0;padding:0 12px;
+}
+.profileCard{
+  background:#fff;border-radius:14px;
+  padding:18px;text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.bigAvatar{
+  width:88px;height:88px;border-radius:50%;
+  background:linear-gradient(135deg,#F8CD46,#F0B91D);
+  display:flex;align-items:center;justify-content:center;
+  font-size:42px;margin:0 auto 12px;
+  box-shadow:0 4px 14px rgba(240,185,29,.3);
+}
+.profileName{font-size:18px;font-weight:800;color:#1f1f1f;}
+.profileEmail{font-size:13px;color:#666;margin-top:3px;}
+.verifiedBadge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#dcf3e1;color:#0C831F;
+  padding:4px 10px;border-radius:14px;
+  font-size:11px;font-weight:700;
+  margin-top:8px;letter-spacing:.3px;
+}
+
+.miniStats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;margin-top:14px;padding-top:14px;
+  border-top:1px solid #f0f0f0;
+}
+.miniStat{text-align:center;}
+.miniValue{font-size:16px;font-weight:800;color:#1f1f1f;line-height:1;}
+.miniLabel{font-size:10px;color:#888;font-weight:500;margin-top:4px;letter-spacing:.2px;text-transform:uppercase;}
+
+.container{max-width:700px;margin:0 auto;padding:14px 12px 0;}
+
+.section{
+  background:#fff;border-radius:14px;
+  margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  overflow:hidden;
+}
+
+.sectionHeader{
+  padding:14px 14px 8px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.sectionTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
+.editBtn{
+  background:transparent;color:#0C831F;
+  font-size:12px;font-weight:700;
+  padding:4px 10px;border-radius:6px;
+}
+.editBtn:hover{background:#dcf3e1;}
+
+.row{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;
+  border-bottom:1px solid #f4f4f4;
+}
+.section .row:last-child{border-bottom:none;padding-bottom:14px;}
+.rowIcon{
+  width:36px;height:36px;border-radius:10px;
+  background:#fff5d6;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+}
+.rowText{flex:1;min-width:0;line-height:1.3;}
+.rowLabel{font-size:11px;color:#888;font-weight:500;letter-spacing:.2px;text-transform:uppercase;}
+.rowValue{font-size:14px;font-weight:600;color:#1f1f1f;margin-top:2px;
+  word-break:break-word;
+}
+.rowInput{
+  width:100%;border:1.5px solid #e5e5e5;border-radius:8px;
+  padding:8px 10px;font-size:14px;font-weight:500;
+  font-family:inherit;background:#fafafa;
+  color:#1f1f1f;outline:none;
+  margin-top:2px;
+}
+.rowInput:focus{border-color:#0C831F;background:#fff;}
+
+.locationCaptured{
+  background:#dcf3e1;color:#0C831F;
+  padding:8px 12px;border-radius:8px;
+  font-size:12px;font-weight:600;
+  margin:10px 14px;
+  display:flex;align-items:center;gap:8px;
+}
+
+.locationBtn{
+  background:#fff5d6;color:#8a6500;
+  border:1.5px solid #f0d76a;
+  padding:8px 14px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  margin:10px 14px 14px;
+  display:inline-flex;align-items:center;gap:5px;
+}
+.locationBtn:active{transform:scale(.97);}
+
+.saveBar{
+  display:flex;gap:10px;
+  padding:12px 14px;
+  background:#f8f8f8;
+  border-top:1px solid #f0f0f0;
+}
+.btnSave{
+  flex:1;background:#0C831F;color:#fff;
+  padding:11px;border-radius:8px;
+  font-size:13px;font-weight:700;
+}
+.btnCancel{
+  flex:1;background:#fff;color:#666;
+  border:1.5px solid #e0e0e0;
+  padding:11px;border-radius:8px;
+  font-size:13px;font-weight:700;
+}
+.btnSave:active,.btnCancel:active{transform:scale(.98);}
+
+.dangerSection{padding:14px;}
+.logoutBtn{
+  width:100%;background:#fff;color:#d23030;
+  border:1.5px solid #ffd2d2;padding:14px;border-radius:12px;
+  font-size:14px;font-weight:700;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.logoutBtn:active{transform:scale(.98);background:#fff5f5;}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
+}
+.modalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary  {flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger   {flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:420px;}
+}
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+}
+
+.skel{
+  display:inline-block;height:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:4px;width:80px;vertical-align:middle;
+}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">👤 My Profile</div>
+      <div class="pageSub">Manage your delivery partner account</div>
+    </div>
+  </div>
+</header>
+
+<div class="profileHero">
+  <div class="profileCard">
+    <div class="bigAvatar">🚚</div>
+    <div class="profileName" id="profileName"><span class="skel"></span></div>
+    <div class="profileEmail" id="profileEmail">—</div>
+    <div class="verifiedBadge" id="verifiedBadge" style="display:none;">✓ Verified Partner</div>
+
+    <div class="miniStats">
+      <div class="miniStat">
+        <div class="miniValue" id="miniDeliveries">—</div>
+        <div class="miniLabel">Deliveries</div>
+      </div>
+      <div class="miniStat">
+        <div class="miniValue" id="miniEarned">—</div>
+        <div class="miniLabel">Total earned</div>
+      </div>
+      <div class="miniStat">
+        <div class="miniValue" id="miniSince">—</div>
+        <div class="miniLabel">Member since</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main class="container">
+
+  <!-- PERSONAL INFO -->
+  <section class="section" id="personalSection">
+    <div class="sectionHeader">
+      <div class="sectionTitle">Personal Information</div>
+      <button class="editBtn" id="editPersonalBtn" onclick="toggleEdit('personal')">Edit</button>
+    </div>
+    <div class="row">
+      <div class="rowIcon">👤</div>
+      <div class="rowText">
+        <div class="rowLabel">Full name</div>
+        <div class="rowValue" id="dispName">—</div>
+        <input class="rowInput" id="inpName" style="display:none;" type="text">
+      </div>
+    </div>
+    <div class="row">
+      <div class="rowIcon">📞</div>
+      <div class="rowText">
+        <div class="rowLabel">Phone</div>
+        <div class="rowValue" id="dispPhone">—</div>
+        <input class="rowInput" id="inpPhone" style="display:none;" type="tel" inputmode="numeric" maxlength="10">
+      </div>
+    </div>
+    <div class="row">
+      <div class="rowIcon">📧</div>
+      <div class="rowText">
+        <div class="rowLabel">Email (cannot be changed)</div>
+        <div class="rowValue" id="dispEmail">—</div>
+      </div>
+    </div>
+    <div class="saveBar" id="personalSaveBar" style="display:none;">
+      <button class="btnCancel" onclick="cancelEdit('personal')">Cancel</button>
+      <button class="btnSave" onclick="saveEdit('personal')">Save Changes</button>
+    </div>
+  </section>
+
+  <!-- VEHICLE INFO -->
+  <section class="section" id="vehicleSection">
+    <div class="sectionHeader">
+      <div class="sectionTitle">Vehicle Details</div>
+      <button class="editBtn" id="editVehicleBtn" onclick="toggleEdit('vehicle')">Edit</button>
+    </div>
+    <div class="row">
+      <div class="rowIcon">🪪</div>
+      <div class="rowText">
+        <div class="rowLabel">Driving license</div>
+        <div class="rowValue" id="dispLicense">—</div>
+        <input class="rowInput" id="inpLicense" style="display:none;" type="text">
+      </div>
+    </div>
+    <div class="row">
+      <div class="rowIcon">🛵</div>
+      <div class="rowText">
+        <div class="rowLabel">Vehicle number</div>
+        <div class="rowValue" id="dispBike">—</div>
+        <input class="rowInput" id="inpBike" style="display:none;" type="text" style="text-transform:uppercase;">
+      </div>
+    </div>
+    <div class="saveBar" id="vehicleSaveBar" style="display:none;">
+      <button class="btnCancel" onclick="cancelEdit('vehicle')">Cancel</button>
+      <button class="btnSave" onclick="saveEdit('vehicle')">Save Changes</button>
+    </div>
+  </section>
+
+  <!-- LOCATION -->
+  <section class="section">
+    <div class="sectionHeader">
+      <div class="sectionTitle">Base Location</div>
+    </div>
+    <div class="row">
+      <div class="rowIcon">📍</div>
+      <div class="rowText">
+        <div class="rowLabel">Current GPS coordinates</div>
+        <div class="rowValue" id="dispLocation">—</div>
+      </div>
+    </div>
+    <div class="locationCaptured" id="locationCaptured" style="display:none;">
+      ✓ Location captured · <span id="locTime"></span>
+    </div>
+    <button class="locationBtn" onclick="captureLocation()">📍 Update My Location</button>
+  </section>
+
+  <!-- DANGER -->
+  <section class="dangerSection">
+    <button class="logoutBtn" onclick="logoutClick()">🚪 Logout</button>
+  </section>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon" id="modalIcon">❓</div>
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalMsg">This action cannot be undone.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeModal()">Cancel</button>
+      <button class="btnDanger" id="modalConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc, getDoc, updateDoc, collection, query, where, getDocs
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const toast = document.getElementById("toast");
+let myEmail = null;
+let myData = {};
+
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+let pendingConfirmCb = null;
+function openConfirmModal({icon="❓", title, msg, confirmText="Confirm", onConfirm}){
+  document.getElementById("modalIcon").textContent  = icon;
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent   = msg;
+  document.getElementById("modalConfirmBtn").textContent = confirmText;
+  pendingConfirmCb = onConfirm;
+  document.getElementById("confirmModal").classList.add("show");
+}
+window.closeModal = ()=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  pendingConfirmCb = null;
+};
+document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
+  const cb = pendingConfirmCb;
+  closeModal();
+  if(cb) cb();
+});
+document.getElementById("confirmModal").addEventListener("click",(e)=>{
+  if(e.target.id === "confirmModal") closeModal();
+});
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    showToast("Login required", true);
+    setTimeout(()=> location.href = "login.html", 800);
+    return;
+  }
+  myEmail = user.email;
+  await loadProfile();
+  await loadStats();
+});
+
+async function loadProfile(){
+  try{
+    const snap = await getDoc(doc(db, "delivery", myEmail));
+    if(!snap.exists()){
+      showToast("Profile not found", true);
+      return;
+    }
+    myData = snap.data();
+    renderProfile();
+  }catch(e){
+    console.error(e);
+    showToast("Could not load profile", true);
+  }
+}
+
+function renderProfile(){
+  document.getElementById("profileName").textContent  = myData.name || "Delivery Partner";
+  document.getElementById("profileEmail").textContent = myEmail;
+  document.getElementById("dispName").textContent     = myData.name || "—";
+  document.getElementById("dispPhone").textContent    = myData.phone ? ("+91 " + myData.phone) : "—";
+  document.getElementById("dispEmail").textContent    = myEmail;
+  document.getElementById("dispLicense").textContent  = myData.licenseNumber || "—";
+  document.getElementById("dispBike").textContent     = myData.bikeNumber || "—";
+
+  if(myData.lat && myData.lng){
+    document.getElementById("dispLocation").textContent =
+      `${myData.lat.toFixed(4)}, ${myData.lng.toFixed(4)}`;
+  }
+
+  if(myData.verified){
+    document.getElementById("verifiedBadge").style.display = "inline-flex";
+  }
+
+  if(myData.createdAt){
+    const d = myData.createdAt.toDate ? myData.createdAt.toDate() : new Date(myData.createdAt);
+    document.getElementById("miniSince").textContent =
+      d.toLocaleDateString("en-IN", {month:"short", year:"numeric"});
+  }
+}
+
+async function loadStats(){
+  try{
+    const snap = await getDocs(query(
+      collection(db, "orders"),
+      where("deliveryBoyId", "==", myEmail)
+    ));
+    let count = 0, earned = 0;
+    snap.forEach(d=>{
+      const o = d.data();
+      const status = (o.status||"").toLowerCase();
+      const dStatus = (o.deliveryStatus||"").toLowerCase();
+      if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+        count++;
+        earned += Number(o.deliveryEarning || 0);
+      }
+    });
+
+    /* Also count split-orders */
+    try{
+      const snap2 = await getDocs(query(
+        collection(db, "split-orders"),
+        where("deliveryBoyId", "==", myEmail)
+      ));
+      snap2.forEach(d=>{
+        const o = d.data();
+        const status = (o.status||"").toLowerCase();
+        const dStatus = (o.deliveryStatus||"").toLowerCase();
+        if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+          count++;
+          earned += Number(o.deliveryEarning || 0);
+        }
+      });
+    }catch(e){}
+
+    document.getElementById("miniDeliveries").textContent = count;
+    document.getElementById("miniEarned").textContent = "₹" + Math.round(earned).toLocaleString("en-IN");
+  }catch(e){
+    console.error(e);
+  }
+}
+
+/* EDIT MODE */
+const editState = { personal: false, vehicle: false };
+
+window.toggleEdit = (section)=>{
+  if(editState[section]){
+    cancelEdit(section);
+    return;
+  }
+  editState[section] = true;
+
+  if(section === "personal"){
+    document.getElementById("dispName").style.display  = "none";
+    document.getElementById("dispPhone").style.display = "none";
+    document.getElementById("inpName").style.display  = "block";
+    document.getElementById("inpPhone").style.display = "block";
+    document.getElementById("inpName").value  = myData.name || "";
+    document.getElementById("inpPhone").value = myData.phone || "";
+    document.getElementById("personalSaveBar").style.display = "flex";
+    document.getElementById("editPersonalBtn").textContent = "Cancel";
+  }else if(section === "vehicle"){
+    document.getElementById("dispLicense").style.display = "none";
+    document.getElementById("dispBike").style.display    = "none";
+    document.getElementById("inpLicense").style.display  = "block";
+    document.getElementById("inpBike").style.display     = "block";
+    document.getElementById("inpLicense").value = myData.licenseNumber || "";
+    document.getElementById("inpBike").value    = myData.bikeNumber || "";
+    document.getElementById("vehicleSaveBar").style.display = "flex";
+    document.getElementById("editVehicleBtn").textContent = "Cancel";
+  }
+};
+
+window.cancelEdit = (section)=>{
+  editState[section] = false;
+  if(section === "personal"){
+    document.getElementById("dispName").style.display  = "block";
+    document.getElementById("dispPhone").style.display = "block";
+    document.getElementById("inpName").style.display  = "none";
+    document.getElementById("inpPhone").style.display = "none";
+    document.getElementById("personalSaveBar").style.display = "none";
+    document.getElementById("editPersonalBtn").textContent = "Edit";
+  }else if(section === "vehicle"){
+    document.getElementById("dispLicense").style.display = "block";
+    document.getElementById("dispBike").style.display    = "block";
+    document.getElementById("inpLicense").style.display  = "none";
+    document.getElementById("inpBike").style.display     = "none";
+    document.getElementById("vehicleSaveBar").style.display = "none";
+    document.getElementById("editVehicleBtn").textContent = "Edit";
+  }
+};
+
+window.saveEdit = async (section)=>{
+  const update = {};
+
+  if(section === "personal"){
+    const name  = document.getElementById("inpName").value.trim();
+    const phone = document.getElementById("inpPhone").value.trim().replace(/\D/g,"");
+    if(!name){ showToast("Name is required", true); return; }
+    if(phone.length !== 10 || !/^[6-9]/.test(phone)){
+      showToast("Enter a valid 10-digit phone", true); return;
+    }
+    update.name  = name;
+    update.phone = phone;
+  }else if(section === "vehicle"){
+    const license = document.getElementById("inpLicense").value.trim();
+    const bike    = document.getElementById("inpBike").value.trim().toUpperCase();
+    if(!license){ showToast("License is required", true); return; }
+    if(!bike){ showToast("Vehicle number is required", true); return; }
+    update.licenseNumber = license;
+    update.bikeNumber    = bike;
+  }
+
+  try{
+    await updateDoc(doc(db, "delivery", myEmail), update);
+    Object.assign(myData, update);
+    cancelEdit(section);
+    renderProfile();
+    showToast("✓ Profile updated");
+  }catch(e){
+    console.error(e);
+    showToast("Could not save changes", true);
+  }
+};
+
+/* LOCATION UPDATE */
+window.captureLocation = ()=>{
+  if(!navigator.geolocation){
+    showToast("Geolocation not supported", true); return;
+  }
+  showToast("Getting your location…");
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    try{
+      await updateDoc(doc(db, "delivery", myEmail), { lat, lng });
+      myData.lat = lat;
+      myData.lng = lng;
+      document.getElementById("dispLocation").textContent =
+        `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      const cap = document.getElementById("locationCaptured");
+      cap.style.display = "flex";
+      document.getElementById("locTime").textContent = "just now";
+      showToast("✓ Location updated");
+    }catch(e){
+      showToast("Could not save location", true);
+    }
+  }, ()=>{
+    showToast("Could not get location. Allow access.", true);
+  }, { enableHighAccuracy:true, timeout:10000 });
+};
+
+/* LOGOUT */
+window.logoutClick = ()=>{
+  openConfirmModal({
+    icon:"🚪",
+    title:"Logout from your account?",
+    msg:"You'll stop receiving new orders until you log in again.",
+    confirmText:"Yes, Logout",
+    onConfirm: doLogout
+  });
+};
+
+async function doLogout(){
+  try{
+    if(myEmail){
+      try{ await updateDoc(doc(db,"delivery", myEmail), { available:false }); }catch(e){}
+    }
+    await signOut(auth);
+  }catch(e){}
+  showToast("Logged out");
+  setTimeout(()=> location.href = "login.html", 600);
+}
+
+window.goBack = ()=> location.href = "dashboard.html";
+</script>
+
+</body>
+</html>
