@@ -34,7 +34,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   margin-top:2px;
 }
 
-/* CLICKABLE STATUS TOGGLE */
 .statusToggle{
   display:flex;align-items:center;gap:6px;
   background:rgba(255,255,255,.5);
@@ -71,7 +70,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   100%{box-shadow:0 0 0 0 rgba(210,48,48,0);}
 }
 
-/* CLOSED BANNER under header when shop is offline */
 .closedBanner{
   max-width:1100px;margin:12px auto 0;
   background:#fde0e0;border:1px solid #f8b4b4;
@@ -211,7 +209,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* MODAL */
 .modalBg{
   position:fixed;inset:0;background:rgba(0,0,0,.5);
   display:none;align-items:flex-end;justify-content:center;z-index:2000;
@@ -374,7 +371,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <div id="toast" class="toast"></div>
 
-<!-- GENERIC CONFIRM MODAL (used for logout AND close-shop confirm) -->
 <div class="modalBg" id="confirmModal">
   <div class="modal">
     <div class="icon" id="modalIcon">🚪</div>
@@ -405,8 +401,8 @@ const hr = new Date().getHours();
 const greet = hr < 12 ? "Good morning" : hr < 17 ? "Good afternoon" : "Good evening";
 document.getElementById("greeting").textContent = `${greet} 👋`;
 
-let myShopDocId = null;       // doc id in localshop-details
-let isOpen = true;            // current OPEN/CLOSED state
+let myShopDocId = null;
+let isOpen = true;
 
 const statusToggle = document.getElementById("statusToggle");
 const statusText   = document.getElementById("statusText");
@@ -449,7 +445,6 @@ async function loadShopStatus(user){
     snap.forEach(d=>{
       myShopDocId = d.id;
       const data = d.data();
-      // default to true if field is missing (older shops)
       isOpen = data.isOpen !== false;
     });
 
@@ -481,7 +476,6 @@ window.toggleStatus = ()=>{
   }
 
   if(isOpen){
-    /* OPEN → CLOSED: ask for confirmation */
     openConfirmModal({
       icon:  "🚫",
       title: "Close your shop?",
@@ -490,7 +484,6 @@ window.toggleStatus = ()=>{
       onConfirm: ()=> setShopStatus(false)
     });
   }else{
-    /* CLOSED → OPEN: instant */
     setShopStatus(true);
   }
 };
@@ -512,14 +505,15 @@ async function setShopStatus(newStatus){
   }
 }
 
-/* ---------- LOAD STATS ---------- */
-let mainOrdersStats = { live:0, pending:0, revenue:0 };
-let splitOrdersStats = { live:0, pending:0, revenue:0 };
+/* ---------- LOAD STATS — now includes transport-orders ---------- */
+let mainStats      = { live:0, pending:0, revenue:0 };
+let splitStats     = { live:0, pending:0, revenue:0 };
+let transportStats = { live:0, pending:0, revenue:0 };
 
 function recomputeAndRender(){
-  const live    = mainOrdersStats.live + splitOrdersStats.live;
-  const pending = mainOrdersStats.pending + splitOrdersStats.pending;
-  const revenue = mainOrdersStats.revenue + splitOrdersStats.revenue;
+  const live    = mainStats.live + splitStats.live + transportStats.live;
+  const pending = mainStats.pending + splitStats.pending + transportStats.pending;
+  const revenue = mainStats.revenue + splitStats.revenue + transportStats.revenue;
 
   setStat("statLive", live);
   setStat("statPending", pending);
@@ -530,12 +524,14 @@ function recomputeAndRender(){
   const splitBadge   = document.getElementById("splitBadge");
 
   liveBadge.style.display    = live > 0 ? "flex" : "none";
-  pendingBadge.style.display = mainOrdersStats.pending > 0 ? "flex" : "none";
-  splitBadge.style.display   = splitOrdersStats.pending > 0 ? "flex" : "none";
+  /* Pending badge counts main + transport orders (these go to Manage Orders page) */
+  const pendingForBadge = mainStats.pending + transportStats.pending;
+  pendingBadge.style.display = pendingForBadge > 0 ? "flex" : "none";
+  splitBadge.style.display   = splitStats.pending > 0 ? "flex" : "none";
 
   liveBadge.textContent    = live;
-  pendingBadge.textContent = mainOrdersStats.pending;
-  splitBadge.textContent   = splitOrdersStats.pending;
+  pendingBadge.textContent = pendingForBadge;
+  splitBadge.textContent   = splitStats.pending;
 }
 
 function processOrdersSnap(snap, target){
@@ -562,20 +558,32 @@ function processOrdersSnap(snap, target){
 
 function loadData(){
   try{
+    /* Main orders */
     const ordersQ = query(collection(db, "orders"), where("shopEmail","==",shopEmail));
     onSnapshot(ordersQ, (snap)=>{
-      processOrdersSnap(snap, mainOrdersStats);
+      processOrdersSnap(snap, mainStats);
       recomputeAndRender();
     });
 
+    /* Split orders */
     try{
       const splitQ = query(collection(db, "split-orders"), where("shopEmail","==",shopEmail));
       onSnapshot(splitQ, (snap)=>{
-        processOrdersSnap(snap, splitOrdersStats);
+        processOrdersSnap(snap, splitStats);
         recomputeAndRender();
       }, ()=>{});
     }catch(e){}
 
+    /* NEW: Transport orders (heavy orders that need bigger vehicles) */
+    try{
+      const transportQ = query(collection(db, "transport-orders"), where("shopEmail","==",shopEmail));
+      onSnapshot(transportQ, (snap)=>{
+        processOrdersSnap(snap, transportStats);
+        recomputeAndRender();
+      }, ()=>{});
+    }catch(e){}
+
+    /* Products count */
     (async ()=>{
       try{
         const pSnap = await getDocs(query(collection(db,"products"), where("shopEmail","==",shopEmail)));
@@ -639,7 +647,6 @@ document.getElementById("confirmModal").addEventListener("click",(e)=>{
   if(e.target.id === "confirmModal") closeModal();
 });
 
-/* ---------- LOGOUT ---------- */
 window.logoutClick = ()=>{
   openConfirmModal({
     icon:  "🚪",
