@@ -11,330 +11,209 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
-html,body{
-  font-family:'Inter',Arial,sans-serif;
-  background:#f4f4f4;
-  color:#1f1f1f;
-  overflow-x:hidden;
-}
-
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
 body{padding-bottom:90px;}
-
 button{font-family:inherit;cursor:pointer;border:none;}
 
-/* ============ HEADER ============ */
+/* HEADER */
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
   padding:14px 16px;
-  position:sticky;
-  top:0;
-  z-index:1000;
+  position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-
-.topBar{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  max-width:900px;
-  margin:0 auto;
-}
-
+.topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
 .backBtn{
-  background:rgba(255,255,255,.4);
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:18px;
-  font-weight:700;
-  flex-shrink:0;
-  color:#1f1f1f;
+  background:rgba(255,255,255,.4);width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#1f1f1f;
 }
-
 .backBtn:active{transform:scale(.94);}
 
 .titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
+.pageSub{font-size:13px;color:#3a3a3a;margin-top:2px;}
 
-.pageTitle{
-  font-size:18px;
-  font-weight:800;
-  color:#1f1f1f;
-}
-
-.pageSub{
-  font-size:13px;
-  color:#3a3a3a;
-  margin-top:2px;
-}
-
-/* ============ DELIVERY BANNER ============ */
+/* DELIVERY BANNER */
 .deliveryBanner{
-  max-width:900px;
-  margin:12px auto 0;
-  background:#fff;
-  border-radius:12px;
-  padding:12px 14px;
-  display:flex;
-  align-items:center;
-  gap:12px;
+  max-width:900px;margin:12px auto 0;
+  background:#fff;border-radius:12px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
-
 .bannerIcon{
-  width:42px;
-  height:42px;
-  background:#fff5d6;
-  border-radius:50%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  flex-shrink:0;
+  width:42px;height:42px;background:#fff5d6;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
 }
-
 .bannerText{flex:1;line-height:1.25;}
 .bannerTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
 .bannerSub{font-size:12px;color:#666;margin-top:2px;}
 
-/* ============ MAIN ============ */
-.container{
-  max-width:900px;
-  margin:0 auto;
-  padding:14px 12px 0;
-}
+/* MAIN */
+.container{max-width:900px;margin:0 auto;padding:14px 12px 0;}
 
 .section{
-  background:#fff;
-  border-radius:14px;
-  padding:14px;
-  margin-bottom:12px;
+  background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
 
 .sectionHeader{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+  display:flex;justify-content:space-between;align-items:center;
   margin-bottom:10px;
 }
+.sectionTitle{font-size:15px;font-weight:700;color:#1f1f1f;}
+.itemCount{font-size:12px;color:#666;font-weight:500;}
 
-.sectionTitle{
-  font-size:15px;
-  font-weight:700;
-  color:#1f1f1f;
+/* SHOP HEADER (when items grouped by shop) */
+.shopHeader{
+  display:flex;align-items:center;gap:8px;
+  font-size:12px;font-weight:700;color:#666;
+  margin:10px 0 6px;padding:6px 10px;
+  background:#fafafa;border-radius:8px;
+  border:1px solid #f0f0f0;
 }
-
-.itemCount{
+.shopHeader:first-child{margin-top:0;}
+.shopHeader .ic{
+  width:22px;height:22px;border-radius:50%;
+  background:#fff5d6;
+  display:flex;align-items:center;justify-content:center;
   font-size:12px;
-  color:#666;
-  font-weight:500;
 }
 
-/* ============ ITEM ROW ============ */
+/* MULTI-SHOP NOTICE */
+.multiShopNote{
+  background:#dbe9ff;
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:12px;color:#1857c1;line-height:1.4;
+  display:flex;align-items:flex-start;gap:8px;
+  margin-bottom:10px;
+}
+.multiShopNote .ic{font-size:16px;flex-shrink:0;}
+
+/* ITEM ROW */
 .item{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:12px 0;
-  border-bottom:1px solid #f0f0f0;
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 0;border-bottom:1px solid #f0f0f0;
 }
-
 .item:last-child{border-bottom:none;padding-bottom:4px;}
-.item:first-child{padding-top:4px;}
 
 .itemImg{
-  width:60px;
-  height:60px;
-  border-radius:10px;
+  width:60px;height:60px;border-radius:10px;
   background:#f5f5f5;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:22px;
-  font-weight:800;
-  color:#fff;
-  flex-shrink:0;
-  overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;font-weight:800;color:#fff;
+  flex-shrink:0;overflow:hidden;
 }
-
 .itemImg img{width:100%;height:100%;object-fit:cover;}
 
-.itemInfo{
-  flex:1;
-  min-width:0;
-  line-height:1.3;
-}
+.itemInfo{flex:1;min-width:0;line-height:1.3;}
 
 .itemName{
-  font-size:14px;
-  font-weight:600;
-  color:#1f1f1f;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
+  font-size:14px;font-weight:600;color:#1f1f1f;
+  display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+
+.itemMeta{
+  font-size:11px;color:#888;margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
 .itemPrice{
-  font-size:13px;
-  color:#666;
-  margin-top:3px;
+  font-size:13px;color:#666;
+  margin-top:5px;
+  display:flex;align-items:center;gap:6px;
+  flex-wrap:wrap;
+}
+.itemPrice b{color:#1f1f1f;font-weight:700;}
+.itemPrice .mrpStrike{color:#bbb;text-decoration:line-through;font-size:11px;}
+.itemPrice .pct{
+  background:#dcf3e1;color:#0C831F;
+  font-size:10px;font-weight:700;
+  padding:1px 5px;border-radius:4px;
 }
 
-.itemPrice b{color:#1f1f1f;font-weight:700;}
-
 .itemRight{
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:6px;
+  display:flex;flex-direction:column;
+  align-items:flex-end;gap:6px;
   flex-shrink:0;
 }
 
-.lineTotal{
-  font-size:14px;
-  font-weight:700;
-  color:#1f1f1f;
-}
-
-/* QTY (matches home page) */
+/* QTY */
 .qtyBox{
-  display:flex;
-  align-items:center;
-  background:#0C831F;
-  color:#fff;
-  border-radius:7px;
-  overflow:hidden;
+  display:flex;align-items:center;
+  background:#0C831F;color:#fff;
+  border-radius:7px;overflow:hidden;
   min-width:78px;
 }
-
 .qtyBox button{
-  background:transparent;
-  color:#fff;
-  width:24px;
-  height:30px;
-  font-size:16px;
-  font-weight:700;
+  background:transparent;color:#fff;
+  width:24px;height:30px;
+  font-size:16px;font-weight:700;
 }
-
 .qtyBox span{
-  flex:1;
-  text-align:center;
-  font-size:13px;
-  font-weight:700;
+  flex:1;text-align:center;
+  font-size:13px;font-weight:700;
 }
 
-/* ============ BILL DETAILS ============ */
+.removeBtn{
+  background:transparent;color:#d23030;
+  font-size:11px;font-weight:600;
+  padding:2px 6px;border-radius:5px;
+}
+.removeBtn:hover{background:#fde0e0;}
+
+/* BILL */
 .billRow{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:6px 0;
-  font-size:13px;
-  color:#3a3a3a;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;font-size:13px;color:#3a3a3a;
 }
-
 .billRow b{font-weight:600;color:#1f1f1f;}
-
-.billDivider{
-  border-top:1px dashed #e0e0e0;
-  margin:8px 0;
-}
-
-.billTotal{
-  font-size:15px;
-  font-weight:800;
-  color:#1f1f1f;
-  padding-top:6px;
-}
+.billDivider{border-top:1px dashed #e0e0e0;margin:8px 0;}
+.billTotal{font-size:15px;font-weight:800;color:#1f1f1f;padding-top:6px;}
 
 .savings{
-  background:#e8f8eb;
-  color:#0C831F;
-  padding:8px 12px;
-  border-radius:8px;
-  font-size:12px;
-  font-weight:600;
-  margin-top:10px;
-  text-align:center;
+  background:#e8f8eb;color:#0C831F;
+  padding:8px 12px;border-radius:8px;
+  font-size:12px;font-weight:600;
+  margin-top:10px;text-align:center;
 }
 
-.freeTag{
-  color:#0C831F;
-  font-weight:700;
-}
-
+.freeTag{color:#0C831F;font-weight:700;}
 .strike{
-  text-decoration:line-through;
-  color:#999;
-  margin-right:4px;
-  font-weight:400;
+  text-decoration:line-through;color:#999;
+  margin-right:4px;font-weight:400;
 }
 
-/* ============ EMPTY STATE ============ */
+/* EMPTY */
 .empty{
-  text-align:center;
-  padding:60px 20px;
-  background:#fff;
-  border-radius:14px;
-  margin-top:20px;
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;margin-top:20px;
 }
-
-.empty .icon{
-  font-size:64px;
-  margin-bottom:14px;
-}
-
-.empty h3{
-  font-size:18px;
-  font-weight:700;
-  color:#1f1f1f;
-  margin-bottom:6px;
-}
-
-.empty p{
-  font-size:13px;
-  color:#777;
-  margin-bottom:20px;
-}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:18px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;margin-bottom:20px;}
 
 .shopBtn{
-  background:#0C831F;
-  color:#fff;
-  padding:12px 26px;
-  border-radius:10px;
-  font-size:14px;
-  font-weight:700;
-  letter-spacing:.3px;
+  background:#0C831F;color:#fff;
+  padding:12px 26px;border-radius:10px;
+  font-size:14px;font-weight:700;letter-spacing:.3px;
 }
-
 .shopBtn:active{transform:scale(.97);}
 
-/* ============ STICKY CHECKOUT BAR ============ */
+/* CHECKOUT BAR */
 .checkoutBar{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:#0C831F;
-  color:#fff;
-  padding:12px 16px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  cursor:pointer;
-  z-index:999;
+  position:fixed;bottom:0;left:0;right:0;
+  background:#0C831F;color:#fff;padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;
+  cursor:pointer;z-index:999;
   box-shadow:0 -2px 12px rgba(0,0,0,.15);
   transition:opacity .2s, transform .2s;
 }
-
 .checkoutBar.hidden{
-  opacity:0;
-  transform:translateY(100%);
-  pointer-events:none;
+  opacity:0;transform:translateY(100%);pointer-events:none;
 }
 
 .coLeft{display:flex;flex-direction:column;line-height:1.2;}
@@ -342,14 +221,24 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .coLabel{font-size:12px;font-weight:500;opacity:.9;margin-top:2px;}
 
 .coRight{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:14px;
-  font-weight:700;
+  display:flex;align-items:center;gap:6px;
+  font-size:14px;font-weight:700;
 }
 
-/* ============ DESKTOP ============ */
+/* TOAST */
+.toast{
+  position:fixed;bottom:90px;
+  left:50%;transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;
+  padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;
+  z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
 @media(min-width:768px){
   .header{padding:16px 24px;}
   .pageTitle{font-size:20px;}
@@ -361,13 +250,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
   .checkoutBar{padding:14px 24px;}
   .coAmount{font-size:18px;}
 }
-
 </style>
 </head>
 
 <body>
 
-<!-- ============ HEADER ============ -->
 <header class="header">
   <div class="topBar">
     <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
@@ -386,10 +273,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </header>
 
-<!-- ============ MAIN ============ -->
 <main class="container" id="mainArea"></main>
 
-<!-- ============ STICKY CHECKOUT BAR ============ -->
 <div id="checkoutBar" class="checkoutBar hidden" onclick="checkout()">
   <div class="coLeft">
     <div class="coAmount">₹<span id="payAmount">0</span></div>
@@ -400,22 +285,24 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
+<div id="toast" class="toast"></div>
+
 <script>
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 
-const mainArea     = document.getElementById("mainArea");
-const headerSub    = document.getElementById("headerSub");
+const mainArea       = document.getElementById("mainArea");
+const headerSub      = document.getElementById("headerSub");
 const deliveryBanner = document.getElementById("deliveryBanner");
-const bannerCount  = document.getElementById("bannerCount");
-const checkoutBar  = document.getElementById("checkoutBar");
-const payAmount    = document.getElementById("payAmount");
-const payCount     = document.getElementById("payCount");
+const bannerCount    = document.getElementById("bannerCount");
+const checkoutBar    = document.getElementById("checkoutBar");
+const payAmount      = document.getElementById("payAmount");
+const payCount       = document.getElementById("payCount");
+const toast          = document.getElementById("toast");
 
-const DELIVERY_FEE = 0;     // free delivery
-const HANDLING_FEE = 5;     // ₹5 handling
+const DELIVERY_FEE = 0;
+const HANDLING_FEE = 5;
 const FREE_DELIVERY_OVER = 199;
 
-/* color palette for item placeholders (when no image) */
 const COLORS = ["#FF6B6B","#4ECDC4","#FFA94D","#845EC2","#0C831F","#F4A261","#2A9D8F","#E76F51"];
 function colorFor(name){
   let h = 0;
@@ -429,59 +316,131 @@ function escapeHtml(str){
   }[m]));
 }
 
-/* ---------- RENDER ---------- */
+/* TOAST */
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+
+/* CART SYNC (FIX #1) */
+function reloadCart(){
+  cart = JSON.parse(localStorage.getItem("cart")) || [];
+  render();
+}
+window.addEventListener("pageshow", (e)=>{ if(e.persisted) reloadCart(); });
+window.addEventListener("storage", (e)=>{ if(e.key === "cart") reloadCart(); });
+window.addEventListener("focus", reloadCart);
+
+/* IMAGE ERROR HANDLER (FIX #3) */
+window.handleImgError = (img)=>{
+  const wrap = img.parentElement;
+  if(!wrap) return;
+  wrap.innerHTML = wrap.dataset.initial || "?";
+  wrap.style.background = wrap.dataset.bg || "#999";
+  wrap.style.color = "#fff";
+  wrap.style.fontWeight = "800";
+};
+
+/* RENDER */
 function render(){
   if(cart.length === 0){
     renderEmpty();
     return;
   }
 
-  let itemsHtml = "";
+  /* FIX #7: Group items by shop */
+  const groups = new Map();
+  cart.forEach((item, idx)=>{
+    const shop = item.shopName || "Other items";
+    if(!groups.has(shop)) groups.set(shop, []);
+    groups.get(shop).push({ ...item, __idx: idx });
+  });
+
   let itemTotal = 0;
   let totalQty  = 0;
   let mrpTotal  = 0;
+  let itemsHtml = "";
 
-  cart.forEach((item, i)=>{
-    const lineTotal = item.price * item.qty;
-    itemTotal += lineTotal;
-    totalQty  += item.qty;
-    mrpTotal  += (item.mrp || item.price) * item.qty;
-
-    const initial = (item.name || "?").trim().charAt(0).toUpperCase();
-    const imgHtml = item.image
-      ? `<img src="${escapeHtml(item.image)}" alt="" onerror="this.parentElement.innerHTML='${initial}';this.parentElement.style.background='${colorFor(item.name)}';">`
-      : initial;
-    const imgBg = item.image ? "" : `background:${colorFor(item.name)};`;
-
+  /* Multi-shop notice */
+  if(groups.size > 1){
     itemsHtml += `
-      <div class="item">
-        <div class="itemImg" style="${imgBg}">${imgHtml}</div>
-        <div class="itemInfo">
-          <div class="itemName">${escapeHtml(item.name)}</div>
-          <div class="itemPrice">₹${item.price} <span style="color:#bbb">·</span> <b>₹${lineTotal}</b></div>
-        </div>
-        <div class="itemRight">
-          <div class="qtyBox">
-            <button onclick="changeQty(${i},-1)" aria-label="Decrease">−</button>
-            <span>${item.qty}</span>
-            <button onclick="changeQty(${i},1)" aria-label="Increase">+</button>
-          </div>
-        </div>
+      <div class="multiShopNote">
+        <div class="ic">ℹ️</div>
+        <div>You have items from <b>${groups.size} shops</b>. Each shop will receive its own order at checkout.</div>
       </div>`;
+  }
+
+  groups.forEach((items, shopName)=>{
+    if(groups.size > 1){
+      itemsHtml += `
+        <div class="shopHeader">
+          <div class="ic">🏪</div>
+          ${escapeHtml(shopName)}
+        </div>`;
+    }
+
+    items.forEach(item=>{
+      const lineTotal = item.price * item.qty;
+      itemTotal += lineTotal;
+      totalQty  += item.qty;
+      mrpTotal  += (item.mrp || item.price) * item.qty;
+
+      const initial = (item.name || "?").trim().charAt(0).toUpperCase();
+      const bgColor = colorFor(item.name || "");
+
+      const imgInner = item.image
+        ? `<img src="${escapeHtml(item.image)}" alt="" onerror="handleImgError(this)">`
+        : escapeHtml(initial);
+      const imgStyle = item.image ? "" : `background:${bgColor};color:#fff;font-weight:800;`;
+
+      let mrpHtml = "";
+      if(item.mrp && item.mrp > item.price){
+        const off = Math.round(((item.mrp - item.price) / item.mrp) * 100);
+        mrpHtml = `
+          <span class="mrpStrike">₹${item.mrp}</span>
+          <span class="pct">${off}% OFF</span>
+        `;
+      }
+
+      itemsHtml += `
+        <div class="item">
+          <div class="itemImg" style="${imgStyle}"
+               data-initial="${escapeHtml(initial)}"
+               data-bg="${bgColor}">
+            ${imgInner}
+          </div>
+          <div class="itemInfo">
+            <div class="itemName">${escapeHtml(item.name)}</div>
+            ${item.weight ? `<div class="itemMeta">${escapeHtml(item.weight)}</div>` : ""}
+            <div class="itemPrice">
+              <b>₹${item.price}</b>
+              ${mrpHtml}
+            </div>
+          </div>
+          <div class="itemRight">
+            <div class="qtyBox">
+              <button onclick="changeQty(${item.__idx},-1)" aria-label="Decrease">−</button>
+              <span>${item.qty}</span>
+              <button onclick="changeQty(${item.__idx},1)" aria-label="Increase">+</button>
+            </div>
+            <button class="removeBtn" onclick="removeItem(${item.__idx})">Remove</button>
+          </div>
+        </div>`;
+    });
   });
 
-  /* Bill calculations */
+  /* Bill */
   const deliveryFee = itemTotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
   const handling    = HANDLING_FEE;
   const grandTotal  = itemTotal + deliveryFee + handling;
   const mrpSavings  = mrpTotal - itemTotal;
 
-  /* Update header */
   headerSub.textContent = `${totalQty} item${totalQty>1?"s":""}`;
   bannerCount.textContent = totalQty;
   deliveryBanner.style.display = "flex";
 
-  /* Render */
   mainArea.innerHTML = `
     <div class="section">
       <div class="sectionHeader">
@@ -531,7 +490,6 @@ function render(){
     </div>
   `;
 
-  /* Update sticky bar */
   payAmount.textContent = grandTotal;
   payCount.textContent  = totalQty;
   checkoutBar.classList.remove("hidden");
@@ -551,32 +509,38 @@ function renderEmpty(){
   `;
 }
 
-/* ---------- ACTIONS ---------- */
-function changeQty(i, delta){
+/* ACTIONS */
+window.changeQty = (i, delta)=>{
+  if(!cart[i]) return;
   cart[i].qty += delta;
   if(cart[i].qty <= 0) cart.splice(i, 1);
   save();
-}
+};
+
+window.removeItem = (i)=>{
+  if(!cart[i]) return;
+  const name = cart[i].name;
+  cart.splice(i, 1);
+  save();
+  showToast(`${name} removed from cart`);
+};
 
 function save(){
   localStorage.setItem("cart", JSON.stringify(cart));
   render();
 }
 
-function goBack(){
-  // Go to home page (one level up from /customer/)
-  window.location.href = "../index.html";
-}
+/* FIX #4: absolute paths */
+window.goBack = ()=> window.location.href = "/local-shop/index.html";
 
-function checkout(){
+window.checkout = ()=>{
   if(cart.length === 0){
-    alert("Your cart is empty");
+    showToast("Your cart is empty", true);
     return;
   }
-  window.location.href = "checkout.html";
-}
+  window.location.href = "/local-shop/customer/checkout.html";
+};
 
-/* INIT */
 render();
 </script>
 
