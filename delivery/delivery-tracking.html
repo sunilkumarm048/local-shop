@@ -1,268 +1,524 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>Delivery Navigation</title>
-
+<meta charset="UTF-8">
+<title>Navigation · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
-body{
-font-family:Arial;
-margin:0;
-background:#f5f5f5;
-text-align:center;
-}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;height:100%;overflow:hidden;}
+body{padding-bottom:0;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.app{height:100vh;display:flex;flex-direction:column;}
 
 .header{
-background:#ff5a5f;
-color:white;
-padding:15px;
-font-size:18px;
-font-weight:bold;
+  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
+  padding:12px 16px;flex-shrink:0;
+  box-shadow:0 1px 4px rgba(0,0,0,.08);z-index:1000;
+}
+.topBar{display:flex;align-items:center;gap:12px;}
+.backBtn{
+  background:rgba(255,255,255,.4);
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:700;flex-shrink:0;color:#1f1f1f;
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;min-width:0;line-height:1.2;}
+.pageTitle{
+  font-size:15px;font-weight:800;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.pageSub{
+  font-size:11px;color:#3a3a3a;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
-#map{
-height:400px;
-margin:10px;
-border-radius:10px;
+.gpsBtn{
+  background:rgba(255,255,255,.5);
+  padding:7px 12px;border-radius:18px;
+  font-size:11px;font-weight:800;flex-shrink:0;
+  color:#1f1f1f;letter-spacing:.3px;
+  display:flex;align-items:center;gap:5px;
+}
+.gpsBtn.live{background:#0C831F;color:#fff;}
+.gpsDot{
+  width:7px;height:7px;border-radius:50%;background:#999;
+}
+.gpsBtn.live .gpsDot{
+  background:#fff;animation:pulse 1.6s infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.5;transform:scale(.7);}
 }
 
-button{
-padding:10px 15px;
-margin:5px;
-border:none;
-border-radius:6px;
-background:#333;
-color:white;
-cursor:pointer;
+#map{flex:1;width:100%;background:#e9e9e9;}
+
+.bottomSheet{
+  position:absolute;bottom:0;left:0;right:0;
+  background:#fff;border-radius:16px 16px 0 0;
+  box-shadow:0 -4px 18px rgba(0,0,0,.12);
+  padding:14px 16px 18px;
+  z-index:500;
 }
 
-#status{
-margin-top:10px;
-font-weight:bold;
+.statusPill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:18px;
+  font-size:11px;font-weight:800;letter-spacing:.3px;
+  text-transform:uppercase;
 }
+.pill-step0{background:#fff5d6;color:#8a6500;}
+.pill-step1{background:#dbe9ff;color:#1857c1;}
+.pill-step2{background:#dcf3e1;color:#0C831F;}
+
+.targetBlock{
+  margin-top:10px;display:flex;gap:10px;align-items:center;
+}
+.targetIcon{
+  width:46px;height:46px;border-radius:12px;
+  background:#fff5d6;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.targetInfo{flex:1;min-width:0;line-height:1.3;}
+.targetLabel{font-size:11px;color:#888;font-weight:600;letter-spacing:.3px;text-transform:uppercase;}
+.targetName{
+  font-size:15px;font-weight:700;color:#1f1f1f;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.targetAddr{
+  font-size:12px;color:#666;margin-top:2px;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;
+  -webkit-box-orient:vertical;overflow:hidden;
+}
+
+.distBadge{
+  background:#dcf3e1;color:#0C831F;
+  padding:6px 10px;border-radius:18px;
+  font-size:12px;font-weight:800;
+  flex-shrink:0;text-align:center;line-height:1.2;
+}
+.distBadge .km{font-size:14px;}
+.distBadge .lbl{font-size:9px;letter-spacing:.3px;}
+
+.actions{display:flex;gap:8px;margin-top:14px;}
+.actionBtn{
+  flex:1;padding:12px;border-radius:10px;
+  font-size:13px;font-weight:800;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  text-decoration:none;
+  transition:all .12s;
+}
+.actionBtn:active{transform:scale(.97);}
+.btn-call{background:#dcf3e1;color:#0C831F;border:1px solid #b3e5bf;}
+.btn-gmaps{background:#1f1f1f;color:#fff;}
+.btn-step{background:#0C831F;color:#fff;flex:1.5;}
+.btn-step:hover{background:#0a6e1a;}
+
+.toast{
+  position:fixed;bottom:200px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.errorBox{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;text-align:center;padding:30px;
+  background:#f4f4f4;
+}
+.errorBox .icon{font-size:64px;margin-bottom:14px;opacity:.5;}
+.errorBox h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.errorBox p{font-size:13px;color:#777;line-height:1.5;margin-bottom:18px;}
+
+.leaflet-popup-content-wrapper{border-radius:8px;}
+.leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
 </style>
-
 </head>
 
 <body>
 
-<div class="header">🚚 Delivery Navigation</div>
+<div class="app">
 
-<p id="info">Loading order...</p>
+  <header class="header">
+    <div class="topBar">
+      <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+      <div class="titleBlock">
+        <div class="pageTitle" id="orderTitle">Loading…</div>
+        <div class="pageSub" id="orderSub">—</div>
+      </div>
+      <button class="gpsBtn" id="gpsBtn" onclick="toggleGPS()">
+        <span class="gpsDot"></span>
+        <span id="gpsLabel">GPS OFF</span>
+      </button>
+    </div>
+  </header>
 
-<div id="map"></div>
+  <div id="map"></div>
 
-<button onclick="startTracking()">▶ Start</button>
-<button onclick="markPicked()">📦 Picked</button>
-<button onclick="markDelivered()">✅ Delivered</button>
+  <div class="bottomSheet" id="bottomSheet" style="display:none;">
+    <div class="statusPill" id="statusPill">Heading to shop</div>
 
-<p id="status"></p>
+    <div class="targetBlock">
+      <div class="targetIcon" id="targetIcon">🏪</div>
+      <div class="targetInfo">
+        <div class="targetLabel" id="targetLabel">PICKUP FROM</div>
+        <div class="targetName" id="targetName">—</div>
+        <div class="targetAddr" id="targetAddr">—</div>
+      </div>
+      <div class="distBadge" id="distBadge" style="display:none;">
+        <div class="km">—</div>
+        <div class="lbl">KM</div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="actionBtn btn-call" id="callBtn" href="#">📞 Call</a>
+      <button class="actionBtn btn-gmaps" onclick="openGoogleMaps()">🧭 Maps</button>
+      <button class="actionBtn btn-step" id="stepBtn" onclick="advanceStep()">📦 Picked Up</button>
+    </div>
+  </div>
+
+  <div class="errorBox" id="errorBox" style="display:none;">
+    <div class="icon">📍</div>
+    <h3 id="errorTitle">No active order</h3>
+    <p id="errorMsg">Set <code>activeDeliveryOrder</code> in localStorage and refresh, or go back to the dashboard.</p>
+    <button class="actionBtn btn-gmaps" onclick="goBack()" style="max-width:200px;">Back to Dashboard</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc, onSnapshot, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { db } from "../js/firebase.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const toast = document.getElementById("toast");
+const bottomSheet = document.getElementById("bottomSheet");
+const errorBox = document.getElementById("errorBox");
 
-// 🔥 GET ORDER ID
-let orderId = localStorage.getItem("activeDeliveryOrder");
-
-if(!orderId){
-document.getElementById("info").innerText = "❌ No active order found";
-throw new Error("No active order");
-}
-
-let orderData = null;
+let myEmail = null;
+let orderId = null;
+let orderCol = "orders";
+let order = null;
 let watchId = null;
+let map = null;
+let myMarker = null, shopMarker = null, custMarker = null;
 
-// ✅ CORRECT MAP INIT (Decimal coordinates)
-let map = L.map('map').setView([20.2961, 85.8245], 13);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-
-// MARKERS
-let deliveryMarker=null, shopMarker=null, customerMarker=null, routeLine=null;
-
-// 🔥 YOUR API KEY
-const API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImZiNTA0NmI1ZTc3ZDQwZjVhMjA0ZWEyZDg2ZTFlNjY4IiwiaCI6Im11cm11cjY0In0=";
-
-// 🔥 LOAD ORDER
-async function loadOrder(){
-
-try{
-
-const snap = await getDoc(doc(db,"orders",orderId));
-
-if(!snap.exists()){
-document.getElementById("info").innerText = "❌ Order not found";
-return;
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-orderData = snap.data();
-
-document.getElementById("info").innerText = "Order: " + orderId;
-
-// 🏪 SHOP
-if(orderData.shopLat && orderData.shopLng){
-shopMarker = L.marker([orderData.shopLat,orderData.shopLng])
-.addTo(map).bindPopup("🏪 Shop");
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
-// 👤 CUSTOMER
-if(orderData.customerLat && orderData.customerLng){
-customerMarker = L.marker([orderData.customerLat,orderData.customerLng])
-.addTo(map).bindPopup("👤 Customer");
+function getDistance(lat1, lon1, lat2, lon2){
+  if(lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+            Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-}catch(e){
-console.error(e);
-document.getElementById("info").innerText = "❌ Error loading order";
+function emojiIcon(emoji, bg, size=42){
+  return L.divIcon({
+    className:"",
+    html:`<div style="background:${bg};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 3px 8px rgba(0,0,0,.25);border:2.5px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:${size/2}px;line-height:1;">${emoji}</div>
+          </div>`,
+    iconSize:[size,size], iconAnchor:[size/2,size], popupAnchor:[0,-size]
+  });
 }
 
+/* Get order id from URL ?orderId=... or localStorage */
+function getOrderRef(){
+  const params = new URLSearchParams(location.search);
+  const idFromUrl = params.get("orderId");
+  if(idFromUrl){
+    orderId = idFromUrl;
+    orderCol = params.get("col") || "orders";
+    return true;
+  }
+  /* Backward compat: legacy localStorage key */
+  const idFromLs = localStorage.getItem("activeDeliveryOrder");
+  if(idFromLs){
+    orderId = idFromLs;
+    return true;
+  }
+  return false;
 }
 
-await loadOrder();
-
-// 📍 DRAW ROUTE
-async function drawRoute(start,end){
-
-if(!start || !end) return;
-
-if(routeLine){
-map.removeLayer(routeLine);
+function showError(title, msg){
+  bottomSheet.style.display = "none";
+  document.getElementById("errorTitle").textContent = title;
+  document.getElementById("errorMsg").textContent = msg;
+  errorBox.style.display = "flex";
 }
 
-try{
+function initMap(){
+  map = L.map('map', { zoomControl:true }).setView([20.2961, 85.8245], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+}
+initMap();
 
-let res = await fetch("https://api.openrouteservice.org/v2/directions/driving-car",{
-method:"POST",
-headers:{
-"Authorization": API_KEY,
-"Content-Type":"application/json"
-},
-body: JSON.stringify({
-coordinates:[
-[start.lng,start.lat],
-[end.lng,end.lat]
-]
-})
+onAuthStateChanged(auth, (user)=>{
+  if(!user){
+    showToast("Login required", true);
+    setTimeout(()=> location.href = "login.html", 800);
+    return;
+  }
+  myEmail = user.email;
+
+  if(!getOrderRef()){
+    showError("No active order", "Open an order from the dashboard to navigate.");
+    return;
+  }
+
+  /* Live listener on the order */
+  onSnapshot(doc(db, orderCol, orderId), (snap)=>{
+    if(!snap.exists()){
+      showError("Order not found", "This order may have been cancelled or removed.");
+      return;
+    }
+    order = snap.data();
+    bottomSheet.style.display = "block";
+    errorBox.style.display = "none";
+    renderUI();
+  });
 });
 
-let data = await res.json();
+function renderUI(){
+  const step = order.pickupStep || 0;
 
-if(!data.features){
-console.error("Route error:", data);
-return;
+  /* Title */
+  const orderShort = "#" + orderId.slice(-6).toUpperCase();
+  document.getElementById("orderTitle").textContent = orderShort;
+  document.getElementById("orderSub").textContent =
+    `Total ₹${order.total||0} · ₹${Math.round(order.deliveryEarning||0)} earning`;
+
+  /* Status pill */
+  const pill = document.getElementById("statusPill");
+  if(step === 0){
+    pill.textContent = "Heading to shop";
+    pill.className = "statusPill pill-step0";
+  }else if(step === 1){
+    pill.textContent = "Picked up · On the way";
+    pill.className = "statusPill pill-step1";
+  }else{
+    pill.textContent = "At customer";
+    pill.className = "statusPill pill-step2";
+  }
+
+  /* Target */
+  const custLat = order.customerLat ?? order.lat;
+  const custLng = order.customerLng ?? order.lng;
+  let targetLat, targetLng, targetName, targetAddr, targetPhone, targetIcon, targetLabel;
+
+  if(step < 2){
+    targetLat = order.shopLat; targetLng = order.shopLng;
+    targetName = order.shopName || "Shop";
+    targetAddr = "Pickup location · grab the order";
+    targetPhone = order.shopPhone || "";
+    targetIcon = "🏪";
+    targetLabel = "PICKUP FROM";
+  }else{
+    targetLat = custLat; targetLng = custLng;
+    targetName = order.name || "Customer";
+    targetAddr = order.address || "";
+    targetPhone = order.phone || "";
+    targetIcon = "🏠";
+    targetLabel = "DELIVER TO";
+  }
+
+  document.getElementById("targetIcon").textContent = targetIcon;
+  document.getElementById("targetLabel").textContent = targetLabel;
+  document.getElementById("targetName").textContent = targetName;
+  document.getElementById("targetAddr").textContent = targetAddr;
+
+  const callBtn = document.getElementById("callBtn");
+  if(targetPhone){
+    callBtn.href = "tel:" + targetPhone;
+    callBtn.style.display = "flex";
+  }else{
+    callBtn.style.display = "none";
+  }
+
+  /* Distance */
+  const dist = getDistance(window.myLat, window.myLng, targetLat, targetLng);
+  const distBadge = document.getElementById("distBadge");
+  if(dist !== null){
+    distBadge.style.display = "block";
+    distBadge.querySelector(".km").textContent = dist.toFixed(1);
+  }else{
+    distBadge.style.display = "none";
+  }
+
+  /* Step button */
+  const stepBtn = document.getElementById("stepBtn");
+  if(step === 0){
+    stepBtn.textContent = "📦 Picked Up";
+    stepBtn.className = "actionBtn btn-step";
+  }else if(step === 1){
+    stepBtn.textContent = "🛵 Reached Customer";
+  }else{
+    stepBtn.textContent = "✓ Mark Delivered";
+  }
+
+  /* Map markers */
+  if(order.shopLat && order.shopLng){
+    if(!shopMarker){
+      shopMarker = L.marker([order.shopLat, order.shopLng], {icon:emojiIcon("🏪","#fff5d6")})
+        .addTo(map).bindPopup("Shop");
+    }
+  }
+  if(custLat && custLng){
+    if(!custMarker){
+      custMarker = L.marker([custLat, custLng], {icon:emojiIcon("🏠","#dbe9ff")})
+        .addTo(map).bindPopup("Customer");
+    }
+  }
+
+  fitMap(targetLat, targetLng);
 }
 
-let coords = data.features[0].geometry.coordinates;
-let latlngs = coords.map(c => [c[1],c[0]]);
+function fitMap(targetLat, targetLng){
+  const points = [];
+  if(window.myLat && window.myLng) points.push([window.myLat, window.myLng]);
+  if(order.shopLat && order.shopLng) points.push([order.shopLat, order.shopLng]);
+  const cLat = order.customerLat ?? order.lat;
+  const cLng = order.customerLng ?? order.lng;
+  if(cLat && cLng) points.push([cLat, cLng]);
 
-routeLine = L.polyline(latlngs,{
-color:"blue",
-weight:5
-}).addTo(map);
-
-map.fitBounds(routeLine.getBounds());
-
-}catch(e){
-console.error("Route error:", e);
+  if(points.length === 1){
+    map.setView(points[0], 14);
+  }else if(points.length > 1){
+    map.fitBounds(points, {padding:[40,40], maxZoom:15});
+  }
+  setTimeout(()=> map.invalidateSize(), 100);
 }
 
-}
+/* GPS toggle */
+window.toggleGPS = ()=>{
+  if(watchId !== null){
+    navigator.geolocation.clearWatch(watchId);
+    watchId = null;
+    document.getElementById("gpsBtn").classList.remove("live");
+    document.getElementById("gpsLabel").textContent = "GPS OFF";
+    showToast("GPS tracking off");
+    return;
+  }
 
-// ▶ START TRACKING
-window.startTracking = function(){
+  if(!navigator.geolocation){ showToast("GPS not supported", true); return; }
 
-watchId = navigator.geolocation.watchPosition(async(pos)=>{
+  watchId = navigator.geolocation.watchPosition(async (pos)=>{
+    window.myLat = pos.coords.latitude;
+    window.myLng = pos.coords.longitude;
 
-let lat = pos.coords.latitude;
-let lng = pos.coords.longitude;
+    if(!myMarker){
+      myMarker = L.marker([window.myLat, window.myLng], {icon:emojiIcon("🛵","#dcf3e1",46)})
+        .addTo(map).bindPopup("You");
+    }else{
+      myMarker.setLatLng([window.myLat, window.myLng]);
+    }
 
-let position = [lat,lng];
+    /* Update order so customer can track */
+    try{
+      await updateDoc(doc(db, orderCol, orderId), {
+        deliveryLat: window.myLat,
+        deliveryLng: window.myLng
+      });
+    }catch(e){}
 
-// 🚚 DELIVERY MARKER
-if(!deliveryMarker){
-deliveryMarker = L.marker(position)
-.addTo(map).bindPopup("🚚 You");
-}else{
-deliveryMarker.setLatLng(position);
-}
+    if(order) renderUI();
+  }, ()=>{
+    showToast("GPS error. Allow location access.", true);
+    document.getElementById("gpsBtn").classList.remove("live");
+    document.getElementById("gpsLabel").textContent = "GPS OFF";
+    watchId = null;
+  }, { enableHighAccuracy:true, maximumAge:0, timeout:15000 });
 
-map.panTo(position);
-
-// 🔥 UPDATE FIRESTORE
-await updateDoc(doc(db,"orders",orderId),{
-deliveryLat: lat,
-deliveryLng: lng
-});
-
-// 🔥 ROUTE SWITCH
-if(orderData.deliveryStatus === "Picked"){
-
-drawRoute(
-{lat,lng},
-{lat:orderData.customerLat,lng:orderData.customerLng}
-);
-
-}else{
-
-drawRoute(
-{lat,lng},
-{lat:orderData.shopLat,lng:orderData.shopLng}
-);
-
-}
-
-document.getElementById("status").innerText =
-"🚚 Live: " + lat.toFixed(5) + "," + lng.toFixed(5);
-
-},(err)=>{
-console.error(err);
-alert("❌ GPS error. Allow location permission.");
-},{
-enableHighAccuracy:true
-});
-
+  document.getElementById("gpsBtn").classList.add("live");
+  document.getElementById("gpsLabel").textContent = "GPS LIVE";
+  showToast("✓ GPS tracking on");
 };
 
-// 📦 PICKED
-window.markPicked = async function(){
+/* Open Google Maps for turn-by-turn */
+window.openGoogleMaps = ()=>{
+  if(!order) return;
+  const step = order.pickupStep || 0;
+  const lat = step < 2 ? order.shopLat : (order.customerLat ?? order.lat);
+  const lng = step < 2 ? order.shopLng : (order.customerLng ?? order.lng);
+  if(!lat || !lng){ showToast("Location not available", true); return; }
 
-await updateDoc(doc(db,"orders",orderId),{
-deliveryStatus:"Picked",
-status:"Out for Delivery"
-});
-
-orderData.deliveryStatus = "Picked";
-
-alert("📦 Picked from shop");
-
+  const origin = (window.myLat && window.myLng) ? `${window.myLat},${window.myLng}` : "";
+  const url = origin
+    ? `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${lat},${lng}&travelmode=driving`
+    : `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+  window.open(url, "_blank");
 };
 
-// ✅ DELIVERED
-window.markDelivered = async function(){
+/* Advance step */
+window.advanceStep = async ()=>{
+  if(!order) return;
+  const step = order.pickupStep || 0;
 
-await updateDoc(doc(db,"orders",orderId),{
-status:"Delivered",
-deliveryStatus:"Completed"
-});
-
-alert("🎉 Delivered");
-
-// STOP GPS
-if(watchId){
-navigator.geolocation.clearWatch(watchId);
-}
-
-// CLEAR STORAGE
-localStorage.removeItem("activeDeliveryOrder");
-
+  try{
+    if(step === 0){
+      await updateDoc(doc(db, orderCol, orderId), {
+        pickupStep: 1,
+        deliveryStatus: "Picked",
+        status: "Out for Delivery"
+      });
+      showToast("✓ Picked up · Head to customer");
+    }else if(step === 1){
+      await updateDoc(doc(db, orderCol, orderId), { pickupStep: 2 });
+      showToast("✓ At customer · Hand over the order");
+    }else{
+      await updateDoc(doc(db, orderCol, orderId), {
+        deliveryStatus: "WaitingCustomerConfirm",
+        status: "WaitingCustomerConfirm"
+      });
+      showToast("📦 Waiting for customer confirmation");
+      setTimeout(()=> location.href = "dashboard.html", 1200);
+    }
+  }catch(e){
+    console.error(e);
+    showToast("Could not update", true);
+  }
 };
 
+window.goBack = ()=> location.href = "dashboard.html";
+
+window.addEventListener("beforeunload", ()=>{
+  if(watchId !== null) navigator.geolocation.clearWatch(watchId);
+});
 </script>
 
 </body>
