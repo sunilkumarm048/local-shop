@@ -43,7 +43,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .refreshBtn:active{transform:scale(.94) rotate(180deg);transition:.4s;}
 
-/* MAP */
 .mapWrap{
   max-width:900px;margin:12px auto 0;
   background:#fff;border-radius:14px;overflow:hidden;
@@ -52,7 +51,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 #map{height:280px;background:#e9e9e9;}
 @media(min-width:600px){#map{height:340px;}}
 
-/* CATEGORY FILTER */
 .catScroll{
   display:flex;gap:8px;
   padding:12px 12px 4px;
@@ -80,7 +78,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   letter-spacing:.3px;text-transform:uppercase;
 }
 
-/* SHOP CARDS */
 .shopList{display:flex;flex-direction:column;gap:10px;}
 
 .shopCard{
@@ -91,12 +88,29 @@ button{font-family:inherit;cursor:pointer;border:none;}
   border:1px solid #ececec;
   cursor:pointer;
   transition:all .15s;
+  position:relative;
 }
 .shopCard:hover{
   border-color:#0C831F;
   box-shadow:0 3px 10px rgba(12,131,31,.12);
 }
 .shopCard:active{transform:scale(.99);}
+
+/* CLOSED SHOP STYLE */
+.shopCard.closed{
+  background:#fafafa;
+  cursor:not-allowed;
+}
+.shopCard.closed:hover{
+  border-color:#ececec;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.shopCard.closed .shopAvatar{
+  filter:grayscale(.7) opacity(.55);
+  background:#e8e8e8;
+}
+.shopCard.closed .shopName,
+.shopCard.closed .shopType{color:#999;}
 
 .shopAvatar{
   width:54px;height:54px;border-radius:14px;
@@ -109,6 +123,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .shopName{
   font-size:15px;font-weight:700;color:#1f1f1f;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  display:flex;align-items:center;gap:6px;
 }
 .shopType{
   font-size:12px;color:#666;margin-top:2px;
@@ -117,9 +132,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .shopMeta{
   display:flex;align-items:center;gap:10px;
   margin-top:6px;font-size:11px;color:#666;
-}
-.shopMeta .dot{
-  width:3px;height:3px;border-radius:50%;background:#bbb;
 }
 .shopMeta .area{
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
@@ -131,16 +143,22 @@ button{font-family:inherit;cursor:pointer;border:none;}
   padding:5px 10px;border-radius:18px;
   font-size:11px;font-weight:700;
   flex-shrink:0;
-  display:flex;align-items:center;gap:4px;
-  white-space:nowrap;
+  display:flex;align-items:center;gap:4px;white-space:nowrap;
+}
+
+.closedBadge{
+  background:#fde0e0;color:#c41818;
+  padding:3px 8px;border-radius:6px;
+  font-size:10px;font-weight:800;
+  letter-spacing:.4px;
+  text-transform:uppercase;
 }
 
 .shopArrow{
-  color:#bbb;font-size:18px;flex-shrink:0;
-  margin-left:4px;
+  color:#bbb;font-size:18px;flex-shrink:0;margin-left:4px;
 }
+.shopCard.closed .shopArrow{display:none;}
 
-/* EMPTY */
 .empty{
   text-align:center;padding:50px 20px;
   background:#fff;border-radius:14px;
@@ -151,7 +169,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
 .empty p{font-size:13px;color:#777;line-height:1.5;}
 
-/* SKELETON */
 .skel{
   background:#fff;border-radius:14px;
   padding:14px;margin-bottom:10px;
@@ -178,7 +195,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   100%{background-position:-200% 0;}
 }
 
-/* TOAST */
 .toast{
   position:fixed;bottom:24px;
   left:50%;transform:translateX(-50%) translateY(20px);
@@ -215,12 +231,10 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </header>
 
-<!-- MAP -->
 <div class="mapWrap">
   <div id="map"></div>
 </div>
 
-<!-- CATEGORY FILTER -->
 <div class="catScroll" id="categories">
   <div class="catChip active" data-cat="all">All shops</div>
 </div>
@@ -284,12 +298,9 @@ function showToast(msg, isError=false){
 }
 
 function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
-/* Distance (km) */
 function getDistance(lat1, lon1, lat2, lon2){
   const R = 6371;
   const dLat = (lat2-lat1) * Math.PI/180;
@@ -301,14 +312,16 @@ function getDistance(lat1, lon1, lat2, lon2){
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-/* Custom map markers */
-function emojiIcon(emoji, bg="#fff"){
+/* Custom map markers — green for open, grey for closed */
+function emojiIcon(emoji, isOpen){
+  const bg = isOpen ? "#fff5d6" : "#e0e0e0";
+  const opacity = isOpen ? 1 : 0.55;
   return L.divIcon({
     className:"",
-    html:`<div style="background:${bg};width:40px;height:40px;border-radius:50% 50% 50% 0;
+    html:`<div style="background:${bg};opacity:${opacity};width:40px;height:40px;border-radius:50% 50% 50% 0;
           transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
           box-shadow:0 3px 8px rgba(0,0,0,.25);border:2px solid #fff;">
-          <div style="transform:rotate(45deg);font-size:20px;line-height:1;">${emoji}</div>
+          <div style="transform:rotate(45deg);font-size:20px;line-height:1;${isOpen?'':'filter:grayscale(1);'}">${emoji}</div>
           </div>`,
     iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
   });
@@ -323,7 +336,6 @@ function userIcon(){
   });
 }
 
-/* INIT MAP */
 function initMap(){
   map = L.map('map', { zoomControl: true }).setView([20.2961, 85.8245], 13);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -332,7 +344,6 @@ function initMap(){
 }
 initMap();
 
-/* GET LOCATION */
 function getLocation(){
   return new Promise((resolve)=>{
     if(!navigator.geolocation){ resolve(null); return; }
@@ -357,7 +368,6 @@ window.refreshLocation = async ()=>{
   }
 };
 
-/* LOAD SHOPS + SHOP TYPES */
 async function load(){
   try{
     const [shopTypesSnap, shopsSnap] = await Promise.all([
@@ -365,7 +375,6 @@ async function load(){
       getDocs(collection(db, "localshop-details"))
     ]);
 
-    /* Build shop type lookup (same as index page) */
     shopTypeMap = {};
     const seenCats = new Map();
 
@@ -384,7 +393,6 @@ async function load(){
     });
     topCategories = Array.from(seenCats.values());
 
-    /* Enrich each shop with type info */
     allShops = shopsSnap.docs.map(d=>{
       const s = { ...d.data(), __id: d.id };
       const typeKey = (s.category || "").toLowerCase().trim();
@@ -398,10 +406,11 @@ async function load(){
         s.__icon        = s.icon || "🏪";
         s.__typeName    = s.category || "";
       }
+      /* FIX: track open/closed status. Default to OPEN if missing. */
+      s.__isOpen = s.isOpen !== false;
       return s;
     });
 
-    /* Get user location */
     userLocation = await getLocation();
 
     renderCategories();
@@ -420,7 +429,6 @@ async function load(){
 }
 load();
 
-/* CATEGORY CHIPS */
 function renderCategories(){
   let html = `<div class="catChip ${selectedCategory==='all'?'active':''}" data-cat="all" onclick="selectCat('all')">All shops</div>`;
   topCategories.forEach(cat=>{
@@ -440,13 +448,10 @@ window.selectCat = (cat)=>{
   updateMap();
 };
 
-/* MAP UPDATE */
 function updateMap(){
-  /* Clear old shop markers */
   shopMarkers.forEach(m => map.removeLayer(m));
   shopMarkers = [];
 
-  /* User marker */
   if(userLocation){
     if(!userMarker){
       userMarker = L.marker([userLocation.lat, userLocation.lng], {icon:userIcon()})
@@ -456,21 +461,20 @@ function updateMap(){
     }
   }
 
-  /* Shop markers (filtered) */
   const visible = getFilteredShops();
   const points = userLocation ? [[userLocation.lat, userLocation.lng]] : [];
 
   visible.forEach(s=>{
     if(s.lat && s.lng){
-      const m = L.marker([s.lat, s.lng], {icon:emojiIcon(s.__icon || "🏪", "#fff5d6")})
+      const closedSuffix = s.__isOpen ? "" : " <span style='color:#c41818;font-weight:800;font-size:11px;'>· CLOSED</span>";
+      const m = L.marker([s.lat, s.lng], {icon:emojiIcon(s.__icon || "🏪", s.__isOpen)})
         .addTo(map)
-        .bindPopup(`<b>${escapeHtml(s.shopName||"Shop")}</b><br>${escapeHtml(s.__typeName||"")}`);
+        .bindPopup(`<b>${escapeHtml(s.shopName||"Shop")}</b>${closedSuffix}<br>${escapeHtml(s.__typeName||"")}`);
       shopMarkers.push(m);
       points.push([s.lat, s.lng]);
     }
   });
 
-  /* Auto-fit */
   if(points.length === 1){
     map.setView(points[0], 14);
   }else if(points.length > 1){
@@ -480,13 +484,11 @@ function updateMap(){
   setTimeout(()=> map.invalidateSize(), 100);
 }
 
-/* GET FILTERED SHOPS (sorted by distance) */
 function getFilteredShops(){
   let f = allShops;
   if(selectedCategory !== "all"){
     f = f.filter(s => s.__topCategory === selectedCategory);
   }
-  /* Compute distances and sort */
   f = f.map(s=>{
     let dist = null;
     if(userLocation && s.lat && s.lng){
@@ -494,7 +496,9 @@ function getFilteredShops(){
     }
     return { ...s, __dist: dist };
   });
+  /* Sort: open shops first (sorted by distance), then closed shops (sorted by distance) */
   f.sort((a,b)=>{
+    if(a.__isOpen !== b.__isOpen) return a.__isOpen ? -1 : 1;
     if(a.__dist === null && b.__dist === null) return 0;
     if(a.__dist === null) return 1;
     if(b.__dist === null) return -1;
@@ -503,12 +507,11 @@ function getFilteredShops(){
   return f;
 }
 
-/* RENDER SHOP LIST */
 function renderShops(){
   const visible = getFilteredShops();
   const total = visible.length;
+  const openCount = visible.filter(s => s.__isOpen).length;
 
-  /* Title + subtitle */
   if(selectedCategory === "all"){
     listTitle.textContent = total === 0 ? "No shops yet" : "All shops near you";
   }else{
@@ -516,9 +519,13 @@ function renderShops(){
   }
 
   if(userLocation){
-    headerSub.textContent = total === 0
-      ? "No shops here yet"
-      : `${total} shop${total>1?"s":""} near you`;
+    if(total === 0){
+      headerSub.textContent = "No shops here yet";
+    }else if(openCount < total){
+      headerSub.textContent = `${openCount} open · ${total - openCount} closed`;
+    }else{
+      headerSub.textContent = `${total} shop${total>1?"s":""} near you`;
+    }
   }else{
     headerSub.textContent = "Enable location to see distances";
   }
@@ -539,13 +546,21 @@ function renderShops(){
     const icon = s.__icon || "🏪";
     const type = s.__typeName || "";
     const area = s.location || s.address || "";
+    const isOpen = s.__isOpen;
 
-    const distHtml = s.__dist !== null
+    const distHtml = isOpen && s.__dist !== null
       ? `<div class="distanceBadge">📍 ${s.__dist.toFixed(1)} km</div>`
-      : "";
+      : (!isOpen
+          ? `<div class="closedBadge">CLOSED</div>`
+          : "");
+
+    const closedClass = isOpen ? "" : "closed";
+    const onclickHandler = isOpen
+      ? `visitShop('${escapeHtml(name).replace(/'/g, "\\'")}')`
+      : `closedShopTap('${escapeHtml(name).replace(/'/g, "\\'")}')`;
 
     html += `
-      <div class="shopCard" onclick="visitShop('${escapeHtml(name).replace(/'/g, "\\'")}')">
+      <div class="shopCard ${closedClass}" onclick="${onclickHandler}">
         <div class="shopAvatar">${icon}</div>
         <div class="shopInfo">
           <div class="shopName">${escapeHtml(name)}</div>
@@ -562,12 +577,15 @@ function renderShops(){
   shopsDiv.innerHTML = html;
 }
 
-/* CLICK SHOP → go to home with selectedShop hint via localStorage */
 window.visitShop = (shopName)=>{
-  /* Save shop name as hint for home page */
   localStorage.setItem("preselectedShop", shopName);
   showToast(`Opening ${shopName}…`);
   setTimeout(()=> location.href = "/local-shop/index.html", 400);
+};
+
+/* FIX: tapping a closed shop shows a friendly message instead of silently doing nothing */
+window.closedShopTap = (shopName)=>{
+  showToast(`${shopName} is currently closed`, true);
 };
 
 window.goHome = ()=> location.href = "/local-shop/index.html";
