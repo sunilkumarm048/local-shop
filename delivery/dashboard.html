@@ -101,6 +101,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:12px;color:#3a3a3a;margin-top:3px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+.sbVehicle{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(255,255,255,.5);
+  padding:2px 8px;border-radius:10px;
+  font-size:11px;font-weight:700;
+  margin-top:5px;
+}
 
 .sbNav{flex:1;padding:14px 12px;overflow-y:auto;}
 .sbItem{
@@ -124,6 +131,29 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 
 .container{max-width:1100px;margin:0 auto;padding:14px 12px 0;}
+
+/* Vehicle warning banner — when partner has no vehicleType set */
+.noVehicleBanner{
+  background:linear-gradient(135deg,#fff5d6 0%,#ffeec1 100%);
+  border:1px solid #f0d76a;
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:14px;
+  display:flex;align-items:center;gap:12px;
+  cursor:pointer;
+  transition:all .15s;
+}
+.noVehicleBanner:hover{box-shadow:0 3px 10px rgba(240,185,29,.25);}
+.noVehicleBanner:active{transform:scale(.99);}
+.noVehicleBanner .ic{
+  width:42px;height:42px;border-radius:50%;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.noVehicleBanner .text{flex:1;line-height:1.3;min-width:0;}
+.noVehicleBanner b{display:block;font-size:13px;color:#8a6500;font-weight:800;}
+.noVehicleBanner span{font-size:12px;color:#8a6500;}
+.noVehicleBanner .arrow{color:#8a6500;font-size:18px;font-weight:800;flex-shrink:0;}
 
 .statsBar{
   display:grid;grid-template-columns:repeat(3,1fr);
@@ -168,6 +198,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
 @keyframes dotPulse{
   0%,100%{opacity:1;transform:scale(1);}
   50%{opacity:.5;transform:scale(.7);}
+}
+.noTopRight{
+  margin-left:auto;
+  background:rgba(255,255,255,.18);
+  padding:3px 10px;border-radius:14px;
+  font-size:10px;font-weight:800;letter-spacing:.3px;
+  display:flex;align-items:center;gap:5px;
 }
 
 .noEarning{font-size:32px;font-weight:800;margin-bottom:2px;position:relative;z-index:1;}
@@ -221,11 +258,12 @@ button{font-family:inherit;cursor:pointer;border:none;}
   box-shadow:0 1px 4px rgba(0,0,0,.04);
   overflow:hidden;border:1px solid #ececec;
 }
+.orderCard.transport{border-left:4px solid #1857c1;}
 
 .cardTop{
   display:flex;align-items:center;justify-content:space-between;
   padding:12px 14px;background:#fafafa;
-  border-bottom:1px solid #f4f4f4;gap:10px;
+  border-bottom:1px solid #f4f4f4;gap:10px;flex-wrap:wrap;
 }
 .orderNum{
   font-size:13px;font-weight:800;color:#1f1f1f;
@@ -239,6 +277,16 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .pill-step0{background:#fff5d6;color:#8a6500;}
 .pill-step1{background:#dbe9ff;color:#1857c1;}
 .pill-step2{background:#dcf3e1;color:#0C831F;}
+
+.vehBadge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:#dbe9ff;color:#1857c1;
+  padding:3px 8px;border-radius:12px;
+  font-size:10px;font-weight:800;
+  letter-spacing:.3px;text-transform:uppercase;
+  white-space:nowrap;
+}
+.vehBadge .vbIcon{font-size:13px;line-height:1;}
 
 .journey{display:flex;padding:14px;gap:8px;align-items:flex-start;}
 .jStep{flex:1;text-align:center;position:relative;}
@@ -395,10 +443,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
 <div class="sidebarBg" id="sidebarBg" onclick="toggleMenu()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sbHeader">
-    <div class="sbAvatar">🚚</div>
+    <div class="sbAvatar" id="sbAvatarIcon">🚚</div>
     <div class="sbInfo">
       <div class="sbName" id="sbName">Delivery Partner</div>
       <div class="sbEmail" id="sbEmail">—</div>
+      <div class="sbVehicle" id="sbVehicle" style="display:none;"></div>
     </div>
   </div>
   <nav class="sbNav">
@@ -432,6 +481,16 @@ button{font-family:inherit;cursor:pointer;border:none;}
 </aside>
 
 <main class="container">
+
+  <!-- Vehicle warning banner — only shows if no vehicleType set -->
+  <div class="noVehicleBanner" id="noVehicleBanner" style="display:none;" onclick="goProfile()">
+    <div class="ic">🛵</div>
+    <div class="text">
+      <b>Set your vehicle type</b>
+      <span>Choose your vehicle in profile to start receiving orders that match.</span>
+    </div>
+    <div class="arrow">›</div>
+  </div>
 
   <div class="statsBar">
     <div class="statBox">
@@ -489,19 +548,30 @@ const ordersDiv    = document.getElementById("orders");
 const activeTitle  = document.getElementById("activeTitle");
 const headerSub    = document.getElementById("headerSub");
 const toast        = document.getElementById("toast");
+const noVehicleBanner = document.getElementById("noVehicleBanner");
 
 let myEmail = null;
+let myVehicleType = null;          // bike | 3wheeler | tataAce | pickup8ft | tata407 | null
+let myVehicleName = "";
+let myVehicleIcon = "🚚";
 let isOnline = localStorage.getItem("isOnline") !== "false";
 let watchId  = null;
 
-const ordersCache = { orders: [], "split-orders": [] };
+const ordersCache = { "orders": [], "split-orders": [], "transport-orders": [] };
 const renderedMaps = {};
-const renderedOrderState = {};
 const skippedOrderIds = new Set();
 
 let knownOrderIds = new Set();
-/* FIX: per-collection firstLoad tracking so split-orders init doesn't trigger a sound burst */
-let firstLoadDone = { orders: false, "split-orders": false };
+let firstLoadDone = { "orders": false, "split-orders": false, "transport-orders": false };
+
+/* Display labels for vehicle types */
+const VEHICLE_LABELS = {
+  bike:      { icon:"🛵", name:"2-Wheeler" },
+  "3wheeler":{ icon:"🛺", name:"3-Wheeler" },
+  tataAce:   { icon:"🚐", name:"Tata Ace" },
+  pickup8ft: { icon:"🚛", name:"Pickup 8ft" },
+  tata407:   { icon:"🚚", name:"Tata 407" }
+};
 
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -525,7 +595,6 @@ function showToast(msg, isError=false){
   setTimeout(()=> toast.classList.remove("show"), 2400);
 }
 
-/* FIX: Web Audio API beep instead of unreliable soundjay URL */
 function playBeep(){
   if(!isOnline) return;
   try{
@@ -571,7 +640,6 @@ window.toggleMenu = ()=>{
   document.getElementById("sidebar").classList.toggle("show");
   document.getElementById("sidebarBg").classList.toggle("show");
 };
-/* FIX: New sidebar links */
 window.goProfile   = ()=> location.href = "profile.html";
 window.goHistory   = ()=> location.href = "delivery-history.html";
 window.goWallet    = ()=> location.href = "wallet.html";
@@ -590,7 +658,6 @@ window.logout = ()=>{
           navigator.geolocation.clearWatch(watchId);
           watchId = null;
         }
-        // Mark offline before logging out
         if(myEmail){
           try{ await updateDoc(doc(db,"delivery", myEmail), { available: false }); }catch(e){}
         }
@@ -638,7 +705,7 @@ function startLiveLocation(){
     window.myLng = pos.coords.longitude;
 
     const tasks = [];
-    [...ordersCache.orders, ...ordersCache["split-orders"]].forEach(o=>{
+    [...ordersCache.orders, ...ordersCache["split-orders"], ...ordersCache["transport-orders"]].forEach(o=>{
       if(o.deliveryBoyId === myEmail
          && o.deliveryStatus !== "Delivered"
          && o.status !== "Delivered"){
@@ -679,6 +746,20 @@ onAuthStateChanged(auth, async (user)=>{
       const d = snap.data();
       document.getElementById("sbName").textContent = d.name || "Delivery Partner";
       document.getElementById("sbEmail").textContent = myEmail;
+
+      /* Load partner's vehicle type */
+      myVehicleType = d.vehicleType || null;
+      if(myVehicleType && VEHICLE_LABELS[myVehicleType]){
+        myVehicleName = VEHICLE_LABELS[myVehicleType].name;
+        myVehicleIcon = VEHICLE_LABELS[myVehicleType].icon;
+        document.getElementById("sbAvatarIcon").textContent = myVehicleIcon;
+        const vbEl = document.getElementById("sbVehicle");
+        vbEl.style.display = "inline-flex";
+        vbEl.innerHTML = `${myVehicleIcon} ${myVehicleName}`;
+      }else{
+        /* No vehicle type set — show banner prompting profile */
+        noVehicleBanner.style.display = "flex";
+      }
     }else{
       document.getElementById("sbEmail").textContent = myEmail;
     }
@@ -689,6 +770,7 @@ onAuthStateChanged(auth, async (user)=>{
 
   listen("orders");
   listen("split-orders");
+  listen("transport-orders");
 });
 
 function listen(col){
@@ -702,9 +784,17 @@ function listen(col){
       d.__col = col;
       list.push(d);
 
-      if(firstLoadDone[col] && d.deliveryStatus === "Ready" && !d.deliveryBoyId
-         && !knownOrderIds.has(d.__id) && !skippedOrderIds.has(d.__id)){
-        foundNewReady = true;
+      /* Detect a fresh ready order:
+         - For 'orders' and 'split-orders': deliveryStatus === "Ready"
+         - For 'transport-orders': status === "Ready" or "Pending" without driver
+         and the order's vehicleType matches partner's vehicleType */
+      if(firstLoadDone[col]){
+        const isMatch = orderMatchesPartner(d);
+        const isReady = isOrderReadyForPickup(d);
+        if(isMatch && isReady && !d.deliveryBoyId
+           && !knownOrderIds.has(d.__id) && !skippedOrderIds.has(d.__id)){
+          foundNewReady = true;
+        }
       }
       knownOrderIds.add(d.__id);
     });
@@ -722,8 +812,30 @@ function listen(col){
   });
 }
 
+/* Check if an order's vehicleType matches the partner's
+   - Orders without vehicleType (legacy) match bike riders
+   - Transport orders only match if vehicleType is set on driver */
+function orderMatchesPartner(o){
+  if(!myVehicleType){
+    /* Partner has no vehicleType set — only see legacy orders/split-orders without vehicleType */
+    return o.__col !== "transport-orders";
+  }
+
+  const orderVeh = o.vehicleType || "bike";   // legacy default
+  return orderVeh === myVehicleType;
+}
+
+function isOrderReadyForPickup(o){
+  /* Transport orders are ready immediately when shop accepts + marks ready */
+  if(o.__col === "transport-orders"){
+    return o.deliveryStatus === "Ready" || (o.status === "Ready");
+  }
+  /* Regular orders: deliveryStatus === "Ready" set by shop */
+  return o.deliveryStatus === "Ready";
+}
+
 function renderStats(){
-  const all = [...ordersCache.orders, ...ordersCache["split-orders"]];
+  const all = [...ordersCache.orders, ...ordersCache["split-orders"], ...ordersCache["transport-orders"]];
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
 
   let active = 0, deliveredToday = 0, earningToday = 0;
@@ -732,7 +844,6 @@ function renderStats(){
     const status  = (o.status||"").toLowerCase();
     const dStatus = (o.deliveryStatus||"").toLowerCase();
     const isDone = status === "delivered" || dStatus === "delivered" || dStatus === "completed";
-    /* FIX: also exclude WaitingCustomerConfirm from active (delivery boy is done) */
     const isWaitingConfirm = status === "waitingcustomerconfirm" || dStatus === "waitingcustomerconfirm";
 
     if(isDone){
@@ -766,15 +877,22 @@ function renderNewOrder(){
     return;
   }
 
-  const all = [...ordersCache.orders, ...ordersCache["split-orders"]];
+  /* Combine all collections, find best matching candidate for THIS partner */
+  const all = [...ordersCache.orders, ...ordersCache["split-orders"], ...ordersCache["transport-orders"]];
   let candidate = null, candidateDist = Infinity;
 
   all.forEach(o=>{
-    if(o.deliveryStatus !== "Ready") return;
+    /* Must be ready, unassigned, and match partner's vehicle */
+    if(!isOrderReadyForPickup(o)) return;
     if(o.deliveryBoyId) return;
     if(skippedOrderIds.has(o.__id)) return;
+    if(!orderMatchesPartner(o)) return;
 
-    const dist = getDistance(window.myLat, window.myLng, o.shopLat, o.shopLng);
+    /* Use shopLat/Lng for orders/split-orders, pickupLat/Lng for transport-orders */
+    const pickupLat = o.pickupLat ?? o.shopLat;
+    const pickupLng = o.pickupLng ?? o.shopLng;
+
+    const dist = getDistance(window.myLat, window.myLng, pickupLat, pickupLng);
     if(dist !== null){
       if(dist < candidateDist){ candidate = o; candidateDist = dist; }
     }else if(!candidate){
@@ -783,11 +901,15 @@ function renderNewOrder(){
   });
 
   if(!candidate){
+    /* Custom message based on vehicle */
+    const vehHint = myVehicleType
+      ? `for ${myVehicleName} drivers`
+      : `right now`;
     newOrderArea.innerHTML = `
       <div class="noOrderBox">
         <div class="icon">📦</div>
         <h4>Looking for orders…</h4>
-        <p>You'll be notified when a new order is ready for pickup.</p>
+        <p>You'll be notified when a new order is ready for pickup ${vehHint}.</p>
       </div>`;
     return;
   }
@@ -798,15 +920,37 @@ function renderNewOrder(){
     ? candidateDist.toFixed(1) + " km away"
     : "Nearby";
 
+  /* Pickup name + customer address vary by collection */
+  const isTransport = o.__col === "transport-orders";
+  const pickupName  = isTransport
+    ? (o.shopName || o.pickupAddress?.split(",")[0] || "Pickup")
+    : (o.shopName || "Pickup shop");
+  const dropAddr    = isTransport
+    ? (o.dropAddress || o.address || "Drop location")
+    : (o.address || "Customer address");
+
+  /* Vehicle badge for the new-order banner */
+  let vehHeader = "";
+  if(o.vehicleName && o.vehicleIcon){
+    vehHeader = `<div class="noTopRight">${o.vehicleIcon} ${escapeHtml(o.vehicleName)}</div>`;
+  }
+
+  /* Weight chip (if order has it) */
+  let weightLine = "";
+  if(o.cartWeightKg && o.cartWeightKg > 0){
+    weightLine = `<div class="noLine"><div class="ic">⚖️</div><span>${o.cartWeightKg.toFixed(1)} kg</span></div>`;
+  }
+
   newOrderArea.innerHTML = `
     <div class="newOrderBanner">
-      <div class="noTop">NEW ORDER</div>
+      <div class="noTop">NEW ORDER ${vehHeader}</div>
       <div class="noEarning">₹${earning}</div>
       <div class="noDist">📍 ${distText} · Total ₹${o.total||0}</div>
 
       <div class="noDetails">
-        <div class="noLine"><div class="ic">🏪</div><span>${escapeHtml(o.shopName||"Pickup shop")}</span></div>
-        <div class="noLine"><div class="ic">🏠</div><span>${escapeHtml(o.address||"Customer address")}</span></div>
+        <div class="noLine"><div class="ic">🏪</div><span>${escapeHtml(pickupName)}</span></div>
+        <div class="noLine"><div class="ic">🏠</div><span>${escapeHtml(dropAddr)}</span></div>
+        ${weightLine}
       </div>
 
       <div class="noActions">
@@ -817,15 +961,14 @@ function renderNewOrder(){
 }
 
 function renderActiveOrders(){
-  /* FIX: filter excludes WaitingCustomerConfirm so finished orders disappear from dashboard */
-  const all = [...ordersCache.orders, ...ordersCache["split-orders"]]
+  const all = [...ordersCache.orders, ...ordersCache["split-orders"], ...ordersCache["transport-orders"]]
     .filter(o => {
       if(o.deliveryBoyId !== myEmail) return false;
       const status = (o.status||"").toLowerCase();
       const dStatus = (o.deliveryStatus||"").toLowerCase();
       if(status === "delivered" || dStatus === "delivered" || dStatus === "completed") return false;
       if(status === "waitingcustomerconfirm" || dStatus === "waitingcustomerconfirm") return false;
-      if(status === "rejected") return false;
+      if(status === "rejected" || status === "cancelled") return false;
       return true;
     });
 
@@ -835,7 +978,6 @@ function renderActiveOrders(){
     Object.keys(renderedMaps).forEach(k=>{
       try{ renderedMaps[k].remove(); }catch(e){}
       delete renderedMaps[k];
-      delete renderedOrderState[k];
     });
     return;
   }
@@ -847,35 +989,45 @@ function renderActiveOrders(){
     if(!activeIds.has(k)){
       try{ renderedMaps[k].remove(); }catch(e){}
       delete renderedMaps[k];
-      delete renderedOrderState[k];
     }
   });
 
   let html = "";
   all.forEach(o=>{
     const id = o.__id, col = o.__col;
+    const isTransport = col === "transport-orders";
     const step = o.pickupStep || 0;
     const orderShort = "#" + id.slice(-6).toUpperCase();
-    const custLat = o.customerLat ?? o.lat;
-    const custLng = o.customerLng ?? o.lng;
 
-    let stepLabel = "Heading to shop", pillCls = "pill-step0";
+    /* Pickup vs Drop coords vary by collection */
+    const pickupLat = o.pickupLat ?? o.shopLat;
+    const pickupLng = o.pickupLng ?? o.shopLng;
+    const dropLat   = isTransport ? o.dropLat : (o.customerLat ?? o.lat);
+    const dropLng   = isTransport ? o.dropLng : (o.customerLng ?? o.lng);
+
+    let stepLabel = "Heading to pickup", pillCls = "pill-step0";
     if(step === 1){ stepLabel = "Picked up · On the way"; pillCls = "pill-step1"; }
-    else if(step >= 2){ stepLabel = "At customer"; pillCls = "pill-step2"; }
+    else if(step >= 2){ stepLabel = "At drop"; pillCls = "pill-step2"; }
 
     let targetLat, targetLng, targetLabel, targetName, targetAddr, targetPhone;
     if(step < 2){
-      targetLat = o.shopLat; targetLng = o.shopLng;
+      targetLat = pickupLat; targetLng = pickupLng;
       targetLabel = "PICKUP FROM";
-      targetName = o.shopName || "Shop";
-      targetAddr = "Pick up the order from this shop";
-      targetPhone = o.shopPhone || "";
+      targetName  = isTransport
+        ? (o.shopName || o.pickupContactName || "Pickup")
+        : (o.shopName || "Shop");
+      targetAddr  = isTransport
+        ? (o.pickupAddress || "Pickup location")
+        : "Pick up the order from this shop";
+      targetPhone = isTransport ? (o.pickupContactPhone || "") : (o.shopPhone || "");
     }else{
-      targetLat = custLat; targetLng = custLng;
+      targetLat = dropLat; targetLng = dropLng;
       targetLabel = "DELIVER TO";
-      targetName = o.name || "Customer";
-      targetAddr = o.address || "";
-      targetPhone = o.phone || "";
+      targetName  = isTransport
+        ? (o.dropContactName || o.name || "Customer")
+        : (o.name || "Customer");
+      targetAddr  = isTransport ? (o.dropAddress || "") : (o.address || "");
+      targetPhone = isTransport ? (o.dropContactPhone || "") : (o.phone || "");
     }
 
     let actionBtn = "";
@@ -887,10 +1039,21 @@ function renderActiveOrders(){
       actionBtn = `<button class="actionBtn btn-deliver" onclick="markDelivered('${id}','${col}')">✓ Mark Delivered</button>`;
     }
 
+    /* Vehicle + weight badges */
+    let vehBadgeHtml = "";
+    if(o.vehicleName && o.vehicleIcon){
+      vehBadgeHtml = `<div class="vehBadge"><span class="vbIcon">${o.vehicleIcon}</span>${escapeHtml(o.vehicleName)}</div>`;
+    }
+
+    let suffix = "";
+    if(col === "split-orders") suffix = " · SPLIT";
+    else if(isTransport) suffix = " · TRANSPORT";
+
     html += `
-      <div class="orderCard" data-order-id="${id}">
+      <div class="orderCard ${isTransport?'transport':''}" data-order-id="${id}">
         <div class="cardTop">
-          <div class="orderNum">${orderShort}${col==="split-orders" ? " · SPLIT" : ""}</div>
+          <div class="orderNum">${orderShort}${suffix}</div>
+          ${vehBadgeHtml}
           <div class="statusPill ${pillCls}">${stepLabel}</div>
         </div>
 
@@ -932,11 +1095,16 @@ function renderActiveOrders(){
   setTimeout(()=>{
     all.forEach(o=>{
       const id = o.__id;
+      const isTransport = o.__col === "transport-orders";
       const step = o.pickupStep || 0;
-      const custLat = o.customerLat ?? o.lat;
-      const custLng = o.customerLng ?? o.lng;
-      const targetLat = step < 2 ? o.shopLat : custLat;
-      const targetLng = step < 2 ? o.shopLng : custLng;
+
+      const pickupLat = o.pickupLat ?? o.shopLat;
+      const pickupLng = o.pickupLng ?? o.shopLng;
+      const dropLat   = isTransport ? o.dropLat : (o.customerLat ?? o.lat);
+      const dropLng   = isTransport ? o.dropLng : (o.customerLng ?? o.lng);
+      const targetLat = step < 2 ? pickupLat : dropLat;
+      const targetLng = step < 2 ? pickupLng : dropLng;
+
       if(!targetLat || !targetLng) return;
 
       const el = document.getElementById(`map_${id}`);
@@ -950,16 +1118,16 @@ function renderActiveOrders(){
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
 
       const points = [];
-      if(o.shopLat && o.shopLng){
-        L.marker([o.shopLat, o.shopLng], {icon:emojiIcon("🏪","#fff5d6")}).addTo(map).bindPopup("Shop");
-        points.push([o.shopLat, o.shopLng]);
+      if(pickupLat && pickupLng){
+        L.marker([pickupLat, pickupLng], {icon:emojiIcon("🏪","#fff5d6")}).addTo(map).bindPopup("Pickup");
+        points.push([pickupLat, pickupLng]);
       }
-      if(custLat && custLng){
-        L.marker([custLat, custLng], {icon:emojiIcon("🏠","#dbe9ff")}).addTo(map).bindPopup("Customer");
-        points.push([custLat, custLng]);
+      if(dropLat && dropLng){
+        L.marker([dropLat, dropLng], {icon:emojiIcon("🏠","#dbe9ff")}).addTo(map).bindPopup("Drop");
+        points.push([dropLat, dropLng]);
       }
       if(window.myLat && window.myLng){
-        L.marker([window.myLat, window.myLng], {icon:emojiIcon("🛵","#dcf3e1")}).addTo(map).bindPopup("You");
+        L.marker([window.myLat, window.myLng], {icon:emojiIcon(myVehicleIcon || "🛵","#dcf3e1")}).addTo(map).bindPopup("You");
         points.push([window.myLat, window.myLng]);
       }
       if(points.length > 1){
@@ -988,7 +1156,7 @@ window.acceptNewOrder = (id, col)=>{
   openModal({
     icon:"🛵",
     title:"Accept this order?",
-    msg:"You'll head to the shop to pick it up. Make sure you can reach within 5 minutes.",
+    msg:"You'll head to the pickup location. Make sure you can reach within 5 minutes.",
     confirmText:"Yes, Accept",
     onConfirm: async ()=>{
       try{
@@ -1002,7 +1170,7 @@ window.acceptNewOrder = (id, col)=>{
           deliveryStatus:   "Accepted",
           pickupStep: 0
         });
-        showToast("✓ Order accepted · Head to the shop");
+        showToast("✓ Order accepted · Head to pickup");
       }catch(e){
         console.error(e);
         showToast("Could not accept", true);
@@ -1023,10 +1191,10 @@ window.rejectNewOrder = (id, col)=>{
 };
 
 window.nextStep = (id, col, step)=>{
-  const titles = ["Confirm pickup?", "Arrived at customer?"];
+  const titles = ["Confirm pickup?", "Arrived at drop?"];
   const msgs = [
-    "Confirm that you've collected the order from the shop and are heading to the customer.",
-    "Mark that you've reached the customer's address. You'll then mark the order as delivered."
+    "Confirm that you've collected the order from the pickup location and are heading to the drop.",
+    "Mark that you've reached the drop address. You'll then mark the order as delivered."
   ];
   openModal({
     icon: step===0 ? "📦" : "🛵",
@@ -1041,7 +1209,7 @@ window.nextStep = (id, col, step)=>{
           update.status = "Out for Delivery";
         }
         await updateDoc(doc(db, col, id), update);
-        showToast(step===0 ? "✓ Picked up · Head to customer" : "✓ At customer · Hand over the order");
+        showToast(step===0 ? "✓ Picked up · Head to drop" : "✓ At drop · Hand over the order");
       }catch(e){
         showToast("Could not update", true);
       }
