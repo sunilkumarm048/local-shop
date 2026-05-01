@@ -489,6 +489,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 <script type="module">
 import { db } from "/local-shop/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initVoiceAI } from "/local-shop/js/voice-ai.js";
 
 let allProducts = [];
 let allShops = [];
@@ -648,6 +649,12 @@ async function loadData(){
     renderCategories();
     renderShops();
     renderProducts();
+
+    /* ✨ Voice AI — initialize after products are loaded */
+    initVoiceAI({
+      getProducts: () => allProducts,
+      getShops:    () => allShops,
+    });
   }catch(err){
     console.error(err);
     document.getElementById("products").innerHTML =
