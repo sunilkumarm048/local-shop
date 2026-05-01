@@ -1,12 +1,13 @@
 /**
- * LocalShop Voice AI — frontend module
- * ─────────────────────────────────────
- * Adds a floating mic button to your page. Customer taps → speaks →
- * sees transcript + hears AI shopkeeper reply.
- *
- * USAGE:
- *   import { initVoiceAI } from "/local-shop/js/voice-ai.js";
- *   initVoiceAI({ getProducts, getShops });
+ * LocalShop Voice AI — frontend module (v2)
+ * ──────────────────────────────────────────
+ * Fixes from v1:
+ *   - MediaRecorder.start(250) — emits chunks every 250ms (some browsers
+ *     don't deliver any data without a timeslice)
+ *   - Detailed console logging for debugging
+ *   - Min recording length check (rejects too-short audio before sending)
+ *   - Better error display (shows server message, not just "STT failed")
+ *   - Proper Promise wrapping for stop() so we wait until last chunk arrives
  */
 
 // ⚠️ CHANGE THIS to your deployed Cloudflare Worker URL
@@ -23,13 +24,14 @@ export function initVoiceAI({ getProducts, getShops }) {
   let stream = null;
   let isRecording = false;
   let isProcessing = false;
+  let recordStartTime = 0;
 
   ui.micBtn.addEventListener("click", async () => {
     if (isProcessing) return;
     if (!isRecording) {
       await startRecording();
     } else {
-      stopRecording();
+      await stopRecording();
     }
   });
 
@@ -44,55 +46,109 @@ export function initVoiceAI({ getProducts, getShops }) {
   });
 
   async function startRecording() {
+    console.log("[VoiceAI] Requesting mic access…");
     try {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: 1,
-          sampleRate: 16000,
           echoCancellation: true,
           noiseSuppression: true,
+          autoGainControl: true,
         },
       });
+      console.log("[VoiceAI] Mic granted, tracks:", stream.getAudioTracks());
     } catch (e) {
+      console.error("[VoiceAI] Mic denied:", e);
       showError("Mic access denied. Please allow microphone in browser settings.");
       return;
     }
 
     chunks = [];
-    const mime = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-      ? "audio/webm;codecs=opus"
-      : "audio/webm";
-    mediaRecorder = new MediaRecorder(stream, { mimeType: mime });
+
+    // Pick a supported MIME type
+    let mime = "audio/webm;codecs=opus";
+    if (!MediaRecorder.isTypeSupported(mime)) {
+      mime = "audio/webm";
+      if (!MediaRecorder.isTypeSupported(mime)) {
+        mime = "audio/mp4"; // iOS Safari
+        if (!MediaRecorder.isTypeSupported(mime)) {
+          mime = ""; // browser default
+        }
+      }
+    }
+    console.log("[VoiceAI] Using MIME:", mime || "browser default");
+
+    try {
+      mediaRecorder = mime ? new MediaRecorder(stream, { mimeType: mime })
+                           : new MediaRecorder(stream);
+    } catch (e) {
+      console.error("[VoiceAI] MediaRecorder init failed:", e);
+      showError("Browser doesn't support audio recording");
+      stream.getTracks().forEach(t => t.stop());
+      return;
+    }
 
     mediaRecorder.ondataavailable = (e) => {
+      console.log("[VoiceAI] Chunk received:", e.data?.size, "bytes");
       if (e.data && e.data.size > 0) chunks.push(e.data);
     };
 
-    mediaRecorder.onstop = async () => {
-      stream.getTracks().forEach((t) => t.stop());
-      const blob = new Blob(chunks, { type: mime });
-      await sendAudio(blob);
+    mediaRecorder.onerror = (e) => {
+      console.error("[VoiceAI] Recorder error:", e);
     };
 
-    mediaRecorder.start();
+    // 🔥 KEY FIX: pass timeslice (250ms) so chunks fire while recording
+    mediaRecorder.start(250);
+    recordStartTime = Date.now();
     isRecording = true;
+
     ui.micBtn.classList.add("recording");
     ui.micBtn.innerHTML = "⏹";
     showStatus("Listening… tap to stop");
     ui.panel.classList.add("show");
     ui.backdrop.classList.add("show");
+    ui.error.classList.remove("show");
 
-    // Safety: auto-stop after 20 seconds
+    // Auto-stop after 20 seconds
     setTimeout(() => { if (isRecording) stopRecording(); }, 20000);
   }
 
-  function stopRecording() {
+  async function stopRecording() {
     if (!mediaRecorder || mediaRecorder.state === "inactive") return;
-    mediaRecorder.stop();
+
+    const duration = Date.now() - recordStartTime;
+    console.log("[VoiceAI] Stopping after", duration, "ms");
+
     isRecording = false;
     ui.micBtn.classList.remove("recording");
     ui.micBtn.innerHTML = "🎤";
     setProcessing(true);
+
+    // Wait for the recorder to finalize and stream to release
+    await new Promise((resolve) => {
+      mediaRecorder.onstop = () => {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        resolve();
+      };
+      mediaRecorder.stop();
+    });
+
+    const mime = mediaRecorder.mimeType || "audio/webm";
+    const blob = new Blob(chunks, { type: mime });
+    console.log("[VoiceAI] Final blob:", blob.size, "bytes,", chunks.length, "chunks");
+
+    if (duration < 500) {
+      showError("Recording too short. Please hold and speak for at least 1 second.");
+      setProcessing(false);
+      return;
+    }
+    if (blob.size < 1000) {
+      showError(`No audio captured (${blob.size} bytes). Check your mic and try again.`);
+      setProcessing(false);
+      return;
+    }
+
+    await sendAudio(blob);
   }
 
   async function sendAudio(blob) {
@@ -100,7 +156,8 @@ export function initVoiceAI({ getProducts, getShops }) {
 
     try {
       const products = (getProducts?.() || []).map(slimProduct);
-      const shops = (getShops?.() || []).map(slimShop);
+      const shops    = (getShops?.()    || []).map(slimShop);
+      console.log("[VoiceAI] Sending", products.length, "products,", shops.length, "shops");
 
       const fd = new FormData();
       fd.append("audio", blob, "audio.webm");
@@ -108,27 +165,35 @@ export function initVoiceAI({ getProducts, getShops }) {
       fd.append("shops", JSON.stringify(shops));
       fd.append("history", JSON.stringify(conversationHistory.slice(-6)));
 
+      console.log("[VoiceAI] POST", WORKER_URL + "/api/voice");
       const res = await fetch(`${WORKER_URL}/api/voice`, {
         method: "POST",
         body: fd,
       });
 
+      const text = await res.text();
+      console.log("[VoiceAI] Response status:", res.status);
+      console.log("[VoiceAI] Response body (first 500 chars):", text.slice(0, 500));
+
+      let data;
+      try { data = JSON.parse(text); }
+      catch { throw new Error("Server returned invalid JSON: " + text.slice(0, 200)); }
+
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Server error ${res.status}`);
+        const detail = data.detail ? ` (${data.detail.slice(0, 150)})` : "";
+        throw new Error((data.error || `Server error ${res.status}`) + detail);
       }
 
-      const data = await res.json();
       ui.transcript.textContent = "🗣️ " + data.transcript;
       ui.reply.textContent = data.replyText;
 
-      conversationHistory.push({ role: "user", content: data.transcript });
+      conversationHistory.push({ role: "user",      content: data.transcript });
       conversationHistory.push({ role: "assistant", content: data.replyText });
 
       if (data.replyAudio) playAudio(data.replyAudio);
       hideStatus();
     } catch (e) {
-      console.error(e);
+      console.error("[VoiceAI] sendAudio failed:", e);
       showError(e.message || "Could not get a reply. Try again.");
     } finally {
       setProcessing(false);
@@ -138,9 +203,9 @@ export function initVoiceAI({ getProducts, getShops }) {
   function playAudio(base64) {
     try {
       const audio = new Audio("data:audio/wav;base64," + base64);
-      audio.play().catch((e) => console.warn("Audio play blocked:", e));
+      audio.play().catch((e) => console.warn("[VoiceAI] Audio play blocked:", e));
     } catch (e) {
-      console.error("Audio decode failed:", e);
+      console.error("[VoiceAI] Audio decode failed:", e);
     }
   }
 
@@ -156,9 +221,7 @@ export function initVoiceAI({ getProducts, getShops }) {
     ui.status.classList.add("show");
     ui.error.classList.remove("show");
   }
-  function hideStatus() {
-    ui.status.classList.remove("show");
-  }
+  function hideStatus() { ui.status.classList.remove("show"); }
   function showError(msg) {
     ui.error.textContent = "⚠️ " + msg;
     ui.error.classList.add("show");
@@ -168,7 +231,7 @@ export function initVoiceAI({ getProducts, getShops }) {
   }
 }
 
-/* ────────── slim down data sent to worker ────────── */
+/* slim down data sent to worker */
 function slimProduct(p) {
   return {
     name: p.name,
@@ -188,7 +251,7 @@ function slimShop(s) {
   };
 }
 
-/* ────────── inject CSS ────────── */
+/* inject CSS */
 function injectStyles() {
   if (document.getElementById("voice-ai-styles")) return;
   const css = `
@@ -207,20 +270,16 @@ function injectStyles() {
   background:linear-gradient(135deg,#d23030 0%,#a71f1f 100%);
   animation:vai-pulse 1.2s infinite;
 }
-.voice-mic-btn.processing{
-  background:#888;cursor:wait;animation:none;
-}
+.voice-mic-btn.processing{background:#888;cursor:wait;animation:none;}
 @keyframes vai-pulse{
   0%,100%{box-shadow:0 6px 20px rgba(210,48,48,.5);}
   50%{box-shadow:0 6px 28px rgba(210,48,48,.85),0 0 0 10px rgba(210,48,48,.12);}
 }
-
 .voice-backdrop{
   position:fixed;inset:0;background:rgba(0,0,0,.45);
   z-index:1099;display:none;opacity:0;transition:opacity .2s;
 }
 .voice-backdrop.show{display:block;opacity:1;}
-
 .voice-panel{
   position:fixed;left:50%;bottom:170px;transform:translateX(-50%) translateY(20px);
   background:#fff;border-radius:18px;
@@ -231,58 +290,19 @@ function injectStyles() {
   transition:all .25s ease;
   font-family:'Inter',Arial,sans-serif;
 }
-.voice-panel.show{
-  opacity:1;pointer-events:auto;
-  transform:translateX(-50%) translateY(0);
-}
-
-.voice-header{
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:10px;
-}
-.voice-title{
-  font-size:14px;font-weight:700;color:#1f1f1f;
-  display:flex;align-items:center;gap:6px;
-}
-.voice-title .dot{
-  width:8px;height:8px;border-radius:50%;
-  background:#0C831F;display:inline-block;
-}
-.voice-close{
-  background:#f0f0f0;border:none;border-radius:50%;
-  width:28px;height:28px;cursor:pointer;font-size:14px;
-  display:flex;align-items:center;justify-content:center;
-  color:#666;
-}
+.voice-panel.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);}
+.voice-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.voice-title{font-size:14px;font-weight:700;color:#1f1f1f;display:flex;align-items:center;gap:6px;}
+.voice-title .dot{width:8px;height:8px;border-radius:50%;background:#0C831F;display:inline-block;}
+.voice-close{background:#f0f0f0;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:#666;}
 .voice-close:hover{background:#e0e0e0;}
-
-.voice-status{
-  font-size:13px;color:#0C831F;font-weight:600;
-  margin:8px 0;display:none;
-}
+.voice-status{font-size:13px;color:#0C831F;font-weight:600;margin:8px 0;display:none;}
 .voice-status.show{display:block;}
-.voice-error{
-  font-size:13px;color:#d23030;font-weight:500;
-  margin:8px 0;background:#fee;padding:8px 10px;
-  border-radius:8px;display:none;
-}
+.voice-error{font-size:13px;color:#d23030;font-weight:500;margin:8px 0;background:#fee;padding:8px 10px;border-radius:8px;display:none;word-break:break-word;}
 .voice-error.show{display:block;}
-
-.voice-transcript{
-  background:#f8f8f8;border-radius:10px;
-  padding:10px 12px;font-size:13px;color:#444;
-  margin:8px 0;min-height:18px;line-height:1.4;
-}
-.voice-reply{
-  background:#fff5d6;border-left:3px solid #F0B91D;
-  border-radius:10px;padding:12px 14px;
-  font-size:14px;color:#1f1f1f;line-height:1.5;
-  min-height:24px;font-weight:500;
-}
-.voice-hint{
-  font-size:11px;color:#888;text-align:center;
-  margin-top:10px;
-}
+.voice-transcript{background:#f8f8f8;border-radius:10px;padding:10px 12px;font-size:13px;color:#444;margin:8px 0;min-height:18px;line-height:1.4;}
+.voice-reply{background:#fff5d6;border-left:3px solid #F0B91D;border-radius:10px;padding:12px 14px;font-size:14px;color:#1f1f1f;line-height:1.5;min-height:24px;font-weight:500;}
+.voice-hint{font-size:11px;color:#888;text-align:center;margin-top:10px;}
 `;
   const style = document.createElement("style");
   style.id = "voice-ai-styles";
@@ -290,7 +310,6 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-/* ────────── inject DOM ────────── */
 function injectUI() {
   const backdrop = document.createElement("div");
   backdrop.className = "voice-backdrop";
