@@ -11,7 +11,6 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
 html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
 body{padding-bottom:24px;}
 button{font-family:inherit;cursor:pointer;border:none;}
@@ -32,10 +31,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .titleBlock{flex:1;min-width:0;line-height:1.2;}
 .pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
-.pageSub{
-  font-size:12px;color:#3a3a3a;margin-top:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
 .etaCard{
   max-width:700px;margin:12px auto 0;
@@ -82,6 +79,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .badge-accepted{background:#dcf3e1;color:#0C831F;}
 .badge-ready{background:#dbe9ff;color:#1857c1;}
 .badge-out{background:#ffe8d1;color:#b65800;}
+.badge-arrived{background:#dcf3e1;color:#0C831F;}
+.badge-confirm{background:#e8d6f7;color:#6b21a8;}
 .badge-delivered{background:#e8d6f7;color:#6b21a8;}
 .badge-rejected{background:#fde0e0;color:#c41818;}
 
@@ -91,10 +90,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
-
-.sectionTitle{
-  font-size:15px;font-weight:700;color:#1f1f1f;margin-bottom:12px;
-}
+.sectionTitle{font-size:15px;font-weight:700;color:#1f1f1f;margin-bottom:12px;}
 
 .mapSection{padding:0;overflow:hidden;}
 #map{height:340px;width:100%;background:#e9e9e9;}
@@ -159,10 +155,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .callBtn:active{transform:scale(.94);}
 
-.partnerEmpty{
-  text-align:center;padding:14px 8px;
-  color:#888;font-size:13px;
-}
+.partnerEmpty{text-align:center;padding:14px 8px;color:#888;font-size:13px;}
 .partnerEmpty .icon{font-size:30px;margin-bottom:6px;}
 
 .idRow{
@@ -189,7 +182,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .billRow b{color:#1f1f1f;font-weight:600;}
 .billDivider{border-top:1px dashed #e0e0e0;margin:6px 0;}
-
 .totalRow{
   display:flex;justify-content:space-between;
   padding-top:6px;font-size:14px;font-weight:800;
@@ -210,8 +202,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .helpRow .arrow{margin-left:auto;color:#bbb;}
 
 .modalBg{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.5);
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
   display:none;align-items:flex-end;justify-content:center;
   z-index:2000;padding:0;
 }
@@ -278,6 +269,17 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .leaflet-popup-content-wrapper{border-radius:8px;}
 .leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
+
+/* Last-update indicator (helps users see live updates are working) */
+.liveDot{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;color:#0C831F;font-weight:700;
+  margin-left:8px;
+}
+.liveDot::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:#0C831F;
+  animation:pulseDot 1.6s infinite;
+}
 </style>
 </head>
 
@@ -309,7 +311,10 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </section>
 
   <section class="section">
-    <div class="sectionTitle">Order status</div>
+    <div class="sectionTitle">
+      Order status
+      <span class="liveDot" id="liveDot" style="display:none;">LIVE</span>
+    </div>
     <div class="timeline" id="timeline"></div>
   </section>
 
@@ -336,7 +341,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
     <div class="sectionTitle">Order details</div>
     <div id="itemsList"></div>
 
-    <!-- Bill breakdown -->
     <div style="margin-top:14px;border-top:1px solid #f0f0f0;padding-top:10px;">
       <div class="billRow"><span>Item total</span><span id="billItemTotal">—</span></div>
       <div class="billRow"><span>Delivery</span><span id="billDelivery">—</span></div>
@@ -372,7 +376,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 </main>
 
-<!-- DELIVERY CONFIRM MODAL -->
 <div class="modalBg" id="confirmModal">
   <div class="modal">
     <div class="icon">📦</div>
@@ -385,7 +388,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
-<!-- REPORT ISSUE MODAL (replaces confirm()) -->
 <div class="modalBg" id="reportModal">
   <div class="modal">
     <div class="icon">⚠️</div>
@@ -446,12 +448,12 @@ function emojiIcon(emoji, bg="#fff"){
 
 let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
 let confirmShown=false;
-let lastRouteKey=null;   /* FIX: avoid redrawing route on every snapshot */
+let lastRouteKey=null;
 let redirectTimer=null;
 
 function drawLine(start, end, color="#0C831F"){
   const key = `${start.lat},${start.lng}-${end.lat},${end.lng}`;
-  if(key === lastRouteKey) return;     /* same line, skip */
+  if(key === lastRouteKey) return;
   if(routeLine) map.removeLayer(routeLine);
   routeLine = L.polyline([[start.lat,start.lng],[end.lat,end.lng]], {
     color, weight:4, opacity:.85, dashArray:"6,8"
@@ -460,30 +462,82 @@ function drawLine(start, end, color="#0C831F"){
 }
 
 const STAGES = [
-  { key:"placed",   label:"Order placed",      note:"Your order has been received" },
-  { key:"accepted", label:"Accepted by shop",  note:"Shop is preparing your order" },
-  { key:"ready",    label:"Order ready",       note:"Items packed and waiting for pickup" },
-  { key:"out",      label:"Out for delivery",  note:"Your order is on the way" },
-  { key:"delivered",label:"Delivered",         note:"Enjoy your order!" }
+  { key:"placed",    label:"Order placed",     defaultNote:"Your order has been received" },
+  { key:"accepted",  label:"Accepted by shop", defaultNote:"Shop is preparing your order" },
+  { key:"ready",     label:"Order ready",      defaultNote:"Items packed and waiting for pickup" },
+  { key:"out",       label:"Out for delivery", defaultNote:"Your order is on the way" },
+  { key:"delivered", label:"Delivered",        defaultNote:"Enjoy your order!" }
 ];
 
-function getStageIndex(status){
-  switch((status||"").toLowerCase()){
-    case "pending":          return 0;
-    case "accepted":         return 1;
-    case "ready":            return 2;
-    case "out for delivery": return 3;
-    case "delivered":        return 4;
-    default:                 return 0;
+/* ====================================================================
+   FIX: smarter stage calculation that uses status + pickupStep + deliveryStatus
+   together — so the timeline progresses correctly through all driver actions.
+   ==================================================================== */
+function getStageInfo(data){
+  const status   = (data.status || "").toLowerCase();
+  const dStatus  = (data.deliveryStatus || "").toLowerCase();
+  const step     = data.pickupStep || 0;
+  const driver   = data.deliveryBoyName || "Delivery partner";
+  const hasDriver= !!data.deliveryBoyId;
+
+  /* Rejected / Cancelled */
+  if(status === "rejected" || status === "cancelled"){
+    return { stage: -1, isRejected: true };
   }
+
+  /* Delivered (final) */
+  if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+    return { stage: 4, activeNote: null };
+  }
+
+  /* Driver marked delivered, waiting for customer confirm — treat as "Almost delivered" */
+  if(status === "waitingcustomerconfirm" || dStatus === "waitingcustomerconfirm"){
+    return {
+      stage: 4,
+      activeNote: `${driver} marked delivered · please confirm below`,
+      awaitingConfirm: true
+    };
+  }
+
+  /* Out for delivery — check pickupStep for sub-state */
+  if(status === "out for delivery" || step >= 1){
+    if(step >= 2){
+      return {
+        stage: 3,
+        activeNote: `${driver} has arrived at your location 🎯`
+      };
+    }
+    return {
+      stage: 3,
+      activeNote: `${driver} picked up your order · on the way 🛵`
+    };
+  }
+
+  /* Order ready — driver may or may not be assigned yet */
+  if(status === "ready" || dStatus === "ready"){
+    if(hasDriver){
+      return {
+        stage: 2,
+        activeNote: `${driver} is heading to the shop to pick up your order`
+      };
+    }
+    return { stage: 2, activeNote: null };
+  }
+
+  /* Accepted by shop */
+  if(status === "accepted"){
+    return { stage: 1, activeNote: null };
+  }
+
+  /* Pending or unknown */
+  return { stage: 0, activeNote: null };
 }
 
-function renderTimeline(status){
+function renderTimeline(data){
   const tl = document.getElementById("timeline");
-  const isRejected = (status||"").toLowerCase() === "rejected";
+  const info = getStageInfo(data);
 
-  /* FIX: handle rejected status */
-  if(isRejected){
+  if(info.isRejected){
     tl.innerHTML = `
       <div class="tlStep done">
         <div class="tlDot"></div>
@@ -498,76 +552,100 @@ function renderTimeline(status){
     return;
   }
 
-  const cur = getStageIndex(status);
   let html = "";
   STAGES.forEach((s, i)=>{
     let cls = "";
-    if(i < cur) cls = "done";
-    else if(i === cur && (status||"").toLowerCase() !== "delivered") cls = "active";
-    else if(i === cur) cls = "done";
+    if(i < info.stage) cls = "done";
+    else if(i === info.stage){
+      cls = (info.stage === 4 && !info.awaitingConfirm) ? "done" : "active";
+    }
+
+    const note = (i === info.stage && info.activeNote) ? info.activeNote : s.defaultNote;
+
     html += `
       <div class="tlStep ${cls}">
         <div class="tlDot"></div>
         <div class="tlLabel">${s.label}</div>
-        <div class="tlNote">${s.note}</div>
+        <div class="tlNote">${escapeHtml(note)}</div>
       </div>`;
   });
   tl.innerHTML = html;
 }
 
-function updateHero(status){
+function updateHero(data){
   const title = document.getElementById("etaTitle");
   const sub   = document.getElementById("etaSub");
   const icon  = document.getElementById("etaIcon");
   const badge = document.getElementById("statusBadge");
 
   badge.className = "statusBadge";
-  badge.textContent = status || "Pending";
   icon.classList.remove("rejected");
 
-  switch((status||"").toLowerCase()){
-    case "pending":
+  const info = getStageInfo(data);
+  const driver = data.deliveryBoyName || "Driver";
+
+  if(info.isRejected){
+    title.textContent = "Order rejected";
+    sub.textContent   = "Sorry, the shop couldn't accept this order";
+    icon.textContent  = "✕";
+    icon.classList.add("rejected");
+    badge.classList.add("badge-rejected");
+    badge.textContent = "Rejected";
+    return;
+  }
+
+  switch(info.stage){
+    case 0:
       title.textContent = "Order received";
       sub.textContent   = "Waiting for shop to accept";
       icon.textContent  = "📋";
       badge.classList.add("badge-pending");
+      badge.textContent = "Pending";
       break;
-    case "accepted":
+    case 1:
       title.textContent = "Arriving in 15 mins";
       sub.textContent   = "Shop is preparing your order";
       icon.textContent  = "👨‍🍳";
       badge.classList.add("badge-accepted");
+      badge.textContent = "Preparing";
       break;
-    case "ready":
-      title.textContent = "Arriving in 10 mins";
-      sub.textContent   = "Order is ready for pickup";
+    case 2:
+      title.textContent = data.deliveryBoyId ? `${driver} is on the way to shop` : "Arriving in 10 mins";
+      sub.textContent   = data.deliveryBoyId ? "Order is packed and waiting for pickup" : "Order is ready for pickup";
       icon.textContent  = "📦";
       badge.classList.add("badge-ready");
+      badge.textContent = "Ready";
       break;
-    case "out for delivery":
-      title.textContent = "Arriving in 5 mins";
-      sub.textContent   = "Your delivery partner is on the way";
-      icon.textContent  = "🛵";
-      badge.classList.add("badge-out");
+    case 3:
+      if((data.pickupStep||0) >= 2){
+        title.textContent = `${driver} has arrived!`;
+        sub.textContent   = "Please collect your order";
+        icon.textContent  = "🎯";
+        badge.classList.add("badge-arrived");
+        badge.textContent = "Arrived";
+      }else{
+        title.textContent = "Arriving in 5 mins";
+        sub.textContent   = `${driver} picked up your order`;
+        icon.textContent  = "🛵";
+        badge.classList.add("badge-out");
+        badge.textContent = "On the way";
+      }
       break;
-    case "delivered":
-      title.textContent = "Order delivered ✓";
-      sub.textContent   = "Hope you enjoyed your order!";
-      icon.textContent  = "🎉";
-      badge.classList.add("badge-delivered");
+    case 4:
+      if(info.awaitingConfirm){
+        title.textContent = "Awaiting your confirmation";
+        sub.textContent   = "Driver marked delivered · tap below to confirm";
+        icon.textContent  = "✋";
+        badge.classList.add("badge-confirm");
+        badge.textContent = "Confirm Delivery";
+      }else{
+        title.textContent = "Order delivered ✓";
+        sub.textContent   = "Hope you enjoyed your order!";
+        icon.textContent  = "🎉";
+        badge.classList.add("badge-delivered");
+        badge.textContent = "Delivered";
+      }
       break;
-    case "rejected":
-      title.textContent = "Order rejected";
-      sub.textContent   = "Sorry, the shop couldn't accept this order";
-      icon.textContent  = "✕";
-      icon.classList.add("rejected");
-      badge.classList.add("badge-rejected");
-      break;
-    default:
-      title.textContent = status || "Processing";
-      sub.textContent   = "Stay tuned for updates";
-      icon.textContent  = "⚡";
-      badge.classList.add("badge-pending");
   }
 }
 
@@ -590,14 +668,13 @@ function renderItems(items, data){
   });
   document.getElementById("itemsList").innerHTML = html;
 
-  /* FIX: full bill breakdown */
   const itemTotal = data.total || 0;
   const delivery = data.deliveryFee !== undefined ? data.deliveryFee : 0;
   const handling = data.handlingFee !== undefined ? data.handlingFee : 0;
   const grand = data.grandTotal || (itemTotal + delivery + handling);
 
   document.getElementById("billItemTotal").textContent = "₹" + itemTotal;
-  document.getElementById("billDelivery").innerHTML  = delivery === 0
+  document.getElementById("billDelivery").innerHTML = delivery === 0
     ? `<span style="color:#0C831F;font-weight:700;">FREE</span>`
     : "₹" + delivery;
   document.getElementById("billHandling").textContent = "₹" + handling;
@@ -650,17 +727,35 @@ function renderAddress(data){
 
 /* LIVE LISTENER */
 if(orderId){
+  console.log("[Tracking] Setting up listener for order:", orderId);
+
   onSnapshot(doc(db, "orders", orderId), (snap)=>{
     if(!snap.exists()){
+      console.warn("[Tracking] Order not found in 'orders' collection. Maybe it's a transport order?");
       document.getElementById("etaTitle").textContent = "Order not found";
-      document.getElementById("etaSub").textContent   = "This order may have been removed";
+      document.getElementById("etaSub").textContent   = "This order may be a transport order — try transport-tracking.html";
       return;
     }
 
     const data = snap.data();
 
-    updateHero(data.status);
-    renderTimeline(data.status);
+    /* DEBUG: log every update so user can verify in DevTools */
+    console.log("[Tracking] Update received:", {
+      status: data.status,
+      deliveryStatus: data.deliveryStatus,
+      pickupStep: data.pickupStep,
+      deliveryBoyId: data.deliveryBoyId,
+      deliveryBoyName: data.deliveryBoyName
+    });
+
+    /* Show LIVE indicator briefly on each update */
+    const liveDot = document.getElementById("liveDot");
+    liveDot.style.display = "inline-flex";
+    liveDot.style.animation = "none";
+    setTimeout(()=> liveDot.style.animation = "", 10);
+
+    updateHero(data);
+    renderTimeline(data);
     renderPartner(data);
     renderItems(data.items, data);
     renderAddress(data);
@@ -693,10 +788,12 @@ if(orderId){
       else
         deliveryMarker.setLatLng(pos);
 
-      const status = (data.status || "").toLowerCase();
-      if(status === "out for delivery" && custLat && custLng){
+      const step = data.pickupStep || 0;
+      if(step >= 1 && custLat && custLng){
+        /* After pickup → draw line to customer */
         drawLine({lat:data.deliveryLat,lng:data.deliveryLng}, {lat:custLat,lng:custLng});
       }else if(data.shopLat && data.shopLng){
+        /* Before pickup → draw line to shop */
         drawLine({lat:data.deliveryLat,lng:data.deliveryLng}, {lat:data.shopLat,lng:data.shopLng});
       }
     }
@@ -711,23 +808,26 @@ if(orderId){
 
     setTimeout(()=> map.invalidateSize(), 100);
 
-    /* CUSTOMER CONFIRM modal */
-    if(data.deliveryStatus === "WaitingCustomerConfirm" && !confirmShown){
+    /* CUSTOMER CONFIRM modal — show when driver marked delivered */
+    const dStatus = (data.deliveryStatus || "").toLowerCase();
+    const status = (data.status || "").toLowerCase();
+    if((dStatus === "waitingcustomerconfirm" || status === "waitingcustomerconfirm") && !confirmShown){
       confirmShown = true;
       setTimeout(()=> document.getElementById("confirmModal").classList.add("show"), 400);
     }
 
-    /* FIX: gentler auto-redirect after delivered (10s instead of 4) — gives user time to read */
-    const status = (data.status || "").toLowerCase();
+    /* Auto-redirect after delivered (10s) */
     if(status === "delivered" && !redirectTimer){
       redirectTimer = setTimeout(()=>{
-        location.href = "/local-shop/customer/order-history.html";
+        location.href = "/local-shop/customer/customer-order-history.html";
       }, 10000);
     }
+  }, (err)=>{
+    console.error("[Tracking] Listener error:", err);
+    showToast("Connection error. Refresh page.", true);
   });
 }
 
-/* CONFIRM HANDLERS */
 window.confirmDelivery = async (received)=>{
   document.getElementById("confirmModal").classList.remove("show");
   try{
@@ -736,7 +836,7 @@ window.confirmDelivery = async (received)=>{
         status:"Delivered", deliveryStatus:"Delivered"
       });
       showToast("✓ Order completed!");
-      setTimeout(()=> location.href = "/local-shop/customer/order-history.html", 1500);
+      setTimeout(()=> location.href = "/local-shop/customer/customer-order-history.html", 1500);
     }else{
       await updateDoc(doc(db,"orders",orderId), { deliveryStatus:"Issue" });
       showToast("Issue reported. We'll look into it.", true);
@@ -747,7 +847,6 @@ window.confirmDelivery = async (received)=>{
   }
 };
 
-/* FIX: report issue uses modal instead of confirm() */
 window.reportIssue = ()=>{
   if(!orderId){ showToast("No order to report", true); return; }
   document.getElementById("reportModal").classList.add("show");
@@ -767,12 +866,10 @@ window.contactSupport = ()=>{
   window.location.href = "mailto:support@localshop.com?subject=Order " + (orderId||"");
 };
 
-/* FIX: relative path */
 window.goHome = ()=> window.location.href = "/local-shop/index.html";
 
-/* Don't allow accidental modal close - require explicit choice */
 document.getElementById("confirmModal").addEventListener("click", (e)=>{
-  if(e.target.id === "confirmModal"){ /* explicitly do nothing */ }
+  if(e.target.id === "confirmModal"){ /* don't close on backdrop click — require explicit choice */ }
 });
 document.getElementById("reportModal").addEventListener("click", (e)=>{
   if(e.target.id === "reportModal") closeReport();
