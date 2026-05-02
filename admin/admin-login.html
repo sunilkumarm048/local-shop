@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Login · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;
+  min-height:100vh;overflow-x:hidden;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.heroSection{
+  background:linear-gradient(180deg,#1f1f1f 0%,#3a3a3a 100%);
+  padding:30px 20px 40px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.heroSection::before{
+  content:"";position:absolute;top:-30px;right:-30px;
+  width:140px;height:140px;border-radius:50%;
+  background:rgba(240,185,29,.1);
+}
+.heroSection::after{
+  content:"";position:absolute;bottom:-40px;left:-40px;
+  width:140px;height:140px;border-radius:50%;
+  background:rgba(12,131,31,.08);
+}
+
+.adminBadge{
+  width:70px;height:70px;border-radius:18px;
+  background:linear-gradient(135deg,#F8CD46,#F0B91D);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:36px;
+  box-shadow:0 6px 20px rgba(0,0,0,.3);
+  margin-bottom:14px;position:relative;z-index:1;
+}
+.heroTag{
+  font-size:11px;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;color:#F0B91D;margin-bottom:4px;
+  position:relative;z-index:1;
+}
+.heroTitle{
+  font-size:24px;font-weight:800;color:#fff;
+  letter-spacing:-.5px;line-height:1.2;
+  position:relative;z-index:1;
+}
+.heroSub{
+  font-size:13px;color:#bbb;margin-top:6px;
+  position:relative;z-index:1;
+}
+
+.container{
+  max-width:420px;margin:-22px auto 0;
+  padding:0 16px 30px;position:relative;z-index:2;
+}
+
+.card{
+  background:#fff;border-radius:16px;
+  padding:24px 20px;
+  box-shadow:0 4px 20px rgba(0,0,0,.08);
+}
+
+.formTitle{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:4px;}
+.formSub{font-size:12px;color:#666;margin-bottom:18px;}
+
+.field{margin-bottom:14px;}
+.fieldLabel{
+  display:block;font-size:11px;font-weight:600;
+  color:#666;margin-bottom:6px;letter-spacing:.2px;
+  text-transform:uppercase;
+}
+.inputWrap{
+  display:flex;align-items:stretch;
+  border:1.5px solid #e5e5e5;border-radius:10px;
+  background:#fafafa;overflow:hidden;
+  transition:all .15s;
+}
+.inputWrap.focused{border-color:#0C831F;background:#fff;}
+.inputWrap.error{border-color:#d23030;background:#fff5f5;}
+.inputWrap .icon{
+  padding:0 12px;display:flex;align-items:center;
+  font-size:16px;color:#888;background:#f0f0f0;
+  border-right:1.5px solid #e5e5e5;
+}
+.inputWrap.focused .icon{
+  background:#dcf3e1;color:#0C831F;border-right-color:#dcf3e1;
+}
+.inputField{
+  flex:1;border:none;background:transparent;
+  padding:12px 12px;font-size:14px;font-weight:500;
+  font-family:inherit;color:#1f1f1f;outline:none;
+  width:100%;min-width:0;
+}
+.toggleEye{
+  background:transparent;color:#888;
+  padding:0 12px;font-size:16px;
+  display:flex;align-items:center;
+}
+.toggleEye:active{transform:scale(.94);}
+
+.errorText{
+  display:none;font-size:11px;color:#d23030;
+  font-weight:500;margin-top:5px;
+}
+.errorText.show{display:block;}
+
+.forgotLink{
+  display:block;text-align:right;
+  font-size:12px;color:#0C831F;font-weight:600;
+  text-decoration:none;margin-top:-6px;margin-bottom:14px;
+}
+.forgotLink:hover{text-decoration:underline;}
+
+.btnLogin{
+  width:100%;background:#0C831F;color:#fff;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:800;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  position:relative;transition:all .12s;
+}
+.btnLogin:active{transform:scale(.98);}
+.btnLogin:hover{background:#0a6e1a;}
+.btnLogin:disabled{background:#a0d3a8;cursor:not-allowed;}
+.btnLogin.loading{color:transparent;}
+.btnLogin.loading::after{
+  content:"";position:absolute;
+  width:18px;height:18px;
+  border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+
+.divider{
+  display:flex;align-items:center;gap:10px;
+  margin:18px 0 14px;
+  color:#bbb;font-size:11px;
+}
+.divider::before, .divider::after{
+  content:"";flex:1;height:1px;background:#ececec;
+}
+
+.altLink{
+  display:block;text-align:center;
+  font-size:13px;color:#666;
+  padding:12px;border-radius:10px;
+  background:#fafafa;border:1px solid #ececec;
+  text-decoration:none;font-weight:500;
+  transition:all .15s;
+}
+.altLink:hover{background:#f0f0f0;}
+.altLink b{color:#0C831F;font-weight:700;}
+
+.backLink{
+  display:block;text-align:center;
+  font-size:12px;color:#999;font-weight:500;
+  text-decoration:none;margin-top:14px;
+}
+.backLink:hover{color:#1f1f1f;}
+
+.adminNote{
+  background:#fff5d6;border:1px solid #f0d76a;
+  border-radius:10px;padding:10px 12px;
+  font-size:11px;color:#8a6500;line-height:1.4;
+  margin-top:14px;display:flex;gap:8px;align-items:flex-start;
+}
+.adminNote .ic{font-size:14px;flex-shrink:0;}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(min-width:768px){
+  .heroSection{padding:50px 20px 60px;}
+  .heroTitle{font-size:28px;}
+  .container{margin-top:-30px;max-width:440px;}
+  .card{padding:30px 26px;}
+}
+</style>
+</head>
+
+<body>
+
+<section class="heroSection">
+  <div class="adminBadge">⚙️</div>
+  <div class="heroTag">Local Shop</div>
+  <div class="heroTitle">Admin Portal</div>
+  <div class="heroSub">Authorized personnel only</div>
+</section>
+
+<div class="container">
+  <div class="card">
+    <div class="formTitle">Sign in</div>
+    <div class="formSub">Use your authorized admin account</div>
+
+    <div class="field">
+      <label class="fieldLabel" for="email">Admin Email</label>
+      <div class="inputWrap" id="emailWrap">
+        <span class="icon">📧</span>
+        <input class="inputField" id="email" type="email" placeholder="admin@example.com" autocomplete="email">
+      </div>
+      <div class="errorText" id="emailError">Please enter a valid email</div>
+    </div>
+
+    <div class="field">
+      <label class="fieldLabel" for="password">Password</label>
+      <div class="inputWrap" id="pwdWrap">
+        <span class="icon">🔒</span>
+        <input class="inputField" id="password" type="password" placeholder="Enter password" autocomplete="current-password">
+        <button class="toggleEye" id="togglePwd" aria-label="Toggle password visibility">👁️</button>
+      </div>
+      <div class="errorText" id="pwdError">Password must be at least 6 characters</div>
+    </div>
+
+    <a href="javascript:void(0)" class="forgotLink" onclick="forgotPassword()">Forgot password?</a>
+
+    <button class="btnLogin" id="btnLogin" onclick="doLogin()">Sign in to Admin Panel →</button>
+
+    <div class="divider">OR</div>
+
+    <a href="register.html" class="altLink">
+      Don't have an admin account? <b>Register</b>
+    </a>
+
+    <div class="adminNote">
+      <span class="ic">ℹ️</span>
+      <span>Only whitelisted email addresses can register as admin. Contact a current admin to be added.</span>
+    </div>
+
+    <a href="/local-shop/index.html" class="backLink">← Back to Customer App</a>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { auth } from "../js/firebase.js";
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* ⚠️ ADMIN ACCESS WHITELIST — must match admin/dashboard.html */
+const ADMIN_EMAILS = [
+  "sunilkumarm048@gmail.com",
+];
+
+const toast = document.getElementById("toast");
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 3000);
+}
+
+/* If already logged in as admin, skip straight to dashboard */
+onAuthStateChanged(auth, (user)=>{
+  if(user && ADMIN_EMAILS.includes(user.email)){
+    location.href = "dashboard.html";
+  }
+});
+
+/* Input focus styling */
+["email", "password"].forEach(id=>{
+  const input = document.getElementById(id);
+  const wrap = input.closest(".inputWrap");
+  input.addEventListener("focus", ()=>{
+    wrap.classList.add("focused");
+    wrap.classList.remove("error");
+    input.parentElement.parentElement.querySelector(".errorText")?.classList.remove("show");
+  });
+  input.addEventListener("blur", ()=> wrap.classList.remove("focused"));
+});
+
+/* Show/hide password */
+document.getElementById("togglePwd").addEventListener("click", (e)=>{
+  e.preventDefault();
+  const pwd = document.getElementById("password");
+  const btn = document.getElementById("togglePwd");
+  if(pwd.type === "password"){
+    pwd.type = "text";
+    btn.textContent = "🙈";
+  }else{
+    pwd.type = "password";
+    btn.textContent = "👁️";
+  }
+});
+
+/* Submit on Enter */
+["email", "password"].forEach(id=>{
+  document.getElementById(id).addEventListener("keypress", (e)=>{
+    if(e.key === "Enter") doLogin();
+  });
+});
+
+window.doLogin = async ()=>{
+  const email = document.getElementById("email").value.trim();
+  const pwd   = document.getElementById("password").value;
+
+  let valid = true;
+  if(!email || !/.+@.+\..+/.test(email)){
+    document.getElementById("emailWrap").classList.add("error");
+    document.getElementById("emailError").classList.add("show");
+    valid = false;
+  }
+  if(pwd.length < 6){
+    document.getElementById("pwdWrap").classList.add("error");
+    document.getElementById("pwdError").classList.add("show");
+    valid = false;
+  }
+  if(!valid) return;
+
+  /* Quick whitelist check before hitting Firebase */
+  if(!ADMIN_EMAILS.includes(email.toLowerCase())){
+    showToast("⚠️ This email is not authorized as admin", true);
+    return;
+  }
+
+  const btn = document.getElementById("btnLogin");
+  btn.classList.add("loading");
+  btn.disabled = true;
+
+  try{
+    await signInWithEmailAndPassword(auth, email, pwd);
+    showToast("✓ Signed in successfully");
+    setTimeout(()=> location.href = "dashboard.html", 600);
+  }catch(err){
+    btn.classList.remove("loading");
+    btn.disabled = false;
+    console.error(err);
+    let msg = "Could not sign in. Please try again.";
+    if(err.code === "auth/user-not-found")          msg = "No account with this email. Please register first.";
+    else if(err.code === "auth/wrong-password")     msg = "Incorrect password. Please try again.";
+    else if(err.code === "auth/invalid-credential") msg = "Invalid email or password.";
+    else if(err.code === "auth/too-many-requests")  msg = "Too many attempts. Try again later.";
+    else if(err.code === "auth/network-request-failed") msg = "Network error. Check your connection.";
+    showToast(msg, true);
+  }
+};
+
+window.forgotPassword = async ()=>{
+  const email = document.getElementById("email").value.trim();
+  if(!email){
+    showToast("Enter your admin email above first", true);
+    document.getElementById("email").focus();
+    return;
+  }
+  if(!ADMIN_EMAILS.includes(email.toLowerCase())){
+    showToast("This email is not an admin account", true);
+    return;
+  }
+  try{
+    await sendPasswordResetEmail(auth, email);
+    showToast("✓ Reset link sent to " + email);
+  }catch(e){
+    console.error(e);
+    showToast("Could not send reset email", true);
+  }
+};
+</script>
+
+</body>
+</html>
