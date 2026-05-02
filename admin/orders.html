@@ -1,12 +1,722 @@
-
 <!DOCTYPE html>
-<html>
-<head><title>Orders</title></head>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>All Orders · Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#1f1f1f 0%,#3a3a3a 100%);
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);color:#fff;
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.1);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#fff;
+  border:1px solid rgba(255,255,255,.15);
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#fff;}
+.pageSub{font-size:12px;color:#bbb;margin-top:2px;}
+
+.searchWrap{margin:12px auto 0;max-width:1100px;position:relative;}
+.searchWrap input{
+  width:100%;padding:11px 14px 11px 38px;
+  border-radius:10px;border:1px solid rgba(255,255,255,.15);
+  font-size:13px;background:rgba(255,255,255,.08);color:#fff;
+  font-family:inherit;outline:none;
+}
+.searchWrap input::placeholder{color:rgba(255,255,255,.5);}
+.searchWrap input:focus{background:rgba(255,255,255,.15);border-color:#F0B91D;}
+.searchIcon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#bbb;}
+
+.tabs{
+  display:flex;gap:8px;
+  padding:12px 12px 4px;max-width:1100px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{
+  padding:8px 14px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);border-radius:22px;
+  font-size:12px;font-weight:600;color:#bbb;
+  white-space:nowrap;flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
+  transition:all .15s;
+}
+.tab.active{background:#F0B91D;color:#1f1f1f;border-color:#F0B91D;}
+.tabCount{
+  background:rgba(0,0,0,.15);
+  padding:1px 7px;border-radius:10px;
+  font-size:10px;font-weight:700;
+}
+
+.collectionTabs{
+  display:flex;gap:6px;
+  padding:6px 12px 0;max-width:1100px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
+}
+.collectionTabs::-webkit-scrollbar{display:none;}
+.colTab{
+  padding:6px 10px;
+  background:transparent;
+  border:1px solid rgba(255,255,255,.12);border-radius:8px;
+  font-size:11px;font-weight:600;color:#bbb;
+  white-space:nowrap;flex-shrink:0;
+  transition:all .15s;
+}
+.colTab.active{background:rgba(240,185,29,.15);color:#F0B91D;border-color:#F0B91D;}
+
+.container{max-width:1100px;margin:0 auto;padding:14px 12px 0;}
+
+.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.summaryCard{
+  background:#fff;border-radius:10px;padding:10px 6px;text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.summaryValue{font-size:16px;font-weight:800;color:#1f1f1f;line-height:1.1;}
+.summaryLabel{font-size:9px;color:#666;font-weight:600;margin-top:3px;letter-spacing:.2px;text-transform:uppercase;}
+.summaryValue.green{color:#0C831F;}
+.summaryValue.orange{color:#b65800;}
+
+.orderCard{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border:1px solid #ececec;
+  transition:all .15s;
+}
+.orderCard.transport{border-left:4px solid #1857c1;}
+.orderCard.split{border-left:4px solid #F0B91D;}
+
+.orderTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.orderTopL{flex:1;min-width:0;line-height:1.3;}
+.orderHeading{font-size:14px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.orderId{font-size:10px;font-family:monospace;color:#999;margin-top:2px;}
+.orderTotal{
+  font-size:18px;font-weight:800;color:#0C831F;
+  flex-shrink:0;line-height:1;
+}
+
+.orderBadges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.statusPill{
+  padding:3px 8px;border-radius:14px;
+  font-size:9px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.3px;
+}
+.pill-pending{background:#fff5d6;color:#8a6500;}
+.pill-accepted{background:#dcf3e1;color:#0C831F;}
+.pill-ready{background:#dbe9ff;color:#1857c1;}
+.pill-out{background:#ffe8d1;color:#b65800;}
+.pill-delivered{background:#e8d6f7;color:#6b21a8;}
+.pill-rejected{background:#fde0e0;color:#c41818;}
+.pill-cancelled{background:#f0f0f0;color:#666;}
+.pill-confirm{background:#d6f0ff;color:#1857c1;}
+
+.vehicleBadge{
+  background:#dbe9ff;color:#1857c1;
+  padding:3px 8px;border-radius:14px;
+  font-size:9px;font-weight:800;
+  display:inline-flex;align-items:center;gap:3px;
+}
+.colBadge{
+  background:#f0f0f0;color:#666;
+  padding:3px 8px;border-radius:14px;
+  font-size:9px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.3px;
+}
+.colBadge.transport{background:#dbe9ff;color:#1857c1;}
+.colBadge.split{background:#fff5d6;color:#8a6500;}
+
+.orderMeta{
+  background:#fafafa;border-radius:10px;padding:10px 12px;
+  font-size:12px;color:#444;
+}
+.metaRow{display:flex;gap:10px;align-items:flex-start;padding:3px 0;}
+.metaRow .ic{font-size:13px;flex-shrink:0;width:18px;}
+.metaRow .lbl{color:#999;width:60px;flex-shrink:0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.2px;padding-top:1px;}
+.metaRow .val{flex:1;color:#1f1f1f;font-weight:500;line-height:1.3;
+  word-break:break-word;}
+
+.orderBottom{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:10px;gap:8px;
+}
+.orderTime{font-size:11px;color:#888;font-weight:500;}
+.expandBtn{
+  background:transparent;color:#0C831F;
+  font-size:11px;font-weight:700;padding:6px 10px;
+  border:1px solid #b3e5bf;border-radius:7px;
+  letter-spacing:.2px;
+}
+.expandBtn:active{transform:scale(.96);}
+
+.orderDetails{
+  display:none;
+  margin-top:10px;padding-top:10px;
+  border-top:1px dashed #e5e5e5;
+}
+.orderDetails.show{display:block;}
+
+.itemRow{
+  display:flex;justify-content:space-between;
+  padding:5px 0;font-size:12px;
+  border-bottom:1px dashed #f4f4f4;
+}
+.itemRow:last-child{border-bottom:none;}
+.itemRow .iName{flex:1;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.itemRow .iQty{color:#888;margin:0 6px;font-weight:600;}
+.itemRow .iAmt{font-weight:700;color:#1f1f1f;flex-shrink:0;}
+
+.subSection{
+  margin-top:10px;padding-top:8px;
+  border-top:1px solid #f4f4f4;
+}
+.subTitle{
+  font-size:10px;font-weight:700;color:#999;
+  text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;
+}
+
+.dangerBtn{
+  background:#fff;color:#d23030;
+  border:1.5px solid #ffd2d2;padding:8px 12px;border-radius:7px;
+  font-size:11px;font-weight:700;
+  margin-top:10px;width:100%;
+}
+.dangerBtn:hover{background:#fff5f5;}
+
+.empty{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;line-height:1.5;}
+
+.skel{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.skelLine{
+  height:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:6px;margin-bottom:10px;
+}
+.skelLine.short{width:50%;}
+.skelLine.med{width:75%;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
+}
+.modalBg.show{display:flex;}
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary{flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger{flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:380px;}
+}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
+}
+@media(min-width:900px){
+  .orderList{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .orderCard{margin-bottom:0;}
+}
+</style>
+</head>
+
 <body>
 
-<h2>All Orders</h2>
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">📦 All Orders</div>
+      <div class="pageSub" id="headerSub">Loading…</div>
+    </div>
+  </div>
 
-<p>Admin order monitoring</p>
+  <div class="searchWrap">
+    <span class="searchIcon">🔍</span>
+    <input id="search" placeholder="Search by customer, phone, shop, or order ID…" oninput="onSearch()">
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-filter="all">All <span class="tabCount" id="cntAll">0</span></div>
+    <div class="tab" data-filter="pending">⏳ Pending <span class="tabCount" id="cntPending">0</span></div>
+    <div class="tab" data-filter="active">🚀 Active <span class="tabCount" id="cntActive">0</span></div>
+    <div class="tab" data-filter="delivered">✓ Delivered <span class="tabCount" id="cntDelivered">0</span></div>
+    <div class="tab" data-filter="cancelled">✕ Cancelled <span class="tabCount" id="cntCancelled">0</span></div>
+  </div>
+
+  <div class="collectionTabs">
+    <div class="colTab active" data-col="all">All Types</div>
+    <div class="colTab" data-col="orders">🛵 Bike</div>
+    <div class="colTab" data-col="transport-orders">🚛 Transport</div>
+    <div class="colTab" data-col="split-orders">🔀 Split</div>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="summary">
+    <div class="summaryCard">
+      <div class="summaryValue" id="sumTotal">—</div>
+      <div class="summaryLabel">Total</div>
+    </div>
+    <div class="summaryCard">
+      <div class="summaryValue green" id="sumRevenue">—</div>
+      <div class="summaryLabel">Revenue</div>
+    </div>
+    <div class="summaryCard">
+      <div class="summaryValue orange" id="sumActive">—</div>
+      <div class="summaryLabel">Active</div>
+    </div>
+    <div class="summaryCard">
+      <div class="summaryValue" id="sumToday">—</div>
+      <div class="summaryLabel">Today</div>
+    </div>
+  </div>
+
+  <div id="orders" class="orderList">
+    <div class="skel"><div class="skelLine med"></div><div class="skelLine short"></div><div class="skelLine"></div></div>
+    <div class="skel"><div class="skelLine med"></div><div class="skelLine short"></div><div class="skelLine"></div></div>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon" id="modalIcon">❓</div>
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalMsg">This action cannot be undone.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeModal()">Cancel</button>
+      <button class="btnDanger" id="modalConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  collection, onSnapshot, doc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const ADMIN_EMAILS = ["sunilkumarm048@gmail.com"];
+
+const ordersDiv = document.getElementById("orders");
+const headerSub = document.getElementById("headerSub");
+const toast = document.getElementById("toast");
+
+/* Cache by collection so re-renders are fast */
+let cache = { "orders": [], "split-orders": [], "transport-orders": [] };
+let firstLoad = { "orders": false, "split-orders": false, "transport-orders": false };
+
+let currentStatus = "all";
+let currentCol = "all";
+let searchTerm = "";
+let expanded = new Set();
+
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+let confirmCb = null;
+function openModal({icon="❓", title, msg, confirmText="Confirm", danger=true, onConfirm}){
+  document.getElementById("modalIcon").textContent  = icon;
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent   = msg;
+  const btn = document.getElementById("modalConfirmBtn");
+  btn.textContent = confirmText;
+  btn.className = danger ? "btnDanger" : "btnPrimary";
+  confirmCb = onConfirm;
+  document.getElementById("confirmModal").classList.add("show");
+}
+window.closeModal = ()=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  confirmCb = null;
+};
+document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
+  if(confirmCb) confirmCb();
+  closeModal();
+});
+document.getElementById("confirmModal").addEventListener("click",(e)=>{
+  if(e.target.id === "confirmModal") closeModal();
+});
+
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    currentStatus = tab.dataset.filter;
+    render();
+  });
+});
+document.querySelectorAll(".colTab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".colTab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    currentCol = tab.dataset.col;
+    render();
+  });
+});
+
+window.onSearch = ()=>{
+  searchTerm = document.getElementById("search").value.toLowerCase().trim();
+  render();
+};
+
+window.goBack = ()=> location.href = "dashboard.html";
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user || !ADMIN_EMAILS.includes(user.email)){
+    showToast("Admin access required", true);
+    setTimeout(()=> location.href = "/local-shop/index.html", 1000);
+    return;
+  }
+  startListeners();
+});
+
+function startListeners(){
+  ["orders", "split-orders", "transport-orders"].forEach(col=>{
+    onSnapshot(collection(db, col), (snap)=>{
+      cache[col] = [];
+      snap.forEach(d=>{
+        cache[col].push({ ...d.data(), __id: d.id, __col: col });
+      });
+      firstLoad[col] = true;
+
+      if(firstLoad["orders"] && firstLoad["split-orders"] && firstLoad["transport-orders"]){
+        updateSummary();
+        render();
+      }
+    }, (err)=>{
+      console.error(`Could not load ${col}:`, err);
+      firstLoad[col] = true;
+    });
+  });
+}
+
+function getAll(){
+  return [...cache["orders"], ...cache["split-orders"], ...cache["transport-orders"]];
+}
+
+function statusBucket(o){
+  const status = (o.status || "").toLowerCase();
+  const dStatus = (o.deliveryStatus || "").toLowerCase();
+  if(status === "rejected" || status === "cancelled" || dStatus === "cancelled") return "cancelled";
+  if(status === "delivered" || dStatus === "delivered" || dStatus === "completed") return "delivered";
+  if(status === "pending") return "pending";
+  return "active";  // accepted, ready, out for delivery, waitingcustomerconfirm
+}
+
+function getStatusPill(o){
+  const status = (o.status || "Pending").toLowerCase();
+  const dStatus = (o.deliveryStatus || "").toLowerCase();
+
+  if(status === "rejected") return { cls:"pill-rejected", txt:"Rejected" };
+  if(status === "cancelled" || dStatus === "cancelled") return { cls:"pill-cancelled", txt:"Cancelled" };
+  if(status === "delivered" || dStatus === "delivered" || dStatus === "completed") return { cls:"pill-delivered", txt:"Delivered" };
+  if(status === "waitingcustomerconfirm" || dStatus === "waitingcustomerconfirm") return { cls:"pill-confirm", txt:"Awaiting Confirm" };
+  if(status === "out for delivery") return { cls:"pill-out", txt:"Out for Delivery" };
+  if(status === "ready") return { cls:"pill-ready", txt:"Ready" };
+  if(status === "accepted") return { cls:"pill-accepted", txt:"Accepted" };
+  return { cls:"pill-pending", txt:"Pending" };
+}
+
+function updateSummary(){
+  const all = getAll();
+  let total = all.length;
+  let revenue = 0, active = 0, today = 0;
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+
+  let cntPending = 0, cntActive = 0, cntDelivered = 0, cntCancelled = 0;
+
+  all.forEach(o=>{
+    const bucket = statusBucket(o);
+    if(bucket === "delivered"){
+      revenue += Number(o.grandTotal || o.total || 0);
+      cntDelivered++;
+    }else if(bucket === "active"){
+      active++;
+      cntActive++;
+    }else if(bucket === "pending"){
+      cntPending++;
+    }else if(bucket === "cancelled"){
+      cntCancelled++;
+    }
+
+    const t = o.time?.toDate ? o.time.toDate() : new Date(o.time || 0);
+    if(t >= todayStart) today++;
+  });
+
+  document.getElementById("sumTotal").textContent   = total;
+  document.getElementById("sumRevenue").textContent = "₹" + Math.round(revenue).toLocaleString("en-IN");
+  document.getElementById("sumActive").textContent  = active;
+  document.getElementById("sumToday").textContent   = today;
+
+  document.getElementById("cntAll").textContent       = total;
+  document.getElementById("cntPending").textContent   = cntPending;
+  document.getElementById("cntActive").textContent    = cntActive;
+  document.getElementById("cntDelivered").textContent = cntDelivered;
+  document.getElementById("cntCancelled").textContent = cntCancelled;
+
+  headerSub.textContent = total === 0
+    ? "No orders yet"
+    : `${total} order${total!==1?"s":""} on the platform`;
+}
+
+function render(){
+  let visible = getAll();
+
+  /* Collection filter */
+  if(currentCol !== "all"){
+    visible = visible.filter(o => o.__col === currentCol);
+  }
+
+  /* Status filter */
+  if(currentStatus !== "all"){
+    visible = visible.filter(o => statusBucket(o) === currentStatus);
+  }
+
+  /* Search */
+  if(searchTerm){
+    visible = visible.filter(o=>{
+      return (o.name||"").toLowerCase().includes(searchTerm)
+          || (o.phone||"").toLowerCase().includes(searchTerm)
+          || (o.shopName||"").toLowerCase().includes(searchTerm)
+          || (o.__id||"").toLowerCase().includes(searchTerm)
+          || (o.deliveryBoyName||"").toLowerCase().includes(searchTerm);
+    });
+  }
+
+  /* Sort newest first */
+  visible.sort((a,b)=>{
+    const ta = a.time?.toDate ? a.time.toDate().getTime() : new Date(a.time||0).getTime();
+    const tb = b.time?.toDate ? b.time.toDate().getTime() : new Date(b.time||0).getTime();
+    return tb - ta;
+  });
+
+  if(visible.length === 0){
+    let icon="📦", title="No orders found", msg="No orders match your filters.";
+    if(searchTerm){ icon="🔍"; title="No matches"; msg="Try a different search term."; }
+    ordersDiv.innerHTML = `<div class="empty"><div class="icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`;
+    return;
+  }
+
+  let html = "";
+  visible.forEach(o=>{
+    const id = o.__id;
+    const col = o.__col;
+    const isTransport = col === "transport-orders";
+    const isSplit = col === "split-orders";
+    const pill = getStatusPill(o);
+    const isExpanded = expanded.has(id);
+
+    const cls = isTransport ? "transport" : (isSplit ? "split" : "");
+
+    const colBadge = isTransport
+      ? `<span class="colBadge transport">🚛 Transport</span>`
+      : (isSplit ? `<span class="colBadge split">🔀 Split</span>` : `<span class="colBadge">🛵 Bike</span>`);
+
+    const vehicleBadge = o.vehicleType && o.vehicleType !== "bike"
+      ? `<span class="vehicleBadge">${o.vehicleIcon || "🚛"} ${escapeHtml(o.vehicleName || o.vehicleType)}</span>`
+      : "";
+
+    const time = o.time?.toDate ? o.time.toDate() : (o.time ? new Date(o.time) : null);
+    const timeStr = time ? formatTime(time) : "—";
+
+    /* Build details panel */
+    let details = `<div class="orderDetails ${isExpanded?'show':''}" id="dt-${id}">`;
+
+    if(o.items && o.items.length){
+      details += `<div class="subTitle">Items (${o.items.length})</div>`;
+      o.items.forEach(it=>{
+        const lineTotal = (Number(it.price)||0) * (it.qty||1);
+        details += `
+          <div class="itemRow">
+            <div class="iName">${escapeHtml(it.name||"Item")}${it.weight ? " · "+escapeHtml(it.weight) : ""}</div>
+            <div class="iQty">× ${it.qty||1}</div>
+            <div class="iAmt">₹${lineTotal}</div>
+          </div>`;
+      });
+    }
+
+    if(isTransport){
+      details += `<div class="subSection">`;
+      details += `<div class="subTitle">Pickup</div>`;
+      details += `<div style="font-size:12px;color:#1f1f1f;line-height:1.4;">${escapeHtml(o.pickupAddress||"—")}</div>`;
+      if(o.pickupContactName || o.pickupContactPhone){
+        details += `<div style="font-size:11px;color:#666;margin-top:2px;">${escapeHtml(o.pickupContactName||"")}${o.pickupContactPhone?" · "+escapeHtml(o.pickupContactPhone):""}</div>`;
+      }
+      details += `</div>`;
+
+      details += `<div class="subSection">`;
+      details += `<div class="subTitle">Drop</div>`;
+      details += `<div style="font-size:12px;color:#1f1f1f;line-height:1.4;">${escapeHtml(o.dropAddress||"—")}</div>`;
+      if(o.dropContactName || o.dropContactPhone){
+        details += `<div style="font-size:11px;color:#666;margin-top:2px;">${escapeHtml(o.dropContactName||"")}${o.dropContactPhone?" · "+escapeHtml(o.dropContactPhone):""}</div>`;
+      }
+      details += `</div>`;
+    }
+
+    if(o.deliveryBoyName){
+      details += `<div class="subSection">`;
+      details += `<div class="subTitle">Delivery Partner</div>`;
+      details += `<div style="font-size:12px;color:#1f1f1f;font-weight:600;">${escapeHtml(o.deliveryBoyName)}</div>`;
+      if(o.deliveryBoyPhone){
+        details += `<div style="font-size:11px;color:#666;margin-top:1px;">📞 ${escapeHtml(o.deliveryBoyPhone)}</div>`;
+      }
+      if(o.deliveryVehicle){
+        details += `<div style="font-size:11px;color:#666;">🚗 ${escapeHtml(o.deliveryVehicle)}</div>`;
+      }
+      details += `</div>`;
+    }
+
+    /* Force cancel button */
+    const canCancel = !["delivered", "cancelled", "rejected"].includes(statusBucket(o));
+    if(canCancel){
+      details += `<button class="dangerBtn" onclick="forceCancel('${id}','${col}')">⚠️ Force Cancel (Admin Override)</button>`;
+    }
+
+    details += `</div>`;
+
+    html += `
+      <div class="orderCard ${cls}">
+        <div class="orderTop">
+          <div class="orderTopL">
+            <div class="orderHeading">${escapeHtml(o.name || "Customer")}</div>
+            <div class="orderId">${id.slice(0,12)}…</div>
+          </div>
+          <div class="orderTotal">₹${o.grandTotal || o.total || 0}</div>
+        </div>
+
+        <div class="orderBadges">
+          <span class="statusPill ${pill.cls}">${pill.txt}</span>
+          ${colBadge}
+          ${vehicleBadge}
+        </div>
+
+        <div class="orderMeta">
+          <div class="metaRow"><span class="ic">🏪</span><span class="lbl">Shop</span><span class="val">${escapeHtml(o.shopName||"—")}</span></div>
+          <div class="metaRow"><span class="ic">📞</span><span class="lbl">Phone</span><span class="val">${escapeHtml(o.phone||"—")}</span></div>
+          <div class="metaRow"><span class="ic">📍</span><span class="lbl">Address</span><span class="val">${escapeHtml(o.address || o.dropAddress || "—")}</span></div>
+        </div>
+
+        <div class="orderBottom">
+          <div class="orderTime">🕒 ${timeStr}</div>
+          <button class="expandBtn" onclick="toggleExpand('${id}')">${isExpanded ? "Hide ▴" : "Details ▾"}</button>
+        </div>
+
+        ${details}
+      </div>`;
+  });
+  ordersDiv.innerHTML = html;
+}
+
+window.toggleExpand = (id)=>{
+  if(expanded.has(id)) expanded.delete(id);
+  else expanded.add(id);
+  const el = document.getElementById("dt-"+id);
+  if(el) el.classList.toggle("show");
+
+  /* Update button text without full re-render */
+  const btn = el?.previousElementSibling?.querySelector(".expandBtn");
+  if(btn) btn.textContent = expanded.has(id) ? "Hide ▴" : "Details ▾";
+};
+
+window.forceCancel = (id, col)=>{
+  openModal({
+    icon:"⚠️",
+    title:"Force cancel this order?",
+    msg:"This is an admin emergency override. The order will be marked as cancelled regardless of its current state. Use only for stuck orders or refund cases.",
+    confirmText:"Yes, Force Cancel",
+    danger:true,
+    onConfirm: async ()=>{
+      try{
+        await updateDoc(doc(db, col, id), {
+          status:"Cancelled",
+          deliveryStatus:"Cancelled",
+          cancelledByAdmin:true,
+          cancelledAt: new Date()
+        });
+        showToast("Order force-cancelled");
+      }catch(e){
+        console.error(e);
+        showToast("Could not cancel order", true);
+      }
+    }
+  });
+};
+
+function formatTime(date){
+  const now = new Date();
+  const diff = now - date;
+  if(diff < 60_000) return "Just now";
+  if(diff < 3600_000) return Math.floor(diff/60_000) + " min ago";
+  if(diff < 86400_000) return Math.floor(diff/3600_000) + " hr ago";
+  if(diff < 7*86400_000){
+    return date.toLocaleDateString("en-IN", { weekday:"short", hour:"numeric", minute:"2-digit" });
+  }
+  return date.toLocaleDateString("en-IN", { day:"numeric", month:"short", hour:"numeric", minute:"2-digit" });
+}
+</script>
 
 </body>
 </html>
