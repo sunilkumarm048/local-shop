@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Local Shop</title>
+<title>Manage Products · Admin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,195 +10,74 @@
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
-html,body{
-  font-family:'Inter',Arial,sans-serif;
-  background:#fafafa;color:#1f1f1f;
-  overflow-x:hidden;
-}
-body{padding-bottom:90px;}
-
-img{display:block;max-width:100%;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
 button{font-family:inherit;cursor:pointer;border:none;}
+img{display:block;max-width:100%;}
 
 .header{
-  background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
-  padding:14px 16px 12px;
-  position:sticky;top:0;z-index:1000;
-  box-shadow:0 1px 4px rgba(0,0,0,.08);
+  background:linear-gradient(180deg,#1f1f1f 0%,#3a3a3a 100%);
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);color:#fff;
 }
-.topBar{display:flex;align-items:center;gap:12px;max-width:1280px;margin:0 auto;}
-.brand{font-size:22px;font-weight:800;color:#1f1f1f;letter-spacing:-.5px;flex-shrink:0;}
-.brand span{color:#fff;}
-
-.deliveryInfo{flex:1;min-width:0;line-height:1.15;}
-.deliveryTime{font-size:15px;font-weight:800;color:#1f1f1f;}
-.location{
-  font-size:13px;color:#3a3a3a;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  display:flex;align-items:center;gap:3px;margin-top:2px;
-}
-.location .arrow{font-size:10px;}
-
-.profileWrap{position:relative;flex-shrink:0;}
-.profileBtn{
+.topBar{display:flex;align-items:center;gap:12px;max-width:1200px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.1);
   width:38px;height:38px;border-radius:50%;
-  background:rgba(255,255,255,.45);
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;border:none;
-  transition:all .15s;position:relative;z-index:1002;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#fff;
+  border:1px solid rgba(255,255,255,.15);
 }
-.profileBtn:hover{background:rgba(255,255,255,.6);}
-.profileBtn:active{transform:scale(.94);}
-.profileBtn.open{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#fff;}
+.pageSub{font-size:12px;color:#bbb;margin-top:2px;}
 
-.profileDropdown{
-  position:absolute;top:48px;right:0;
-  background:#fff;border-radius:14px;
-  box-shadow:0 8px 28px rgba(0,0,0,.18);
-  min-width:280px;max-width:90vw;
-  opacity:0;pointer-events:none;
-  transform:translateY(-8px) scale(.96);
-  transition:all .2s ease;
-  z-index:1003;overflow:hidden;
-}
-.profileDropdown.show{opacity:1;pointer-events:auto;transform:translateY(0) scale(1);}
-
-.dropdownHeader{
-  padding:14px 16px;
-  background:linear-gradient(135deg,#F8CD46 0%,#F0B91D 100%);
-  color:#1f1f1f;
-}
-.dropdownTitle{font-size:14px;font-weight:800;margin-bottom:2px;}
-.dropdownSub{font-size:11px;font-weight:500;opacity:.8;}
-
-.dropdownSection{padding:6px 0;border-bottom:1px solid #f0f0f0;}
-.dropdownSection:last-child{border-bottom:none;}
-
-.dropdownLabel{
-  font-size:10px;font-weight:700;color:#999;
-  letter-spacing:.5px;text-transform:uppercase;
-  padding:8px 16px 4px;
-}
-
-.dropdownItem{
-  display:flex;align-items:center;gap:12px;
-  padding:11px 16px;text-decoration:none;color:#1f1f1f;
-  font-size:14px;font-weight:600;
-  transition:background .15s;cursor:pointer;
-  border:none;background:transparent;
-  width:100%;text-align:left;font-family:inherit;
-}
-.dropdownItem:hover{background:#f8f8f8;}
-.dropdownItem:active{background:#f0f0f0;}
-
-.itemIcon{
-  width:36px;height:36px;border-radius:10px;
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;flex-shrink:0;
-}
-.itemIcon.shop    {background:#fff5d6;}
-.itemIcon.delivery{background:#dcf3e1;}
-.itemIcon.cart    {background:#dbe9ff;}
-.itemIcon.orders  {background:#e8d6f7;}
-.itemIcon.history {background:#ffe8d1;}
-.itemIcon.nearby  {background:#d6f0ff;}
-.itemIcon.help    {background:#ffe0e0;}
-
-.itemContent{flex:1;min-width:0;line-height:1.3;}
-.itemTitle{font-size:13px;font-weight:700;color:#1f1f1f;}
-.itemSub{font-size:11px;color:#888;margin-top:1px;}
-.itemArrow{color:#bbb;font-size:14px;margin-left:4px;}
-
-.searchWrap{
-  margin-top:12px;
-  max-width:1280px;margin-left:auto;margin-right:auto;
-  position:relative;
-}
+.searchWrap{margin:12px auto 0;max-width:1200px;position:relative;}
 .searchWrap input{
-  width:100%;padding:13px 14px 13px 42px;
-  border-radius:12px;border:1px solid rgba(0,0,0,.08);
-  font-size:14px;background:#fff;
+  width:100%;padding:11px 14px 11px 38px;
+  border-radius:10px;border:1px solid rgba(255,255,255,.15);
+  font-size:13px;background:rgba(255,255,255,.08);color:#fff;
   font-family:inherit;outline:none;
 }
-.searchWrap input:focus{border-color:#0C831F;}
-.searchIcon{
-  position:absolute;left:14px;top:50%;
-  transform:translateY(-50%);
-  font-size:16px;color:#666;
-}
+.searchWrap input::placeholder{color:rgba(255,255,255,.5);}
+.searchWrap input:focus{background:rgba(255,255,255,.15);border-color:#F0B91D;}
+.searchIcon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#bbb;}
 
-.container{max-width:1280px;margin:0 auto;padding:0 12px;}
-.section{padding:14px 0 4px;}
-.sectionHeader{
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:10px;padding:0 4px;
+.shopFilterWrap{
+  margin:10px auto 0;max-width:1200px;
+  display:flex;gap:8px;align-items:center;
+  overflow-x:auto;padding:0 0 4px;scrollbar-width:none;
 }
-.sectionTitle{font-size:17px;font-weight:700;color:#1f1f1f;letter-spacing:-.2px;}
-
-.catScroll{
-  display:flex;gap:8px;
-  overflow-x:auto;padding:2px 4px 6px;
-  scroll-behavior:smooth;
-}
-.catScroll::-webkit-scrollbar{display:none;}
-.catScroll{scrollbar-width:none;}
-
-.catChip{
-  padding:8px 14px;background:#fff;
-  border:1px solid #e5e5e5;border-radius:22px;
-  font-size:13px;font-weight:600;
-  white-space:nowrap;cursor:pointer;
-  color:#444;transition:all .15s;flex-shrink:0;
+.shopFilterWrap::-webkit-scrollbar{display:none;}
+.shopChip{
+  padding:7px 12px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);border-radius:18px;
+  font-size:11px;font-weight:600;color:#bbb;
+  white-space:nowrap;flex-shrink:0;
   display:flex;align-items:center;gap:5px;
+  transition:all .15s;
 }
-.catChip.active{background:#0C831F;color:#fff;border-color:#0C831F;}
-.catChip .chipIcon{font-size:14px;}
+.shopChip.active{background:#F0B91D;color:#1f1f1f;border-color:#F0B91D;}
+.shopChip .ic{font-size:12px;}
 
-.shopScroll{
-  display:flex;gap:10px;
-  overflow-x:auto;padding:2px 4px 8px;
-}
-.shopScroll::-webkit-scrollbar{display:none;}
-.shopScroll{scrollbar-width:none;}
+.container{max-width:1200px;margin:0 auto;padding:14px 12px 0;}
 
-.shopCard{
-  min-width:110px;
-  background:#fff;border:1px solid #ececec;
-  border-radius:12px;padding:10px 8px;
-  text-align:center;cursor:pointer;
-  transition:all .15s;flex-shrink:0;
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.summaryCard{
+  background:#fff;border-radius:12px;padding:12px 8px;text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
-.shopCard:hover, .shopCard.active{
-  border-color:#0C831F;
-  box-shadow:0 2px 8px rgba(12,131,31,.12);
-}
-.shopCard.active{background:#f0fbf2;}
-
-.shopIcon{
-  width:46px;height:46px;border-radius:50%;
-  background:#fff5d6;
-  display:flex;align-items:center;justify-content:center;
-  margin:0 auto 6px;font-size:22px;
-}
-
-.shopName{
-  font-size:12px;font-weight:600;
-  color:#1f1f1f;line-height:1.2;
-  display:-webkit-box;-webkit-line-clamp:2;
-  -webkit-box-orient:vertical;overflow:hidden;
-}
-.shopType{
-  font-size:10px;color:#888;margin-top:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
+.summaryValue{font-size:18px;font-weight:800;color:#1f1f1f;line-height:1.1;}
+.summaryLabel{font-size:10px;color:#666;font-weight:600;margin-top:4px;letter-spacing:.2px;text-transform:uppercase;}
 
 .products{
   display:grid;grid-template-columns:repeat(2,1fr);
-  gap:10px;padding:0 4px;
+  gap:10px;
 }
 @media(min-width:520px){.products{grid-template-columns:repeat(3,1fr);gap:12px;}}
-@media(min-width:768px){.products{grid-template-columns:repeat(4,1fr);gap:14px;}}
+@media(min-width:768px){.products{grid-template-columns:repeat(4,1fr);}}
 @media(min-width:1024px){.products{grid-template-columns:repeat(5,1fr);}}
 @media(min-width:1280px){.products{grid-template-columns:repeat(6,1fr);}}
 
@@ -224,11 +103,13 @@ button{font-family:inherit;cursor:pointer;border:none;}
   padding:2px 6px;border-radius:0 0 4px 4px;
 }
 
-.deliveryBadge{
+.shopBadge{
   display:inline-flex;align-items:center;gap:3px;
-  font-size:9px;color:#666;background:#f0f0f0;
-  padding:2px 5px;border-radius:4px;
-  font-weight:600;margin-bottom:5px;width:fit-content;
+  font-size:9px;color:#1857c1;background:#dbe9ff;
+  padding:2px 6px;border-radius:4px;
+  font-weight:700;margin-bottom:5px;width:fit-content;
+  max-width:100%;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 
 .cardName{
@@ -238,117 +119,97 @@ button{font-family:inherit;cursor:pointer;border:none;}
   -webkit-box-orient:vertical;overflow:hidden;
   min-height:32px;
 }
-.cardWeight{font-size:11px;color:#888;margin-bottom:8px;}
+.cardWeight{font-size:11px;color:#888;margin-bottom:6px;}
 
 .priceRow{
   display:flex;justify-content:space-between;
-  align-items:center;margin-top:auto;gap:6px;
+  align-items:center;margin-bottom:6px;gap:6px;
 }
-.priceBlock{flex:1;min-width:0;}
 .price{font-size:14px;font-weight:700;color:#1f1f1f;}
 .mrp{font-size:11px;color:#888;text-decoration:line-through;margin-left:3px;}
 
-.addBtn{
-  background:#fff;color:#0C831F;
-  border:1px solid #0C831F;border-radius:7px;
-  padding:6px 14px;font-size:12px;font-weight:700;
-  cursor:pointer;font-family:inherit;
-  letter-spacing:.5px;transition:all .12s;
-  text-transform:uppercase;min-width:62px;
+.cardActions{
+  display:flex;gap:6px;margin-top:auto;
 }
-.addBtn:hover{background:#f0fbf2;}
-.addBtn:active{transform:scale(.96);}
-
-.qtyBox{
-  display:flex;align-items:center;
-  background:#0C831F;color:#fff;
-  border-radius:7px;overflow:hidden;min-width:62px;
+.actionBtn{
+  flex:1;padding:7px 8px;border-radius:7px;
+  font-size:11px;font-weight:700;letter-spacing:.2px;
+  display:flex;align-items:center;justify-content:center;gap:4px;
+  transition:all .12s;
 }
-.qtyBox button{
-  background:transparent;border:none;color:#fff;
-  width:22px;height:30px;font-size:16px;font-weight:700;
-  cursor:pointer;font-family:inherit;
-}
-.qtyBox span{flex:1;text-align:center;font-size:13px;font-weight:700;}
+.actionBtn:active{transform:scale(.96);}
+.btn-delete{background:#fff;color:#d23030;border:1px solid #ffd2d2;}
+.btn-delete:hover{background:#fff5f5;}
 
 .empty{
-  text-align:center;padding:40px 20px;
-  color:#777;font-size:14px;grid-column:1/-1;
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;margin-top:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  grid-column:1/-1;
 }
-.empty .emoji{font-size:48px;margin-bottom:12px;}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;line-height:1.5;}
 
-.cartBar{
-  position:fixed;bottom:0;left:0;right:0;
-  background:#0C831F;color:#fff;padding:12px 16px;
-  display:flex;justify-content:space-between;align-items:center;
-  cursor:pointer;z-index:999;
-  transform:translateY(100%);
-  transition:transform .25s ease;
-  box-shadow:0 -2px 12px rgba(0,0,0,.15);
-}
-.cartBar.show{transform:translateY(0);}
-
-.cartLeft{display:flex;flex-direction:column;line-height:1.2;}
-.cartItems{font-size:13px;font-weight:600;opacity:.9;}
-.cartTotal{font-size:16px;font-weight:800;}
-.cartRight{
-  display:flex;align-items:center;gap:6px;
-  font-size:14px;font-weight:700;
-}
-
-.skeleton{
-  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
-  background-size:200% 100%;
-  animation:shimmer 1.4s infinite;
-  border-radius:8px;
-}
-@keyframes shimmer{
-  0%{background-position:200% 0;}
-  100%{background-position:-200% 0;}
-}
-
-.skeletonCard{
+.skel{
   background:#fff;border:1px solid #ececec;
   border-radius:12px;padding:8px;
 }
-.skeletonCard .skeleton:nth-child(1){width:100%;aspect-ratio:1/1;margin-bottom:8px;}
-.skeletonCard .skeleton:nth-child(2){height:12px;margin-bottom:6px;}
-.skeletonCard .skeleton:nth-child(3){height:10px;width:60%;margin-bottom:8px;}
-.skeletonCard .skeleton:nth-child(4){height:24px;}
-
-@media(min-width:768px){
-  .header{padding:16px 24px;}
-  .brand{font-size:26px;}
-  .deliveryTime{font-size:16px;}
-  .location{font-size:14px;}
-  .searchWrap input{padding:14px 14px 14px 44px;font-size:15px;}
-  .container{padding:0 20px;}
-  .sectionTitle{font-size:19px;}
-  .cardName{font-size:14px;}
-  .price{font-size:15px;}
-  body{padding-bottom:0;}
+.skel .skelImg{
+  width:100%;aspect-ratio:1/1;border-radius:8px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  margin-bottom:8px;
 }
-
-.backdrop{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.15);
-  z-index:999;display:none;
-  opacity:0;transition:opacity .2s;
+.skel .skelLine{
+  height:12px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:6px;margin-bottom:6px;
 }
-.backdrop.show{display:block;opacity:1;}
+.skel .skelLine.short{width:60%;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 
 .toast{
-  position:fixed;bottom:100px;
-  left:50%;transform:translateX(-50%) translateY(20px);
-  background:#1f1f1f;color:#fff;
-  padding:12px 20px;border-radius:10px;
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
   font-size:13px;font-weight:500;
   box-shadow:0 4px 16px rgba(0,0,0,.2);
   opacity:0;pointer-events:none;
-  transition:all .25s;
-  z-index:1500;max-width:90%;text-align:center;
+  transition:all .25s;z-index:1500;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
+}
+.modalBg.show{display:flex;}
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary{flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger{flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:380px;}
+}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
+}
 </style>
 </head>
 
@@ -356,409 +217,221 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <header class="header">
   <div class="topBar">
-    <div class="brand">Local<span>Shop</span></div>
-    <div class="deliveryInfo">
-      <div class="deliveryTime">Delivery in 15 mins</div>
-      <div class="location" id="location">📍 Getting location… <span class="arrow">▾</span></div>
-    </div>
-
-    <div class="profileWrap">
-      <button class="profileBtn" id="profileBtn" onclick="toggleProfile(event)" title="Account" aria-label="Account menu">👤</button>
-
-      <div class="profileDropdown" id="profileDropdown">
-        <div class="dropdownHeader">
-          <div class="dropdownTitle">Welcome to LocalShop 👋</div>
-          <div class="dropdownSub">Choose what you'd like to do</div>
-        </div>
-
-        <div class="dropdownSection">
-          <div class="dropdownLabel">Shopping</div>
-          <a href="/local-shop/customer/cart.html" class="dropdownItem">
-            <div class="itemIcon cart">🛒</div>
-            <div class="itemContent">
-              <div class="itemTitle">My Cart</div>
-              <div class="itemSub">View items in your cart</div>
-            </div>
-            <div class="itemArrow">›</div>
-          </a>
-          <button class="dropdownItem" onclick="openLastOrder()">
-            <div class="itemIcon orders">📍</div>
-            <div class="itemContent">
-              <div class="itemTitle">Track Live Order</div>
-              <div class="itemSub">See your last order on the map</div>
-            </div>
-            <div class="itemArrow">›</div>
-          </button>
-          <a href="/local-shop/customer/order-history.html" class="dropdownItem">
-            <div class="itemIcon history">📜</div>
-            <div class="itemContent">
-              <div class="itemTitle">Order History</div>
-              <div class="itemSub">All your past orders</div>
-            </div>
-            <div class="itemArrow">›</div>
-          </a>
-          <a href="/local-shop/customer/Nearby-Shops.html" class="dropdownItem">
-            <div class="itemIcon nearby">🏪</div>
-            <div class="itemContent">
-              <div class="itemTitle">Nearby Shops</div>
-              <div class="itemSub">Discover stores around you</div>
-            </div>
-            <div class="itemArrow">›</div>
-          </a>
-        </div>
-
-        <div class="dropdownSection">
-          <div class="dropdownLabel">Partner with us</div>
-          <a href="/local-shop/shop/login.html" class="dropdownItem">
-            <div class="itemIcon shop">🏪</div>
-            <div class="itemContent">
-              <div class="itemTitle">Shop Owner Login</div>
-              <div class="itemSub">Manage your store & orders</div>
-            </div>
-            <div class="itemArrow">›</div>
-          </a>
-          <a href="/local-shop/delivery/login.html" class="dropdownItem">
-            <div class="itemIcon delivery">🚚</div>
-            <div class="itemContent">
-              <div class="itemTitle">Delivery Partner Login</div>
-              <div class="itemSub">Start earning by delivering</div>
-            </div>
-            <div class="itemArrow">›</div>
-          </a>
-        </div>
-
-        <div class="dropdownSection">
-          <a class="dropdownItem" href="mailto:support@localshop.com">
-            <div class="itemIcon help">💬</div>
-            <div class="itemContent">
-              <div class="itemTitle">Help & Support</div>
-              <div class="itemSub">Get assistance</div>
-            </div>
-            <div class="itemArrow">›</div>
-          </a>
-        </div>
-      </div>
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">🛍️ Manage Products</div>
+      <div class="pageSub" id="headerSub">Loading…</div>
     </div>
   </div>
 
   <div class="searchWrap">
     <span class="searchIcon">🔍</span>
-    <input id="search" placeholder="Search for atta, milk, snacks…" oninput="searchProducts()">
+    <input id="search" placeholder="Search by product or shop name…" oninput="onSearch()">
+  </div>
+
+  <div class="shopFilterWrap" id="shopFilters">
+    <div class="shopChip active" data-shop="all"><span class="ic">🏪</span>All shops</div>
   </div>
 </header>
 
-<div class="backdrop" id="backdrop" onclick="closeProfile()"></div>
-
 <main class="container">
-  <section class="section">
-    <div id="categories" class="catScroll"></div>
-  </section>
 
-  <section class="section">
-    <div class="sectionHeader">
-      <div class="sectionTitle">Shops near you</div>
+  <div class="summary">
+    <div class="summaryCard">
+      <div class="summaryValue" id="sumProducts">—</div>
+      <div class="summaryLabel">Products</div>
     </div>
-    <div id="shops" class="shopScroll"></div>
-  </section>
+    <div class="summaryCard">
+      <div class="summaryValue" id="sumShops">—</div>
+      <div class="summaryLabel">Shops</div>
+    </div>
+    <div class="summaryCard">
+      <div class="summaryValue" id="sumDiscounted">—</div>
+      <div class="summaryLabel">On Discount</div>
+    </div>
+  </div>
 
-  <section class="section">
-    <div class="sectionHeader">
-      <div class="sectionTitle" id="productsTitle">All Products</div>
-    </div>
-    <div id="products" class="products">
-      <div class="skeletonCard"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-      <div class="skeletonCard"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-      <div class="skeletonCard"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-      <div class="skeletonCard"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-    </div>
-  </section>
+  <div id="products" class="products">
+    <div class="skel"><div class="skelImg"></div><div class="skelLine"></div><div class="skelLine short"></div></div>
+    <div class="skel"><div class="skelImg"></div><div class="skelLine"></div><div class="skelLine short"></div></div>
+    <div class="skel"><div class="skelImg"></div><div class="skelLine"></div><div class="skelLine short"></div></div>
+    <div class="skel"><div class="skelImg"></div><div class="skelLine"></div><div class="skelLine short"></div></div>
+  </div>
 </main>
-
-<div id="cartBar" class="cartBar" onclick="openCart()">
-  <div class="cartLeft">
-    <div class="cartItems"><span id="itemCount">0</span> items</div>
-    <div class="cartTotal">₹<span id="total">0</span></div>
-  </div>
-  <div class="cartRight">
-    View Cart <span>→</span>
-  </div>
-</div>
 
 <div id="toast" class="toast"></div>
 
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon" id="modalIcon">❓</div>
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalMsg">This action cannot be undone.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeModal()">Cancel</button>
+      <button class="btnDanger" id="modalConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
-import { db } from "/local-shop/js/firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { initVoiceAI } from "/local-shop/js/voice-ai.js";
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  collection, onSnapshot, doc, deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const ADMIN_EMAILS = ["sunilkumarm048@gmail.com"];
+
+const productsDiv = document.getElementById("products");
+const headerSub = document.getElementById("headerSub");
+const toast = document.getElementById("toast");
 
 let allProducts = [];
-let allShops = [];
-let openShopNames = new Set(); // tracks which shops are currently open
-
-let shopTypeMap = {};
-let topCategories = [];
-let seenCats = new Map(); // module-level so fallback can add to it during shop enrichment
-
-let selectedCategory = null;
-let selectedShop = null;
+let shopList = [];   // unique shop names
+let currentShop = "all";
 let searchTerm = "";
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-let searchDebounceId = null;
-
-const toast = document.getElementById("toast");
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#1f1f1f";
   toast.classList.add("show");
   setTimeout(()=> toast.classList.remove("show"), 2400);
 }
-
-function reloadCart(){
-  cart = JSON.parse(localStorage.getItem("cart")) || [];
-  updateCart();
-  if(allProducts.length > 0) renderProducts();
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+function escapeAttr(str){
+  return String(str).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
 
-window.addEventListener("pageshow", (e)=>{ if(e.persisted) reloadCart(); });
-window.addEventListener("storage", (e)=>{ if(e.key === "cart") reloadCart(); });
-window.addEventListener("focus", reloadCart);
-
-window.toggleProfile = (e)=>{
-  e?.stopPropagation();
-  const dd = document.getElementById("profileDropdown");
-  const btn = document.getElementById("profileBtn");
-  const bd = document.getElementById("backdrop");
-  const isOpen = dd.classList.toggle("show");
-  btn.classList.toggle("open", isOpen);
-  bd.classList.toggle("show", isOpen);
+let confirmCb = null;
+function openModal({icon="❓", title, msg, confirmText="Confirm", danger=true, onConfirm}){
+  document.getElementById("modalIcon").textContent  = icon;
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent   = msg;
+  const btn = document.getElementById("modalConfirmBtn");
+  btn.textContent = confirmText;
+  btn.className = danger ? "btnDanger" : "btnPrimary";
+  confirmCb = onConfirm;
+  document.getElementById("confirmModal").classList.add("show");
+}
+window.closeModal = ()=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  confirmCb = null;
 };
-
-window.closeProfile = ()=>{
-  document.getElementById("profileDropdown").classList.remove("show");
-  document.getElementById("profileBtn").classList.remove("open");
-  document.getElementById("backdrop").classList.remove("show");
-};
-
-document.addEventListener("click", (e)=>{
-  const wrap = document.querySelector(".profileWrap");
-  const dd = document.getElementById("profileDropdown");
-  if(!dd.classList.contains("show")) return;
-  if(wrap && !wrap.contains(e.target)) closeProfile();
+document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
+  if(confirmCb) confirmCb();
+  closeModal();
+});
+document.getElementById("confirmModal").addEventListener("click",(e)=>{
+  if(e.target.id === "confirmModal") closeModal();
 });
 
-window.openLastOrder = ()=>{
-  closeProfile();
-  const orderId = localStorage.getItem("lastOrderId");
-  if(orderId){
-    location.href = "/local-shop/customer/tracking.html?orderId=" + orderId;
-  }else{
-    showToast("No recent order found. Place an order first!");
-  }
+window.onSearch = ()=>{
+  searchTerm = document.getElementById("search").value.toLowerCase().trim();
+  render();
 };
 
-document.addEventListener("keydown", (e)=>{
-  if(e.key === "Escape") closeProfile();
-});
+window.goBack = ()=> location.href = "dashboard.html";
 
-function getLocation(){
-  if(!navigator.geolocation){
-    document.getElementById("location").innerHTML = "📍 Location unavailable <span class='arrow'>▾</span>";
+onAuthStateChanged(auth, (user)=>{
+  if(!user || !ADMIN_EMAILS.includes(user.email)){
+    showToast("Admin access required", true);
+    setTimeout(()=> location.href = "/local-shop/index.html", 1000);
     return;
   }
-  navigator.geolocation.getCurrentPosition(async (pos)=>{
-    try{
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
-      const data = await res.json();
-      const a = data.address || {};
-      const area = a.suburb || a.neighbourhood || a.village || a.town || a.city || a.state || "Your area";
-      document.getElementById("location").innerHTML = `📍 ${area} <span class='arrow'>▾</span>`;
-    }catch(e){
-      document.getElementById("location").innerHTML = "📍 Your area <span class='arrow'>▾</span>";
-    }
-  }, ()=>{
-    document.getElementById("location").innerHTML = "📍 Set location <span class='arrow'>▾</span>";
-  });
-}
-getLocation();
+  listenProducts();
+});
 
-async function loadData(){
-  try{
-    const [pSnap, cSnap, sSnap] = await Promise.all([
-      getDocs(collection(db, "products")),
-      getDocs(collection(db, "shops")),
-      getDocs(collection(db, "localshop-details"))
-    ]);
-
-    /* Build shop-type lookup — categories come from the `name` field of each shop doc */
-    shopTypeMap = {};
-    seenCats = new Map();
-
-    cSnap.docs.forEach(d=>{
-      const t = d.data();
-      const typeName = (t.name || "").trim();   // e.g. "Grocery Shop"
-      const icon     = t.icon || "🏪";          // e.g. "🛒"
-
-      if(typeName){
-        // Each shop type is its own category — `topCategory` IS the name
-        shopTypeMap[typeName.toLowerCase()] = {
-          topCategory: typeName,
-          icon,
-          displayName: typeName
-        };
-        if(!seenCats.has(typeName.toLowerCase())){
-          seenCats.set(typeName.toLowerCase(), { name: typeName, icon });
-        }
-      }
-    });
-    topCategories = Array.from(seenCats.values());
-
-    /* Enrich shops + track which are open */
-    openShopNames = new Set();
-    allShops = sSnap.docs.map(d=>{
-      const s = { ...d.data(), __id: d.id };
-      const typeKey = (s.category || "").toLowerCase().trim();
-      const typeInfo = shopTypeMap[typeKey];
-
-      if(typeInfo){
-        s.__topCategory = typeInfo.topCategory;
-        s.__icon        = typeInfo.icon;
-        s.__typeName    = typeInfo.displayName;
-      }else{
-        // Fallback: shop's category doesn't match any known shop-type doc.
-        // Bucket it under a single "Other" chip so it still appears.
-        s.__topCategory = "Other";
-        s.__icon        = s.icon || "🏪";
-        s.__typeName    = s.category || "Other";
-
-        if(!seenCats.has("other")){
-          seenCats.set("other", { name: "Other", icon: "🏪" });
-          topCategories = Array.from(seenCats.values());
-        }
-      }
-
-      /* Track shop open/closed status. Default to OPEN if field missing. */
-      s.__isOpen = s.isOpen !== false;
-      if(s.__isOpen && s.shopName){
-        openShopNames.add(s.shopName.toLowerCase());
-      }
-
-      return s;
-    });
-
-    /* Enrich products with shop's topCategory */
-    const shopByName = {};
-    allShops.forEach(s=>{ shopByName[(s.shopName||"").toLowerCase()] = s; });
-
-    allProducts = pSnap.docs.map(d=>{
+function listenProducts(){
+  onSnapshot(collection(db, "products"), (snap)=>{
+    allProducts = [];
+    const shopSet = new Map();
+    snap.forEach(d=>{
       const p = { ...d.data(), __id: d.id };
-      const shop = shopByName[(p.shopName||"").toLowerCase()];
-      p.__topCategory = shop?.__topCategory || "Other";
-      p.__shopOpen    = shop ? shop.__isOpen : true;
-      return p;
+      allProducts.push(p);
+      if(p.shopName){
+        shopSet.set(p.shopName, (shopSet.get(p.shopName) || 0) + 1);
+      }
     });
-
-    renderCategories();
-    renderShops();
-    renderProducts();
-
-    /* ✨ Voice AI — initialize after products are loaded */
-    initVoiceAI({
-      getProducts: () => allProducts,
-      getShops:    () => allShops,
-    });
-  }catch(err){
+    shopList = Array.from(shopSet.entries())
+      .sort((a,b)=> b[1] - a[1])
+      .map(([name, count])=>({ name, count }));
+    renderShopFilters();
+    updateSummary();
+    render();
+  }, (err)=>{
     console.error(err);
-    document.getElementById("products").innerHTML =
-      `<div class="empty"><div class="emoji">⚠️</div>Could not load products. Please check your connection.</div>`;
-  }
-}
-loadData();
-
-function renderCategories(){
-  const c = document.getElementById("categories");
-  let html = `<div class="catChip ${!selectedCategory?'active':''}" onclick="selectCategory(null)">All</div>`;
-  topCategories.forEach(cat=>{
-    const isActive = selectedCategory === cat.name ? 'active' : '';
-    html += `
-      <div class="catChip ${isActive}" onclick="selectCategory('${escapeAttr(cat.name)}')">
-        <span class="chipIcon">${cat.icon}</span>${escapeHtml(cat.name)}
-      </div>`;
+    showToast("Could not load products", true);
   });
-  c.innerHTML = html;
 }
 
-window.selectCategory = (cat)=>{
-  selectedCategory = cat;
-  selectedShop = null;
-  renderCategories();
-  renderShops();
-  renderProducts();
-};
+function renderShopFilters(){
+  const filterWrap = document.getElementById("shopFilters");
+  let html = `<div class="shopChip ${currentShop==='all'?'active':''}" data-shop="all"><span class="ic">🏪</span>All shops (${allProducts.length})</div>`;
+  shopList.forEach(s=>{
+    const active = currentShop === s.name ? "active" : "";
+    html += `<div class="shopChip ${active}" data-shop="${escapeAttr(s.name)}">${escapeHtml(s.name)} (${s.count})</div>`;
+  });
+  filterWrap.innerHTML = html;
 
-/* SHOPS — only show OPEN shops in the scroll */
-function renderShops(){
-  const c = document.getElementById("shops");
-  let f = allShops.filter(s => s.__isOpen);   // hide closed shops
-  if(selectedCategory){
-    f = f.filter(s => s.__topCategory === selectedCategory);
+  filterWrap.querySelectorAll(".shopChip").forEach(chip=>{
+    chip.addEventListener("click", ()=>{
+      filterWrap.querySelectorAll(".shopChip").forEach(c=>c.classList.remove("active"));
+      chip.classList.add("active");
+      currentShop = chip.dataset.shop;
+      render();
+    });
+  });
+}
+
+function updateSummary(){
+  let discounted = 0;
+  allProducts.forEach(p=>{
+    if(p.mrp && Number(p.mrp) > Number(p.price)) discounted++;
+  });
+  document.getElementById("sumProducts").textContent = allProducts.length;
+  document.getElementById("sumShops").textContent    = shopList.length;
+  document.getElementById("sumDiscounted").textContent = discounted;
+
+  headerSub.textContent = allProducts.length === 0
+    ? "No products yet"
+    : `${allProducts.length} product${allProducts.length!==1?"s":""} across ${shopList.length} shop${shopList.length!==1?"s":""}`;
+}
+
+function render(){
+  let visible = allProducts.slice();
+
+  if(currentShop !== "all"){
+    visible = visible.filter(p => p.shopName === currentShop);
+  }
+  if(searchTerm){
+    visible = visible.filter(p=>{
+      return (p.name||"").toLowerCase().includes(searchTerm)
+          || (p.shopName||"").toLowerCase().includes(searchTerm)
+          || (p.category||"").toLowerCase().includes(searchTerm);
+    });
   }
 
-  if(!f.length){
-    c.innerHTML = `<div style="padding:14px;color:#888;font-size:13px;">No shops open here right now.</div>`;
+  /* Sort alphabetically */
+  visible.sort((a,b)=> (a.name||"").localeCompare(b.name||""));
+
+  if(visible.length === 0){
+    let icon="🛍️", title="No products found", msg="No products match your filters.";
+    if(searchTerm){ icon="🔍"; title="No matches"; msg="Try a different search term."; }
+    productsDiv.innerHTML = `<div class="empty"><div class="icon">${icon}</div><h3>${title}</h3><p>${msg}</p></div>`;
     return;
   }
 
   let html = "";
-  f.forEach(s=>{
-    const name = s.shopName || "Shop";
-    const icon = s.__icon || "🏪";
-    const type = s.__typeName || "";
-    const active = selectedShop === name ? "active" : "";
-    html += `
-      <div class="shopCard ${active}" onclick="selectShop('${escapeAttr(name)}')">
-        <div class="shopIcon">${icon}</div>
-        <div class="shopName">${escapeHtml(name)}</div>
-        ${type ? `<div class="shopType">${escapeHtml(type)}</div>` : ""}
-      </div>`;
-  });
-  c.innerHTML = html;
-}
-
-window.selectShop = (name)=>{
-  selectedShop = (selectedShop===name) ? null : name;
-  renderShops();
-  renderProducts();
-};
-
-/* PRODUCTS — filter out products from closed shops */
-function renderProducts(){
-  const c = document.getElementById("products");
-  const title = document.getElementById("productsTitle");
-
-  let f = allProducts.filter(p => p.__shopOpen);   // hide closed-shop products
-  if(selectedCategory) f = f.filter(p => p.__topCategory === selectedCategory);
-  if(selectedShop)     f = f.filter(p => p.shopName === selectedShop);
-  if(searchTerm)       f = f.filter(p => (p.name||"").toLowerCase().includes(searchTerm));
-
-  if(searchTerm)             title.textContent = `Results for "${searchTerm}"`;
-  else if(selectedShop)      title.textContent = selectedShop;
-  else if(selectedCategory)  title.textContent = selectedCategory;
-  else                       title.textContent = "All Products";
-
-  if(!f.length){
-    c.innerHTML = `<div class="empty"><div class="emoji">🛒</div>No products found.<br>Try a different category or search.</div>`;
-    return;
-  }
-
-  let html = "";
-  f.forEach(p=>{
-    const img    = p.images?.[0] || p.image || "https://via.placeholder.com/300x300/f0f0f0/999?text=No+Image";
-    const name   = p.name || "Product";
-    const price  = Number(p.price) || 0;
-    const mrp    = p.mrp ? Number(p.mrp) : null;
+  visible.forEach(p=>{
+    const id = p.__id;
+    const img = p.images?.[0] || p.image || "https://via.placeholder.com/300x300/f0f0f0/999?text=No+Image";
+    const name = p.name || "Product";
+    const price = Number(p.price) || 0;
+    const mrp = p.mrp ? Number(p.mrp) : null;
     const weight = p.weight || p.qty || p.unit || "";
-    const inCart = cart.find(c=>c.name===name);
+    const shopName = p.shopName || "Unknown Shop";
 
     let discount = "";
     if(mrp && mrp > price){
@@ -766,103 +439,47 @@ function renderProducts(){
       discount = `<div class="discountBadge">${off}% OFF</div>`;
     }
 
-    const button = inCart ?
-      `<div class="qtyBox">
-         <button onclick="event.stopPropagation();changeQty('${escapeAttr(name)}',-1)">−</button>
-         <span>${inCart.qty}</span>
-         <button onclick="event.stopPropagation();changeQty('${escapeAttr(name)}',1)">+</button>
-       </div>` :
-      `<button class="addBtn" onclick="addToCart('${escapeAttr(p.__id)}')">ADD</button>`;
-
     html += `
       <div class="card">
         <div class="imgWrap">
           ${discount}
           <img src="${escapeAttr(img)}" alt="${escapeAttr(name)}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x300/f0f0f0/999?text=No+Image'">
         </div>
-        <div class="deliveryBadge">⚡ 15 MINS</div>
+        <div class="shopBadge">🏪 ${escapeHtml(shopName)}</div>
         <div class="cardName">${escapeHtml(name)}</div>
         ${weight ? `<div class="cardWeight">${escapeHtml(weight)}</div>` : `<div class="cardWeight">1 unit</div>`}
         <div class="priceRow">
-          <div class="priceBlock">
+          <div>
             <span class="price">₹${price}</span>
-            ${mrp && mrp>price ? `<span class="mrp">₹${mrp}</span>` : ""}
+            ${mrp && mrp > price ? `<span class="mrp">₹${mrp}</span>` : ""}
           </div>
-          ${button}
+        </div>
+        <div class="cardActions">
+          <button class="actionBtn btn-delete" onclick="deleteProduct('${id}','${escapeAttr(name)}')">🗑 Delete</button>
         </div>
       </div>`;
   });
-  c.innerHTML = html;
+  productsDiv.innerHTML = html;
 }
 
-window.searchProducts = ()=>{
-  clearTimeout(searchDebounceId);
-  searchDebounceId = setTimeout(()=>{
-    searchTerm = document.getElementById("search").value.toLowerCase().trim();
-    renderProducts();
-  }, 150);
+window.deleteProduct = (id, name)=>{
+  openModal({
+    icon:"⚠️",
+    title:`Delete "${name}"?`,
+    msg:"This will permanently remove the product from the catalog. Existing orders containing this product will not be affected. This cannot be undone.",
+    confirmText:"Yes, Delete",
+    danger:true,
+    onConfirm: async ()=>{
+      try{
+        await deleteDoc(doc(db, "products", id));
+        showToast("Product deleted");
+      }catch(e){
+        console.error(e);
+        showToast("Could not delete", true);
+      }
+    }
+  });
 };
-
-/* ADD TO CART — defense in depth, block adding from closed shop */
-window.addToCart = (productId)=>{
-  const p = allProducts.find(x => x.__id === productId);
-  if(!p){ showToast("Product not available", true); return; }
-
-  if(p.__shopOpen === false){
-    showToast("This shop is currently closed", true);
-    return;
-  }
-
-  const name = p.name || "Product";
-  const existing = cart.find(c => c.name === name);
-  if(existing){
-    existing.qty++;
-  }else{
-    cart.push({
-      name,
-      price:    Number(p.price) || 0,
-      qty:      1,
-      image:    p.images?.[0] || p.image || null,
-      mrp:      p.mrp ? Number(p.mrp) : null,
-      weight:   p.weight || p.qty || p.unit || null,
-      shopName: p.shopName || null,
-      productId: p.__id
-    });
-  }
-  saveCart();
-};
-
-window.changeQty = (name, delta)=>{
-  const f = cart.find(c=>c.name===name);
-  if(!f) return;
-  f.qty += delta;
-  if(f.qty <= 0) cart = cart.filter(c=>c.name!==name);
-  saveCart();
-};
-
-function saveCart(){
-  localStorage.setItem("cart", JSON.stringify(cart));
-  updateCart();
-  renderProducts();
-}
-
-function updateCart(){
-  let total = 0, count = 0;
-  cart.forEach(c=>{ total += c.price*c.qty; count += c.qty; });
-  document.getElementById("total").textContent = total;
-  document.getElementById("itemCount").textContent = count;
-  document.getElementById("cartBar").classList.toggle("show", count > 0);
-}
-updateCart();
-
-window.openCart = ()=> location.href = "/local-shop/customer/cart.html";
-
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-}
-function escapeAttr(str){
-  return String(str).replace(/\\/g,"\\\\").replace(/'/g, "\\'").replace(/"/g, "&quot;");
-}
 </script>
 
 </body>
