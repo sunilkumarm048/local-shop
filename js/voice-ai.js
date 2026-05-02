@@ -15,7 +15,7 @@ const WORKER_URL = "https://localshop-voice.sunilkumarm048.workers.dev";
 
 // VAD tuning
 const SILENCE_THRESHOLD = 0.08;   // RMS volume below this = silence
-const SILENCE_DURATION  = 1200;    // ms of silence before auto-stop
+const SILENCE_DURATION  = 800;    // ms of silence before auto-stop
 const MIN_SPEECH_MS     = 300;     // need at least this much speech to send
 const MAX_RECORDING_MS  = 25000;   // safety cap
 
