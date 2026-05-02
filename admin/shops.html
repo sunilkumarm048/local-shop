@@ -1,124 +1,510 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
-<title>All Shops</title>
+<meta charset="UTF-8">
+<title>Manage Shops · Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-
-body{
-font-family:Arial;
-background:#f5f5f5;
-margin:0;
-}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
+button{font-family:inherit;cursor:pointer;border:none;}
 
 .header{
-background:#222;
-color:white;
-padding:15px;
-text-align:center;
-font-size:20px;
+  background:linear-gradient(180deg,#1f1f1f 0%,#3a3a3a 100%);
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);color:#fff;
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.1);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#fff;
+  border:1px solid rgba(255,255,255,.15);
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#fff;}
+.pageSub{font-size:12px;color:#bbb;margin-top:2px;}
+
+.searchWrap{margin:12px auto 0;max-width:1100px;position:relative;}
+.searchWrap input{
+  width:100%;padding:11px 14px 11px 38px;
+  border-radius:10px;border:1px solid rgba(255,255,255,.15);
+  font-size:13px;background:rgba(255,255,255,.08);color:#fff;
+  font-family:inherit;outline:none;
+}
+.searchWrap input::placeholder{color:rgba(255,255,255,.5);}
+.searchWrap input:focus{background:rgba(255,255,255,.15);border-color:#F0B91D;}
+.searchIcon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#bbb;}
+
+.tabs{
+  display:flex;gap:8px;
+  padding:12px 12px 4px;max-width:1100px;margin:0 auto;
+  overflow-x:auto;scrollbar-width:none;
+}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{
+  padding:8px 14px;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);border-radius:22px;
+  font-size:12px;font-weight:600;color:#bbb;
+  white-space:nowrap;flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
+  transition:all .15s;
+}
+.tab.active{background:#F0B91D;color:#1f1f1f;border-color:#F0B91D;}
+.tabCount{
+  background:rgba(0,0,0,.15);color:inherit;
+  padding:1px 7px;border-radius:10px;
+  font-size:10px;font-weight:700;
+}
+.tab.active .tabCount{background:rgba(0,0,0,.15);}
+
+.container{max-width:1100px;margin:0 auto;padding:14px 12px 0;}
+
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.summaryCard{
+  background:#fff;border-radius:12px;padding:12px 8px;text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.summaryValue{font-size:18px;font-weight:800;color:#1f1f1f;line-height:1.1;}
+.summaryLabel{font-size:10px;color:#666;font-weight:500;margin-top:4px;letter-spacing:.2px;text-transform:uppercase;}
+
+.shopCard{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border:1px solid #ececec;
+}
+.shopCard.closed{opacity:.7;border-color:#ffd2d2;}
+
+.shopTop{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.shopAvatar{
+  width:46px;height:46px;border-radius:50%;
+  background:linear-gradient(135deg,#fff5d6,#ffeec1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.shopInfo{flex:1;min-width:0;line-height:1.3;}
+.shopName{
+  font-size:15px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.shopType{font-size:11px;color:#666;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.shopBadges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+
+.statusPill{
+  padding:3px 8px;border-radius:14px;
+  font-size:9px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;
+}
+.pill-open{background:#dcf3e1;color:#0C831F;}
+.pill-closed{background:#fde0e0;color:#c41818;}
+.pill-verified{background:#dbe9ff;color:#1857c1;}
+.pill-unverified{background:#fff5d6;color:#8a6500;}
+
+.shopMeta{
+  background:#fafafa;border-radius:10px;padding:10px 12px;
+  font-size:12px;color:#666;line-height:1.5;
+}
+.shopMeta .row{display:flex;gap:8px;align-items:center;padding:2px 0;}
+.shopMeta .row .ic{font-size:13px;flex-shrink:0;width:18px;}
+.shopMeta .row .lbl{color:#999;flex-shrink:0;width:70px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.2px;}
+.shopMeta .row .val{flex:1;color:#1f1f1f;font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.shopActions{
+  display:flex;gap:8px;
+  margin-top:10px;flex-wrap:wrap;
+}
+.actionBtn{
+  flex:1;min-width:90px;
+  padding:9px 12px;border-radius:8px;
+  font-size:12px;font-weight:700;letter-spacing:.2px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .12s;
+}
+.actionBtn:active{transform:scale(.97);}
+.btn-verify{background:#dcf3e1;color:#0C831F;border:1px solid #b3e5bf;}
+.btn-verify:hover{background:#b3e5bf;}
+.btn-toggle{background:#fff5d6;color:#8a6500;border:1px solid #f0d76a;}
+.btn-toggle:hover{background:#ffeeb3;}
+.btn-delete{background:#fff;color:#d23030;border:1.5px solid #ffd2d2;}
+.btn-delete:hover{background:#fff5f5;}
+
+.empty{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;margin-top:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;line-height:1.5;}
+
+.skel{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.skelLine{
+  height:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:6px;margin-bottom:10px;
+}
+.skelLine.short{width:50%;}
+.skelLine.med{width:75%;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
+}
+.modalBg.show{display:flex;}
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary{flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger{flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:380px;}
 }
 
-.container{
-padding:20px;
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
 }
-
-.shop{
-background:white;
-padding:15px;
-margin-bottom:10px;
-border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
-display:flex;
-justify-content:space-between;
-align-items:center;
+@media(min-width:900px){
+  .shopList{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .shopCard{margin-bottom:0;}
 }
-
-.info{
-font-size:16px;
-}
-
-.category{
-color:gray;
-font-size:13px;
-}
-
-button{
-background:red;
-color:white;
-border:none;
-padding:6px 10px;
-border-radius:6px;
-cursor:pointer;
-}
-
 </style>
-
 </head>
 
 <body>
 
-<div class="header">
-🏪 Admin - All Shops
-</div>
+<header class="header">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">🏪 Manage Shops</div>
+      <div class="pageSub" id="headerSub">Loading…</div>
+    </div>
+  </div>
 
-<div class="container" id="shops">
-Loading...
+  <div class="searchWrap">
+    <span class="searchIcon">🔍</span>
+    <input id="search" placeholder="Search by shop name, owner, or category…" oninput="onSearch()">
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-filter="all">All <span class="tabCount" id="cntAll">0</span></div>
+    <div class="tab" data-filter="open">🟢 Open <span class="tabCount" id="cntOpen">0</span></div>
+    <div class="tab" data-filter="closed">🔴 Closed <span class="tabCount" id="cntClosed">0</span></div>
+    <div class="tab" data-filter="unverified">⚠️ Unverified <span class="tabCount" id="cntUnverified">0</span></div>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="summary">
+    <div class="summaryCard">
+      <div class="summaryValue" id="sumTotal">—</div>
+      <div class="summaryLabel">Total shops</div>
+    </div>
+    <div class="summaryCard">
+      <div class="summaryValue" id="sumActive">—</div>
+      <div class="summaryLabel">Active shops</div>
+    </div>
+    <div class="summaryCard">
+      <div class="summaryValue" id="sumPending">—</div>
+      <div class="summaryLabel">Pending review</div>
+    </div>
+  </div>
+
+  <div id="shops" class="shopList">
+    <div class="skel"><div class="skelLine med"></div><div class="skelLine short"></div><div class="skelLine"></div></div>
+    <div class="skel"><div class="skelLine med"></div><div class="skelLine short"></div><div class="skelLine"></div></div>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon" id="modalIcon">❓</div>
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalMsg">This action cannot be undone.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeModal()">Cancel</button>
+      <button class="btnDanger" id="modalConfirmBtn">Confirm</button>
+    </div>
+  </div>
 </div>
 
 <script type="module">
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  collection, getDocs, doc, deleteDoc, updateDoc, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-import { db } from "../js/firebase.js";
-import { collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const ADMIN_EMAILS = ["sunilkumarm048@gmail.com"];
 
-const container = document.getElementById("shops");
+const shopsDiv = document.getElementById("shops");
+const headerSub = document.getElementById("headerSub");
+const toast = document.getElementById("toast");
 
-// LOAD SHOPS
-async function loadShops(){
+let allShops = [];
+let currentFilter = "all";
+let searchTerm = "";
 
-container.innerHTML = "Loading...";
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
 
-const snapshot = await getDocs(collection(db,"shops"));
-
-container.innerHTML = "";
-
-snapshot.forEach(snap => {
-
-let s = snap.data();
-
-container.innerHTML += `
-<div class="shop">
-
-<div class="info">
-<b>${s.icon} ${s.name}</b><br>
-<span class="category">${s.category}</span>
-</div>
-
-<button onclick="deleteShop('${snap.id}')">Delete</button>
-
-</div>
-`;
-
+let confirmCb = null;
+function openModal({icon="❓", title, msg, confirmText="Confirm", danger=true, onConfirm}){
+  document.getElementById("modalIcon").textContent  = icon;
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent   = msg;
+  const btn = document.getElementById("modalConfirmBtn");
+  btn.textContent = confirmText;
+  btn.className = danger ? "btnDanger" : "btnPrimary";
+  confirmCb = onConfirm;
+  document.getElementById("confirmModal").classList.add("show");
+}
+window.closeModal = ()=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  confirmCb = null;
+};
+document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
+  if(confirmCb) confirmCb();
+  closeModal();
+});
+document.getElementById("confirmModal").addEventListener("click",(e)=>{
+  if(e.target.id === "confirmModal") closeModal();
 });
 
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    currentFilter = tab.dataset.filter;
+    render();
+  });
+});
+
+window.onSearch = ()=>{
+  searchTerm = document.getElementById("search").value.toLowerCase().trim();
+  render();
+};
+
+window.goBack = ()=> location.href = "dashboard.html";
+
+onAuthStateChanged(auth, (user)=>{
+  if(!user || !ADMIN_EMAILS.includes(user.email)){
+    showToast("Admin access required", true);
+    setTimeout(()=> location.href = "/local-shop/index.html", 1000);
+    return;
+  }
+  listenShops();
+});
+
+function listenShops(){
+  /* Real-time listener so changes appear instantly */
+  onSnapshot(collection(db, "localshop-details"), (snap)=>{
+    allShops = [];
+    snap.forEach(d=>{
+      allShops.push({ ...d.data(), __id: d.id });
+    });
+    updateCounts();
+    render();
+  }, (err)=>{
+    console.error(err);
+    showToast("Could not load shops", true);
+  });
 }
 
-loadShops();
+function updateCounts(){
+  let open = 0, closed = 0, unverified = 0;
+  allShops.forEach(s=>{
+    if(s.isOpen !== false) open++;
+    else closed++;
+    if(s.verified !== true) unverified++;
+  });
 
-// DELETE SHOP
-window.deleteShop = async function(id){
+  document.getElementById("cntAll").textContent        = allShops.length;
+  document.getElementById("cntOpen").textContent       = open;
+  document.getElementById("cntClosed").textContent     = closed;
+  document.getElementById("cntUnverified").textContent = unverified;
 
-if(confirm("Delete this shop?")){
+  document.getElementById("sumTotal").textContent   = allShops.length;
+  document.getElementById("sumActive").textContent  = open;
+  document.getElementById("sumPending").textContent = unverified;
 
-await deleteDoc(doc(db,"shops",id));
-
-loadShops();
-
+  headerSub.textContent = allShops.length === 0
+    ? "No shops registered yet"
+    : `${allShops.length} shop${allShops.length>1?"s":""} on the platform`;
 }
 
+function render(){
+  let visible = allShops.slice();
+
+  if(currentFilter === "open")        visible = visible.filter(s => s.isOpen !== false);
+  else if(currentFilter === "closed") visible = visible.filter(s => s.isOpen === false);
+  else if(currentFilter === "unverified") visible = visible.filter(s => s.verified !== true);
+
+  if(searchTerm){
+    visible = visible.filter(s=>{
+      return (s.shopName||"").toLowerCase().includes(searchTerm)
+          || (s.email||"").toLowerCase().includes(searchTerm)
+          || (s.category||"").toLowerCase().includes(searchTerm);
+    });
+  }
+
+  visible.sort((a,b)=>{
+    /* Unverified first, then alphabetical */
+    if(a.verified !== b.verified){
+      return (a.verified ? 1 : 0) - (b.verified ? 1 : 0);
+    }
+    return (a.shopName||"").localeCompare(b.shopName||"");
+  });
+
+  if(visible.length === 0){
+    let icon = "🏪", title = "No shops found", msg = "No shops match the current filter.";
+    if(searchTerm){ icon = "🔍"; title = "No matches"; msg = "Try a different search term."; }
+    shopsDiv.innerHTML = `
+      <div class="empty">
+        <div class="icon">${icon}</div>
+        <h3>${title}</h3>
+        <p>${msg}</p>
+      </div>`;
+    return;
+  }
+
+  let html = "";
+  visible.forEach(s=>{
+    const id = s.__id;
+    const isOpen = s.isOpen !== false;
+    const isVerified = s.verified === true;
+
+    let badges = "";
+    badges += isOpen
+      ? `<span class="statusPill pill-open">🟢 Open</span>`
+      : `<span class="statusPill pill-closed">🔴 Closed</span>`;
+    badges += isVerified
+      ? `<span class="statusPill pill-verified">✓ Verified</span>`
+      : `<span class="statusPill pill-unverified">⚠ Unverified</span>`;
+
+    const verifyBtn = isVerified
+      ? `<button class="actionBtn btn-toggle" onclick="toggleVerified('${id}', false)">Unverify</button>`
+      : `<button class="actionBtn btn-verify" onclick="toggleVerified('${id}', true)">✓ Verify</button>`;
+
+    const toggleBtn = isOpen
+      ? `<button class="actionBtn btn-toggle" onclick="toggleOpen('${id}', false)">Close shop</button>`
+      : `<button class="actionBtn btn-verify" onclick="toggleOpen('${id}', true)">Open shop</button>`;
+
+    html += `
+      <div class="shopCard ${!isOpen?'closed':''}">
+        <div class="shopTop">
+          <div class="shopAvatar">${s.icon || "🏪"}</div>
+          <div class="shopInfo">
+            <div class="shopName">${escapeHtml(s.shopName || "Unnamed Shop")}</div>
+            <div class="shopType">${escapeHtml(s.category || "—")}</div>
+            <div class="shopBadges">${badges}</div>
+          </div>
+        </div>
+
+        <div class="shopMeta">
+          <div class="row"><span class="ic">📧</span><span class="lbl">Owner</span><span class="val">${escapeHtml(s.email || "—")}</span></div>
+          ${(s.lat && s.lng) ? `<div class="row"><span class="ic">📍</span><span class="lbl">Location</span><span class="val">${Number(s.lat).toFixed(4)}, ${Number(s.lng).toFixed(4)}</span></div>` : ""}
+          <div class="row"><span class="ic">🆔</span><span class="lbl">Shop ID</span><span class="val" style="font-family:monospace;font-size:11px;">${id.slice(0, 16)}…</span></div>
+        </div>
+
+        <div class="shopActions">
+          ${verifyBtn}
+          ${toggleBtn}
+          <button class="actionBtn btn-delete" onclick="deleteShop('${id}','${escapeHtml(s.shopName || 'shop').replace(/'/g, '&#39;')}')">🗑 Delete</button>
+        </div>
+      </div>`;
+  });
+  shopsDiv.innerHTML = html;
 }
 
+window.toggleVerified = async (id, verified)=>{
+  try{
+    await updateDoc(doc(db, "localshop-details", id), { verified });
+    showToast(verified ? "✓ Shop verified" : "Shop unverified");
+  }catch(e){
+    console.error(e);
+    showToast("Could not update", true);
+  }
+};
+
+window.toggleOpen = async (id, isOpen)=>{
+  try{
+    await updateDoc(doc(db, "localshop-details", id), { isOpen });
+    showToast(isOpen ? "Shop reopened" : "Shop closed");
+  }catch(e){
+    console.error(e);
+    showToast("Could not update", true);
+  }
+};
+
+window.deleteShop = (id, name)=>{
+  openModal({
+    icon:"⚠️",
+    title:`Delete "${name}"?`,
+    msg:"This will permanently remove the shop. Products and existing orders will remain in the database. This cannot be undone.",
+    confirmText:"Yes, Delete",
+    danger:true,
+    onConfirm: async ()=>{
+      try{
+        await deleteDoc(doc(db, "localshop-details", id));
+        showToast("Shop deleted");
+      }catch(e){
+        console.error(e);
+        showToast("Could not delete", true);
+      }
+    }
+  });
+};
 </script>
 
 </body>
