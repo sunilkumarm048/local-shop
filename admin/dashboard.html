@@ -1,14 +1,481 @@
-
 <!DOCTYPE html>
-<html>
-<head><title>Admin</title></head>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel · Local Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#1f1f1f 0%,#3a3a3a 100%);
+  padding:16px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);color:#fff;
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
+.adminBadge{
+  width:46px;height:46px;border-radius:12px;
+  background:linear-gradient(135deg,#F8CD46,#F0B91D);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+.adminInfo{flex:1;min-width:0;line-height:1.2;}
+.adminTag{
+  font-size:11px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;color:#F0B91D;
+}
+.adminTitle{font-size:17px;font-weight:800;color:#fff;margin-top:2px;}
+.logoutBtn{
+  background:rgba(255,255,255,.1);
+  padding:7px 12px;border-radius:18px;
+  font-size:11px;font-weight:700;color:#fff;
+  letter-spacing:.3px;cursor:pointer;
+  transition:all .15s;border:1px solid rgba(255,255,255,.15);
+}
+.logoutBtn:active{transform:scale(.94);}
+.logoutBtn:hover{background:rgba(255,255,255,.2);}
+
+.container{max-width:1100px;margin:0 auto;padding:14px 12px 0;}
+
+.statsHero{
+  background:linear-gradient(135deg,#0C831F 0%,#0fa029 100%);
+  color:#fff;border-radius:14px;
+  padding:18px;margin-bottom:14px;
+  box-shadow:0 4px 16px rgba(12,131,31,.25);
+  position:relative;overflow:hidden;
+}
+.statsHero::before{
+  content:"";position:absolute;top:-30px;right:-30px;
+  width:140px;height:140px;border-radius:50%;
+  background:rgba(255,255,255,.08);
+}
+.heroLabel{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;opacity:.9;}
+.heroAmount{font-size:34px;font-weight:800;letter-spacing:-.5px;line-height:1;margin-top:4px;}
+.heroAmount.loading{
+  display:inline-block;width:140px;height:32px;
+  background:rgba(255,255,255,.2);border-radius:6px;
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.heroSub{font-size:12px;opacity:.92;margin-top:6px;}
+
+.statsRow{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:8px;margin-bottom:14px;
+}
+@media(min-width:560px){.statsRow{grid-template-columns:repeat(4,1fr);}}
+
+.statCard{
+  background:#fff;border-radius:12px;
+  padding:14px 10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  position:relative;overflow:hidden;
+}
+.statCard::before{
+  content:"";position:absolute;top:-15px;right:-15px;
+  width:60px;height:60px;border-radius:50%;opacity:.1;
+}
+.statCard.shops::before{background:#F0B91D;}
+.statCard.orders::before{background:#1857c1;}
+.statCard.drivers::before{background:#0C831F;}
+.statCard.products::before{background:#6b21a8;}
+
+.statIcon{font-size:18px;margin-bottom:4px;}
+.statValue{font-size:20px;font-weight:800;color:#1f1f1f;line-height:1.1;}
+.statValue.loading{
+  display:inline-block;width:40px;height:18px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:4px;
+}
+.statLabel{font-size:11px;color:#666;font-weight:500;margin-top:3px;letter-spacing:.2px;}
+
+.sectionTitle{
+  font-size:13px;font-weight:800;color:#444;
+  text-transform:uppercase;letter-spacing:.4px;
+  margin:14px 4px 10px;
+}
+
+.actionGrid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:10px;
+}
+@media(min-width:560px){.actionGrid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:900px){.actionGrid{grid-template-columns:repeat(4,1fr);gap:12px;}}
+
+.actionCard{
+  background:#fff;border-radius:14px;
+  padding:16px 14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  cursor:pointer;
+  transition:transform .15s, box-shadow .15s;
+  text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;min-height:120px;
+}
+.actionCard:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08);}
+.actionCard:active{transform:scale(.98);}
+
+.actionIcon{
+  width:44px;height:44px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin-bottom:10px;flex-shrink:0;
+}
+.actionCard.shops    .actionIcon{background:#fff5d6;}
+.actionCard.orders   .actionIcon{background:#dbe9ff;}
+.actionCard.products .actionIcon{background:#e8d6f7;}
+.actionCard.drivers  .actionIcon{background:#dcf3e1;}
+.actionCard.users    .actionIcon{background:#ffe8d1;}
+.actionCard.withdraw .actionIcon{background:#ffe0e0;}
+.actionCard.transport .actionIcon{background:#d6f0ff;}
+.actionCard.analytics .actionIcon{background:#fff5d6;}
+
+.actionTitle{font-size:14px;font-weight:700;color:#1f1f1f;line-height:1.25;margin-bottom:3px;}
+.actionSub{font-size:11px;color:#777;line-height:1.3;}
+
+.actionBadge{
+  position:absolute;top:10px;right:10px;
+  background:#d23030;color:#fff;
+  font-size:10px;font-weight:800;
+  min-width:20px;height:20px;border-radius:10px;
+  padding:0 6px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
+}
+.modalBg.show{display:flex;}
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary{flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger{flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:380px;}
+}
+
+.accessDenied{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;margin-top:20px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.accessDenied .icon{font-size:64px;margin-bottom:14px;}
+.accessDenied h3{font-size:18px;font-weight:800;color:#d23030;margin-bottom:6px;}
+.accessDenied p{font-size:13px;color:#777;line-height:1.5;margin-bottom:18px;}
+
+@media(min-width:768px){
+  .header{padding:18px 24px;}
+  .container{padding:18px 20px 0;}
+}
+</style>
+</head>
+
 <body>
 
-<h2>Admin Panel</h2>
+<header class="header">
+  <div class="topBar">
+    <div class="adminBadge">⚙️</div>
+    <div class="adminInfo">
+      <div class="adminTag">Administrator</div>
+      <div class="adminTitle" id="adminEmail">Loading…</div>
+    </div>
+    <button class="logoutBtn" onclick="logoutClick()">🚪 Logout</button>
+  </div>
+</header>
 
-<a href="shops.html">Manage Shops</a><br><br>
-<a href="users.html">Users</a><br><br>
-<a href="orders.html">Orders</a>
+<main class="container" id="mainContent" style="display:none;">
+
+  <div class="statsHero">
+    <div class="heroLabel">Total Revenue (All Time)</div>
+    <div class="heroAmount loading" id="heroRevenue"></div>
+    <div class="heroSub" id="heroSub">From all delivered orders</div>
+  </div>
+
+  <div class="statsRow">
+    <div class="statCard shops">
+      <div class="statIcon">🏪</div>
+      <div class="statValue loading" id="statShops"></div>
+      <div class="statLabel">Total Shops</div>
+    </div>
+    <div class="statCard orders">
+      <div class="statIcon">📦</div>
+      <div class="statValue loading" id="statOrders"></div>
+      <div class="statLabel">Total Orders</div>
+    </div>
+    <div class="statCard drivers">
+      <div class="statIcon">🛵</div>
+      <div class="statValue loading" id="statDrivers"></div>
+      <div class="statLabel">Delivery Partners</div>
+    </div>
+    <div class="statCard products">
+      <div class="statIcon">🛍️</div>
+      <div class="statValue loading" id="statProducts"></div>
+      <div class="statLabel">Products</div>
+    </div>
+  </div>
+
+  <div class="sectionTitle">Manage Platform</div>
+  <div class="actionGrid">
+
+    <a href="shops.html" class="actionCard shops">
+      <div class="actionIcon">🏪</div>
+      <div class="actionTitle">Manage Shops</div>
+      <div class="actionSub">Verify, activate, or remove shops</div>
+    </a>
+
+    <a href="orders.html" class="actionCard orders">
+      <div class="actionBadge" id="pendingBadge" style="display:none;">0</div>
+      <div class="actionIcon">📦</div>
+      <div class="actionTitle">All Orders</div>
+      <div class="actionSub">Monitor every order on the platform</div>
+    </a>
+
+    <a href="manage-products.html" class="actionCard products">
+      <div class="actionIcon">🛍️</div>
+      <div class="actionTitle">Manage Products</div>
+      <div class="actionSub">View and remove products</div>
+    </a>
+
+    <a href="delivery-partners.html" class="actionCard drivers">
+      <div class="actionIcon">🛵</div>
+      <div class="actionTitle">Delivery Partners</div>
+      <div class="actionSub">Verify and manage drivers</div>
+    </a>
+
+    <a href="users.html" class="actionCard users">
+      <div class="actionIcon">👥</div>
+      <div class="actionTitle">Customers</div>
+      <div class="actionSub">View customer accounts</div>
+    </a>
+
+    <a href="withdraw-requests.html" class="actionCard withdraw">
+      <div class="actionBadge" id="withdrawBadge" style="display:none;">0</div>
+      <div class="actionIcon">💸</div>
+      <div class="actionTitle">Withdraw Requests</div>
+      <div class="actionSub">Approve driver payouts</div>
+    </a>
+
+  </div>
+
+</main>
+
+<!-- Access denied -->
+<main class="container" id="accessDenied" style="display:none;">
+  <div class="accessDenied">
+    <div class="icon">🔒</div>
+    <h3>Access Denied</h3>
+    <p id="accessMsg">Your account does not have admin privileges.</p>
+    <button class="btnPrimary" style="max-width:240px;" onclick="goHome()">Back to Home</button>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon" id="modalIcon">❓</div>
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalMsg">This action cannot be undone.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeModal()">Cancel</button>
+      <button class="btnDanger" id="modalConfirmBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  collection, getDocs, query, where, onSnapshot
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ⚠️ ADMIN ACCESS WHITELIST — change this to your admin email(s) */
+const ADMIN_EMAILS = [
+  "sunilkumarm048@gmail.com",
+  /* Add more admin emails here */
+];
+
+const toast = document.getElementById("toast");
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+
+let confirmCb = null;
+function openModal({icon="❓", title, msg, confirmText="Confirm", danger=false, onConfirm}){
+  document.getElementById("modalIcon").textContent  = icon;
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMsg").textContent   = msg;
+  const btn = document.getElementById("modalConfirmBtn");
+  btn.textContent = confirmText;
+  btn.className = danger ? "btnDanger" : "btnPrimary";
+  confirmCb = onConfirm;
+  document.getElementById("confirmModal").classList.add("show");
+}
+window.closeModal = ()=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  confirmCb = null;
+};
+document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
+  if(confirmCb) confirmCb();
+  closeModal();
+});
+document.getElementById("confirmModal").addEventListener("click",(e)=>{
+  if(e.target.id === "confirmModal") closeModal();
+});
+
+window.goHome = ()=> location.href = "/local-shop/index.html";
+
+window.logoutClick = ()=>{
+  openModal({
+    icon:"🚪",
+    title:"Logout from admin?",
+    msg:"You'll need to sign in again to access the admin panel.",
+    confirmText:"Yes, Logout",
+    danger:true,
+    onConfirm: async ()=>{
+      try{ await signOut(auth); }catch(e){}
+      location.href = "/local-shop/index.html";
+    }
+  });
+};
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user){
+    document.getElementById("adminEmail").textContent = "Not logged in";
+    document.getElementById("accessDenied").style.display = "block";
+    document.getElementById("accessMsg").textContent = "Please login first to access the admin panel.";
+    return;
+  }
+
+  document.getElementById("adminEmail").textContent = user.email;
+
+  if(!ADMIN_EMAILS.includes(user.email)){
+    document.getElementById("accessDenied").style.display = "block";
+    document.getElementById("accessMsg").textContent =
+      `${user.email} is not authorized as an admin.`;
+    return;
+  }
+
+  /* Admin access granted */
+  document.getElementById("mainContent").style.display = "block";
+  loadStats();
+});
+
+function setStat(id, val){
+  const el = document.getElementById(id);
+  el.classList.remove("loading");
+  el.textContent = val;
+}
+
+async function loadStats(){
+  try{
+    /* Count shops */
+    const shopsSnap = await getDocs(collection(db, "localshop-details"));
+    setStat("statShops", shopsSnap.size);
+
+    /* Count delivery partners */
+    const driversSnap = await getDocs(collection(db, "delivery"));
+    setStat("statDrivers", driversSnap.size);
+
+    /* Count products */
+    const productsSnap = await getDocs(collection(db, "products"));
+    setStat("statProducts", productsSnap.size);
+
+    /* Aggregate orders across all 3 collections */
+    let totalOrders = 0, totalRevenue = 0, pendingCount = 0;
+
+    for(const col of ["orders", "split-orders", "transport-orders"]){
+      try{
+        const snap = await getDocs(collection(db, col));
+        totalOrders += snap.size;
+        snap.forEach(d=>{
+          const o = d.data();
+          const status = (o.status||"").toLowerCase();
+          const dStatus = (o.deliveryStatus||"").toLowerCase();
+          if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+            totalRevenue += Number(o.grandTotal || o.total || 0);
+          }
+          if(status === "pending"){
+            pendingCount++;
+          }
+        });
+      }catch(e){ console.error(`Could not load ${col}:`, e); }
+    }
+
+    setStat("statOrders", totalOrders);
+    document.getElementById("heroRevenue").classList.remove("loading");
+    document.getElementById("heroRevenue").textContent = "₹" + Math.round(totalRevenue).toLocaleString("en-IN");
+    document.getElementById("heroSub").textContent = `From ${totalOrders} total order${totalOrders!==1?"s":""}`;
+
+    /* Pending badge */
+    if(pendingCount > 0){
+      const badge = document.getElementById("pendingBadge");
+      badge.style.display = "flex";
+      badge.textContent = pendingCount;
+    }
+
+    /* Listen to withdraw requests for badge count */
+    listenWithdrawBadge();
+
+  }catch(err){
+    console.error(err);
+    showToast("Could not load stats", true);
+  }
+}
+
+function listenWithdrawBadge(){
+  try{
+    onSnapshot(collection(db, "withdrawRequests"), (snap)=>{
+      let pending = 0;
+      snap.forEach(d=>{
+        const w = d.data();
+        if((w.status || "pending").toLowerCase() === "pending") pending++;
+      });
+      const badge = document.getElementById("withdrawBadge");
+      if(pending > 0){
+        badge.style.display = "flex";
+        badge.textContent = pending;
+      }else{
+        badge.style.display = "none";
+      }
+    });
+  }catch(e){}
+}
+</script>
 
 </body>
 </html>
