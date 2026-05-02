@@ -48,13 +48,10 @@ button{font-family:inherit;cursor:pointer;border:none;}
   content:"";width:18px;height:2px;background:#0C831F;border-radius:1px;
 }
 
-/* ============ FIELDS ============ */
+/* Fields */
 .field{margin-bottom:10px;}
 .field:last-child{margin-bottom:0;}
-.fieldLabel{
-  display:block;font-size:11px;font-weight:600;
-  color:#666;margin-bottom:5px;
-}
+.fieldLabel{display:block;font-size:11px;font-weight:600;color:#666;margin-bottom:5px;}
 .inputWrap{
   display:flex;align-items:stretch;
   border:1.5px solid #e5e5e5;border-radius:10px;
@@ -78,24 +75,19 @@ button{font-family:inherit;cursor:pointer;border:none;}
   width:100%;min-width:0;
 }
 .inputField.textarea{resize:vertical;min-height:60px;padding:10px 12px;}
-.errorText{
-  display:none;font-size:11px;color:#d23030;
-  font-weight:500;margin-top:4px;
-}
+.errorText{display:none;font-size:11px;color:#d23030;font-weight:500;margin-top:4px;}
 .errorText.show{display:block;}
 
 .locBtn{
   background:#dcf3e1;color:#0C831F;
   padding:9px 14px;border-radius:8px;
   font-size:12px;font-weight:700;
-  display:inline-flex;align-items:center;gap:5px;
-  margin-top:6px;
+  display:inline-flex;align-items:center;gap:5px;margin-top:6px;
 }
 .locBtn:active{transform:scale(.96);}
 .locConfirm{
   margin-top:6px;font-size:11px;font-weight:600;
-  display:none;
-  padding:6px 10px;border-radius:6px;
+  display:none;padding:6px 10px;border-radius:6px;
 }
 .locConfirm.show{display:block;}
 .locConfirm.success{background:#dcf3e1;color:#0C831F;}
@@ -103,7 +95,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .locConfirm.error{background:#fde0e0;color:#c41818;}
 .locConfirm.loading{background:#dbe9ff;color:#1857c1;}
 
-/* ============ MULTI-SHOP NOTICE ============ */
+/* Multi-shop */
 .multiShopNotice{
   background:linear-gradient(135deg,#dbe9ff 0%,#c4dbff 100%);
   border:1px solid #a3c5ff;
@@ -115,7 +107,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .msTitle{font-size:13px;font-weight:700;color:#1857c1;}
 .msSub{font-size:12px;color:#1857c1;opacity:.85;margin-top:2px;}
 
-/* ============ SHOP GROUP ============ */
+/* Shop group */
 .shopGroup{
   background:#fff;border-radius:14px;
   margin-bottom:12px;
@@ -138,9 +130,22 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .shopInfo{flex:1;min-width:0;line-height:1.3;}
 .shopName{font-size:14px;font-weight:700;color:#1f1f1f;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.shopWeight{font-size:11px;color:#8a6500;font-weight:600;margin-top:2px;}
+.shopMeta{font-size:11px;color:#8a6500;font-weight:600;margin-top:2px;
+  display:flex;flex-wrap:wrap;gap:8px;}
+.shopMeta span{display:inline-flex;align-items:center;gap:3px;}
 
 .shopBody{padding:12px 14px;}
+
+/* Distance banner */
+.distBanner{
+  background:#dbe9ff;color:#1857c1;
+  padding:8px 12px;border-radius:8px;
+  font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:6px;
+  margin-bottom:10px;
+}
+.distBanner.warn{background:#fff5d6;color:#8a6500;}
+.distBanner .ic{font-size:14px;}
 
 .itemsList{margin-bottom:12px;}
 .itemRow{
@@ -155,7 +160,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .itemRow .iWt{color:#888;font-weight:500;font-size:11px;margin-right:8px;}
 .itemRow .iAmt{font-weight:700;color:#1f1f1f;flex-shrink:0;}
 
-/* ============ VEHICLE PICKER ============ */
+/* Vehicle picker */
 .vehicleSection{
   background:#fafafa;
   border-radius:10px;padding:12px;
@@ -166,6 +171,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   letter-spacing:.4px;text-transform:uppercase;
   margin-bottom:10px;
   display:flex;align-items:center;justify-content:space-between;
+  gap:6px;flex-wrap:wrap;
 }
 .weightBadge{
   background:#dcf3e1;color:#0C831F;
@@ -178,20 +184,14 @@ button{font-family:inherit;cursor:pointer;border:none;}
   grid-template-columns:repeat(2,1fr);
   gap:8px;
 }
-@media(min-width:560px){
-  .vehicleGrid{grid-template-columns:repeat(3,1fr);}
-}
-@media(min-width:768px){
-  .vehicleGrid{grid-template-columns:repeat(5,1fr);}
-}
+@media(min-width:560px){.vehicleGrid{grid-template-columns:repeat(3,1fr);}}
+@media(min-width:768px){.vehicleGrid{grid-template-columns:repeat(5,1fr);}}
 
 .vehOpt{
   background:#fff;border:2px solid #e5e5e5;
   border-radius:10px;padding:10px 8px;
-  text-align:center;
-  cursor:pointer;
-  transition:all .15s;
-  position:relative;
+  text-align:center;cursor:pointer;
+  transition:all .15s;position:relative;
 }
 .vehOpt:hover:not(.disabled){border-color:#b3e5bf;}
 .vehOpt.selected{
@@ -212,10 +212,10 @@ button{font-family:inherit;cursor:pointer;border:none;}
   margin-top:4px;
 }
 .vehOpt.disabled .vehFee{color:#999;text-decoration:line-through;}
+.vehRate{font-size:9px;color:#888;font-weight:600;margin-top:2px;}
 .vehTooSmall{
   font-size:9px;color:#d23030;font-weight:700;
-  margin-top:3px;letter-spacing:.2px;
-  text-transform:uppercase;
+  margin-top:3px;letter-spacing:.2px;text-transform:uppercase;
 }
 
 /* Bill */
@@ -225,15 +225,9 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .billRow:not(:last-child){border-bottom:1px dashed #f4f4f4;}
 .billRow .lbl{color:#666;}
-.billRow .val{font-weight:600;color:#1f1f1f;}
-.billRow.total{
-  padding-top:10px;margin-top:4px;
-  border-top:2px solid #f0f0f0;border-bottom:none;
-}
-.billRow.total .lbl{font-size:14px;font-weight:700;color:#1f1f1f;}
-.billRow.total .val{font-size:18px;font-weight:800;color:#0C831F;}
+.billRow .lblHint{font-size:10px;color:#999;font-weight:500;display:block;margin-top:1px;}
+.billRow .val{font-weight:600;color:#1f1f1f;text-align:right;}
 
-/* Shop subtotal pill (when multi-shop) */
 .shopSubtotal{
   background:#dcf3e1;color:#0C831F;
   padding:6px 12px;border-radius:8px;
@@ -298,7 +292,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
 
-/* Toast */
 .toast{
   position:fixed;bottom:90px;left:50%;
   transform:translateX(-50%) translateY(20px);
@@ -310,7 +303,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* Empty cart */
 .empty{
   text-align:center;padding:60px 20px;
   background:#fff;border-radius:14px;
@@ -325,7 +317,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:13px;font-weight:700;
 }
 
-/* Success modal */
 .modalBg{
   position:fixed;inset:0;background:rgba(0,0,0,.55);
   display:none;align-items:center;justify-content:center;
@@ -380,9 +371,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </header>
 
-<main class="container" id="mainContent">
-  <!-- filled by JS -->
-</main>
+<main class="container" id="mainContent"></main>
 
 <div class="actionBar" id="actionBar" style="display:none;">
   <div class="actionInner">
@@ -411,7 +400,8 @@ import {
   collection, addDoc, getDocs, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
-  parseWeightKg, getCartWeightKg, VEHICLES, vehicleFits
+  parseWeightKg, getCartWeightKg, VEHICLES, vehicleFits,
+  haversineKm, getDeliveryFee, getDeliveryFeeBreakdown
 } from "/local-shop/js/weight-utils.js";
 
 const main = document.getElementById("mainContent");
@@ -421,11 +411,11 @@ const btnPlace = document.getElementById("btnPlace");
 const pageSub = document.getElementById("pageSub");
 
 let cart = [];
-let shopGroups = [];          // [{ shopName, items, weightKg, subtotal, selectedVehicle }]
+let shopGroups = [];
 let customerLat = null;
 let customerLng = null;
-let shopMeta = {};            // shopName(lower) → { lat, lng, icon, isOpen, email }
-let gpsState = "idle";        // idle | detecting | captured | failed
+let shopMeta = {};
+let gpsState = "idle";
 
 function showToast(msg, isError=false){
   toast.textContent = msg;
@@ -437,16 +427,13 @@ function showToast(msg, isError=false){
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
-
 function escapeAttr(str){
   return String(str).replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
 
-/* Update the location confirmation indicator UI */
 function updateLocUi(){
   const el = document.getElementById("locConfirm");
   if(!el) return;
-
   el.classList.remove("success","warn","error","loading","show");
 
   if(gpsState === "detecting"){
@@ -454,11 +441,19 @@ function updateLocUi(){
     el.innerHTML = `⏳ Detecting your location…`;
   }else if(gpsState === "captured"){
     el.classList.add("show","success");
-    el.innerHTML = `✓ Location captured · live tracking enabled`;
+    el.innerHTML = `✓ Location captured · accurate fees applied`;
   }else if(gpsState === "failed"){
     el.classList.add("show","warn");
-    el.innerHTML = `⚠️ GPS not captured · Tap the button above to enable live map tracking`;
+    el.innerHTML = `⚠️ GPS not captured · Tap the button to enable accurate distance-based fees`;
   }
+}
+
+/* =========== Compute distances for each shop group =========== */
+function recomputeDistances(){
+  shopGroups.forEach(g=>{
+    const meta = shopMeta[g.shopName.toLowerCase()] || {};
+    g.distanceKm = haversineKm(meta.lat, meta.lng, customerLat, customerLng);
+  });
 }
 
 /* =========== INIT =========== */
@@ -479,7 +474,8 @@ async function init(){
         items: [],
         weightKg: 0,
         subtotal: 0,
-        selectedVehicleId: "bike"   // default
+        selectedVehicleId: "bike",
+        distanceKm: null
       });
     }
     const g = map.get(key);
@@ -495,14 +491,15 @@ async function init(){
     g.selectedVehicleId = (VEHICLES.find(v => g.weightKg <= v.maxKg) || VEHICLES[VEHICLES.length-1]).id;
   });
 
-  /* Fetch shop meta (lat/lng/icon/isOpen) for all shops in cart */
+  /* Fetch shop meta */
   await loadShopMeta();
+  recomputeDistances();
 
   pageSub.textContent = `${cart.length} item${cart.length!==1?"s":""} from ${shopGroups.length} shop${shopGroups.length>1?"s":""}`;
   render();
   actionBar.style.display = "block";
 
-  /* Auto-capture GPS on load (option B) */
+  /* Auto-capture GPS */
   autoCaptureLocation();
 }
 
@@ -514,11 +511,10 @@ async function loadShopMeta(){
       const key = (s.shopName || "").toLowerCase();
       if(!key) return;
       shopMeta[key] = {
-        lat:    s.lat,
-        lng:    s.lng,
-        icon:   s.icon || "🏪",
+        lat: s.lat, lng: s.lng,
+        icon: s.icon || "🏪",
         isOpen: s.isOpen !== false,
-        email:  s.email || "",
+        email: s.email || "",
         category: s.category || ""
       };
     });
@@ -565,7 +561,6 @@ function render(){
     </section>
   `;
 
-  /* Multi-shop notice */
   if(shopGroups.length > 1){
     html += `
       <div class="multiShopNotice">
@@ -585,16 +580,37 @@ function render(){
 
     html += `<div class="shopGroup" data-idx="${idx}">`;
 
+    /* Shop header — show weight + distance */
+    let metaLine = `<span>📦 ${g.weightKg.toFixed(1)} kg</span>`;
+    if(g.distanceKm !== null){
+      metaLine += `<span>📏 ${g.distanceKm.toFixed(1)} km away</span>`;
+    }
+
     html += `
       <div class="shopHeader">
         <div class="shopAvatar">${icon}</div>
         <div class="shopInfo">
           <div class="shopName">${escapeHtml(g.shopName)}${!isOpen ? ' · CLOSED' : ''}</div>
-          <div class="shopWeight">📦 ${g.weightKg.toFixed(1)} kg total</div>
+          <div class="shopMeta">${metaLine}</div>
         </div>
       </div>
       <div class="shopBody">
     `;
+
+    /* Distance hint */
+    if(g.distanceKm === null){
+      html += `
+        <div class="distBanner warn">
+          <span class="ic">📍</span>
+          <span>Tap GPS button above to get accurate distance-based delivery fee</span>
+        </div>`;
+    }else{
+      html += `
+        <div class="distBanner">
+          <span class="ic">📏</span>
+          <span>Distance from shop: <b>${g.distanceKm.toFixed(1)} km</b></span>
+        </div>`;
+    }
 
     /* Items */
     html += `<div class="itemsList">`;
@@ -615,7 +631,7 @@ function render(){
     html += `
       <div class="vehicleSection">
         <div class="vehicleSectionLabel">
-          🚛 Choose delivery vehicle
+          <span>🚛 Choose delivery vehicle</span>
           <span class="weightBadge">${g.weightKg.toFixed(1)} KG</span>
         </div>
         <div class="vehicleGrid">
@@ -624,22 +640,46 @@ function render(){
       const fits = g.weightKg <= v.maxKg;
       const isSelected = g.selectedVehicleId === v.id;
       const cls = `vehOpt ${isSelected?'selected':''} ${!fits?'disabled':''}`;
+      const fee = getDeliveryFee(v.id, g.distanceKm);
+      const breakdown = getDeliveryFeeBreakdown(v.id, g.distanceKm);
+
+      let rateHint;
+      if(g.distanceKm === null){
+        rateHint = `min · ₹${v.perKmRate}/km`;
+      }else if(breakdown.minApplied){
+        rateHint = `min ₹${v.minFee}`;
+      }else{
+        rateHint = `${g.distanceKm.toFixed(1)}km × ₹${v.perKmRate}`;
+      }
+
       html += `
         <div class="${cls}" data-shop-idx="${idx}" data-vid="${v.id}">
           <div class="vehEmoji">${v.icon}</div>
           <div class="vehName">${v.name}</div>
-          <div class="vehFee">₹${v.deliveryFee}</div>
-          ${!fits ? `<div class="vehTooSmall">Too small</div>` : `<div style="font-size:9px;color:#888;margin-top:2px;">${v.capacity.replace('Up to ', '≤ ')}</div>`}
+          <div class="vehFee">₹${fee}</div>
+          ${!fits
+            ? `<div class="vehTooSmall">Too small</div>`
+            : `<div class="vehRate">${rateHint}</div>`}
         </div>`;
     });
     html += `</div></div>`;
 
     /* Subtotal for this shop */
     const selectedVeh = VEHICLES.find(v => v.id === g.selectedVehicleId);
-    const deliveryFee = selectedVeh ? selectedVeh.deliveryFee : 0;
+    const deliveryFee = getDeliveryFee(g.selectedVehicleId, g.distanceKm);
+    const breakdown = getDeliveryFeeBreakdown(g.selectedVehicleId, g.distanceKm);
     const handling = 5;
     const platformFee = Math.round((g.subtotal + deliveryFee) * 0.05);
     const shopTotal = g.subtotal + deliveryFee + handling + platformFee;
+
+    let deliveryHintText;
+    if(g.distanceKm === null){
+      deliveryHintText = `Min fee · enable GPS for distance pricing`;
+    }else if(breakdown.minApplied){
+      deliveryHintText = `${g.distanceKm.toFixed(1)} km × ₹${selectedVeh.perKmRate} = ₹${breakdown.calculated} → min ₹${selectedVeh.minFee} applied`;
+    }else{
+      deliveryHintText = `${g.distanceKm.toFixed(1)} km × ₹${selectedVeh.perKmRate}/km`;
+    }
 
     html += `
       <div class="billRow">
@@ -647,7 +687,10 @@ function render(){
         <span class="val">₹${g.subtotal}</span>
       </div>
       <div class="billRow">
-        <span class="lbl">Delivery fee · ${selectedVeh.name}</span>
+        <span class="lbl">
+          Delivery fee · ${selectedVeh.name}
+          <span class="lblHint">${deliveryHintText}</span>
+        </span>
         <span class="val">₹${deliveryFee}</span>
       </div>
       <div class="billRow">
@@ -664,19 +707,18 @@ function render(){
       </div>
     `;
 
-    html += `</div></div>`;   // shopBody, shopGroup
+    html += `</div></div>`;
   });
 
   /* Grand total */
   let grandTotal = 0;
   let grandFare = 0;
   shopGroups.forEach(g=>{
-    const v = VEHICLES.find(x => x.id === g.selectedVehicleId);
-    const deliveryFee = v.deliveryFee;
+    const fee = getDeliveryFee(g.selectedVehicleId, g.distanceKm);
     const handling = 5;
-    const platformFee = Math.round((g.subtotal + deliveryFee) * 0.05);
-    grandFare += deliveryFee;
-    grandTotal += g.subtotal + deliveryFee + handling + platformFee;
+    const platformFee = Math.round((g.subtotal + fee) * 0.05);
+    grandFare += fee;
+    grandTotal += g.subtotal + fee + handling + platformFee;
   });
 
   html += `
@@ -699,11 +741,11 @@ function render(){
       const idx = parseInt(opt.dataset.shopIdx, 10);
       const vid = opt.dataset.vid;
       shopGroups[idx].selectedVehicleId = vid;
-      render();   // re-render to update totals
+      render();
     });
   });
 
-  /* Wire up input focus styling */
+  /* Input focus styling */
   ["custName", "custPhone", "custAddr"].forEach(id=>{
     const input = document.getElementById(id);
     if(!input) return;
@@ -716,7 +758,6 @@ function render(){
     input.addEventListener("blur", ()=> wrap.classList.remove("focused"));
   });
 
-  /* Phone digits-only */
   const phoneInput = document.getElementById("custPhone");
   if(phoneInput){
     phoneInput.addEventListener("input", ()=>{
@@ -724,17 +765,14 @@ function render(){
     });
   }
 
-  /* Restore location-confirmation indicator after re-render */
   updateLocUi();
 
-  /* Update action bar */
   document.getElementById("actionFareSub").textContent =
     `${shopGroups.length} order${shopGroups.length>1?"s":""} · Pay on delivery`;
   document.getElementById("actionFare").textContent = `₹${grandTotal}`;
   btnPlace.disabled = false;
 }
 
-/* =========== EMPTY =========== */
 function showEmpty(){
   pageSub.textContent = "Cart is empty";
   main.innerHTML = `
@@ -747,43 +785,28 @@ function showEmpty(){
 }
 
 /* =========== LOCATION =========== */
-/* Auto-capture on page load (silent — uses cached permission if granted) */
 function autoCaptureLocation(){
   if(!navigator.geolocation){
-    gpsState = "failed";
-    updateLocUi();
-    return;
+    gpsState = "failed"; updateLocUi(); return;
   }
-
-  /* Use Permissions API to check if we already have permission (avoids prompt re-spam) */
   if(navigator.permissions && navigator.permissions.query){
     navigator.permissions.query({ name:"geolocation" }).then((result)=>{
       if(result.state === "denied"){
-        /* User has previously denied — don't prompt, just show warning */
-        gpsState = "failed";
-        updateLocUi();
-        return;
+        gpsState = "failed"; updateLocUi(); return;
       }
-      /* "granted" or "prompt" — try to get position */
-      requestLocation(/*silent*/ true);
-    }).catch(()=>{
-      /* Permissions API not supported — fall back to direct request */
-      requestLocation(/*silent*/ true);
-    });
+      requestLocation(true);
+    }).catch(()=> requestLocation(true));
   }else{
-    requestLocation(/*silent*/ true);
+    requestLocation(true);
   }
 }
 
-/* Manual button — always shows feedback */
 window.captureLocation = ()=>{
   if(!navigator.geolocation){
     showToast("Geolocation not supported", true);
-    gpsState = "failed";
-    updateLocUi();
-    return;
+    gpsState = "failed"; updateLocUi(); return;
   }
-  requestLocation(/*silent*/ false);
+  requestLocation(false);
 };
 
 function requestLocation(silent){
@@ -795,8 +818,12 @@ function requestLocation(silent){
     customerLat = pos.coords.latitude;
     customerLng = pos.coords.longitude;
     gpsState = "captured";
-    updateLocUi();
-    if(!silent) showToast("✓ Location captured");
+
+    /* Recompute distances and re-render — fees update */
+    recomputeDistances();
+    render();
+
+    if(!silent) showToast("✓ Location captured · fees recalculated");
   }, (err)=>{
     gpsState = "failed";
     updateLocUi();
@@ -832,7 +859,6 @@ function validate(){
     valid = false;
   }
 
-  /* Make sure no closed shops are in cart */
   const closedShops = shopGroups.filter(g=>{
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
     return meta.isOpen === false;
@@ -842,7 +868,6 @@ function validate(){
     valid = false;
   }
 
-  /* Sanity check: each shop has a fitting vehicle selected */
   for(const g of shopGroups){
     if(!vehicleFits(g.selectedVehicleId, g.weightKg)){
       showToast(`Selected vehicle for ${g.shopName} is too small for the order weight.`, true);
@@ -863,17 +888,15 @@ window.placeOrder = async ()=>{
     return;
   }
 
-  /* Soft warn (one-time) if GPS still missing — let them proceed */
   if((!customerLat || !customerLng) && !window.__gpsWarned){
     window.__gpsWarned = true;
-    showToast("⚠️ Tap GPS button for live tracking · or continue without", true);
-    return;   // first click just warns; second click places order
+    showToast("⚠️ Tap GPS button for accurate fare · or continue with min fee", true);
+    return;
   }
 
   btnPlace.classList.add("loading");
   btnPlace.disabled = true;
 
-  /* Save customer info for next time */
   localStorage.setItem("lastCustomerName", v.name);
   localStorage.setItem("lastCustomerPhone", v.phone);
   localStorage.setItem("lastCustomerAddress", v.addr);
@@ -884,69 +907,60 @@ window.placeOrder = async ()=>{
   for(const g of shopGroups){
     const veh = VEHICLES.find(x => x.id === g.selectedVehicleId);
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
+    const deliveryFee = getDeliveryFee(g.selectedVehicleId, g.distanceKm);
     const handling = 5;
-    const platformFee = Math.round((g.subtotal + veh.deliveryFee) * 0.05);
-    const total = g.subtotal + veh.deliveryFee + handling + platformFee;
+    const platformFee = Math.round((g.subtotal + deliveryFee) * 0.05);
+    const total = g.subtotal + deliveryFee + handling + platformFee;
 
     const baseOrder = {
-      /* Customer */
-      name:         v.name,
-      phone:        v.phone,
+      name: v.name,
+      phone: v.phone,
       customerPhone: v.phone,
-      address:      v.addr,
-      customerLat:  customerLat,
-      customerLng:  customerLng,
-      lat:          customerLat,    // legacy field
-      lng:          customerLng,    // legacy field
+      address: v.addr,
+      customerLat, customerLng,
+      lat: customerLat, lng: customerLng,
 
-      /* Shop */
-      shopName:  g.shopName,
+      shopName: g.shopName,
       shopEmail: meta.email || "",
-      shopLat:   meta.lat || null,
-      shopLng:   meta.lng || null,
-      shopIcon:  meta.icon || "🏪",
+      shopLat: meta.lat || null,
+      shopLng: meta.lng || null,
+      shopIcon: meta.icon || "🏪",
 
-      /* Items + weights */
-      items:        g.items.map(it=>({
-        name:  it.name,
+      items: g.items.map(it=>({
+        name: it.name,
         price: Number(it.price) || 0,
-        qty:   it.qty || 1,
+        qty: it.qty || 1,
         weight: it.weight || null,
         image: it.image || null,
         productId: it.productId || null,
         weightKg: Number(it.__wtKg.toFixed(2))
       })),
       cartWeightKg: Number(g.weightKg.toFixed(2)),
+      distanceKm: g.distanceKm !== null ? Number(g.distanceKm.toFixed(2)) : null,
 
-      /* Vehicle */
       vehicleType: veh.id,
       vehicleName: veh.name,
       vehicleIcon: veh.icon,
+      vehiclePerKmRate: veh.perKmRate,
 
-      /* Pricing */
-      total:        g.subtotal,
-      deliveryFee:  veh.deliveryFee,
-      handlingFee:  handling,
-      platformFee:  platformFee,
-      grandTotal:   total,
-      shopEarning:    Math.round(g.subtotal * 0.9),
-      deliveryEarning: Math.round(veh.deliveryFee * 0.85),
+      total: g.subtotal,
+      deliveryFee,
+      handlingFee: handling,
+      platformFee,
+      grandTotal: total,
+      shopEarning: Math.round(g.subtotal * 0.9),
+      deliveryEarning: Math.round(deliveryFee * 0.85),
 
-      /* Status */
-      status:         "Pending",
+      status: "Pending",
       deliveryStatus: "Waiting",
-      pickupStep:     0,
-
-      /* Driver */
+      pickupStep: 0,
       deliveryBoyId: null,
 
       time: new Date()
     };
 
-    /* Routing: bike → existing 'orders', else → 'transport-orders' */
     const targetCollection = veh.id === "bike" ? "orders" : "transport-orders";
 
-    /* Add transport-specific fields when going to transport-orders */
     if(targetCollection === "transport-orders"){
       baseOrder.pickupAddress = `${g.shopName} (Shop pickup)`;
       baseOrder.pickupLat = meta.lat || null;
@@ -960,12 +974,9 @@ window.placeOrder = async ()=>{
       baseOrder.dropContactName = v.name;
       baseOrder.dropContactPhone = v.phone;
 
-      baseOrder.estimatedFare = veh.deliveryFee;
-      baseOrder.distanceKm = 0;          // shop-cart transport, distance not pre-computed
+      baseOrder.estimatedFare = deliveryFee;
       baseOrder.goodsType = "groceries";
-      baseOrder.fromShopOrder = true;    // flag so dashboard can recognize
-      baseOrder.status = "Pending";      // shop still needs to accept
-      baseOrder.deliveryStatus = "Waiting";
+      baseOrder.fromShopOrder = true;
     }
 
     try{
@@ -990,21 +1001,17 @@ window.placeOrder = async ()=>{
     showToast(`${success} of ${shopGroups.length} orders placed. ${failed} failed.`, true);
   }
 
-  /* Save first ID for tracking */
   if(createdOrderIds[0]){
     localStorage.setItem("lastOrderId", createdOrderIds[0].id);
     localStorage.setItem("lastOrderCol", createdOrderIds[0].col);
 
-    /* Push all to my orders */
     const myOrders = JSON.parse(localStorage.getItem("myOrders") || "[]");
     createdOrderIds.forEach(o => myOrders.unshift(o.id));
     localStorage.setItem("myOrders", JSON.stringify(myOrders));
   }
 
-  /* Clear cart */
   localStorage.removeItem("cart");
 
-  /* Show success modal */
   const modal = document.getElementById("successModal");
   document.getElementById("successTitle").textContent =
     success > 1 ? `${success} orders placed! 🎉` : "Order placed! 🎉";
@@ -1021,7 +1028,6 @@ window.goToTracking = ()=>{
     return;
   }
   const first = createdOrderIds[0];
-  /* Use existing tracking page for bike orders, transport-tracking for the rest */
   if(first.col === "orders"){
     location.href = `tracking.html?orderId=${first.id}`;
   }else{
