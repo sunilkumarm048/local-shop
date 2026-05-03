@@ -30,7 +30,7 @@ img{display:block;max-width:100%;}
 }
 .backBtn:active{transform:scale(.94);}
 .titleBlock{flex:1;line-height:1.2;}
-.pageTitle{font-size:18px;font-weight:800;color:#fff;}
+<!-- .pageTitle{font-size:18px;font-weight:800;color:#fff;} -->
 .pageSub{font-size:12px;color:#bbb;margin-top:2px;}
 
 .headerAddBtn{
@@ -1023,10 +1023,10 @@ window.saveProduct = async ()=>{
   btn.classList.add("loading");
   btn.disabled = true;
 
-  /* Build product data */
+  /* Build product data — Firestore rejects `undefined`, so we use null or skip the field */
   const productData = {
-    name,
-    shopName,
+    name: name,
+    shopName: shopName,
     price: Number(price),
     mrp: mrp ? Number(mrp) : null,
     weight: weight || null,
@@ -1037,27 +1037,36 @@ window.saveProduct = async ()=>{
     images: uploadedImageUrl ? [uploadedImageUrl] : []
   };
 
-  /* Strip null fields except image (keep null so it overwrites) */
-  Object.keys(productData).forEach(k=>{
-    if(productData[k] === null && k !== "image" && k !== "mrp" && k !== "stock"){
-      delete productData[k];
-    }
-  });
+  /* DEBUG: log exactly what we're sending */
+  console.log("[Save Product] Mode:", editingProductId ? "EDIT" : "ADD");
+  console.log("[Save Product] Data:", productData);
 
   try{
     if(editingProductId){
       productData.updatedAt = serverTimestamp();
+      console.log("[Save Product] Updating doc:", editingProductId);
       await updateDoc(doc(db, "products", editingProductId), productData);
       showToast("✓ Product updated");
     }else{
       productData.createdAt = serverTimestamp();
-      await addDoc(collection(db, "products"), productData);
+      console.log("[Save Product] Adding new doc to 'products' collection");
+      const newRef = await addDoc(collection(db, "products"), productData);
+      console.log("[Save Product] Created with ID:", newRef.id);
       showToast("✓ Product added");
     }
     closeProductModal();
   }catch(err){
-    console.error(err);
-    showToast("Could not save: " + (err.message || "try again"), true);
+    console.error("[Save Product] FAILED:", err);
+    console.error("[Save Product] Error code:", err.code);
+    console.error("[Save Product] Error message:", err.message);
+
+    let userMsg = "Could not save: " + (err.message || "try again");
+    if(err.code === "permission-denied"){
+      userMsg = "⚠️ Firestore permission denied. Check security rules.";
+    }else if(err.code === "unavailable"){
+      userMsg = "⚠️ Network issue. Check your connection.";
+    }
+    showToast(userMsg, true);
   }finally{
     btn.classList.remove("loading");
     btn.disabled = false;
