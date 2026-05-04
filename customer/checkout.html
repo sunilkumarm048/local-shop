@@ -48,7 +48,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   content:"";width:18px;height:2px;background:#0C831F;border-radius:1px;
 }
 
-/* Fields */
 .field{margin-bottom:10px;}
 .field:last-child{margin-bottom:0;}
 .fieldLabel{display:block;font-size:11px;font-weight:600;color:#666;margin-bottom:5px;}
@@ -95,7 +94,18 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .locConfirm.error{background:#fde0e0;color:#c41818;}
 .locConfirm.loading{background:#dbe9ff;color:#1857c1;}
 
-/* Multi-shop */
+/* Global discount banner */
+.globalOfferBanner{
+  background:linear-gradient(135deg,#dcf3e1 0%,#b3e5bf 100%);
+  border:1px solid #0C831F;border-radius:12px;
+  padding:12px 14px;margin-bottom:12px;
+  display:flex;gap:10px;align-items:center;
+}
+.globalOfferBanner .ic{font-size:24px;flex-shrink:0;}
+.globalOfferBanner .txt{flex:1;line-height:1.3;}
+.globalOfferBanner .ttl{font-size:13px;font-weight:800;color:#0C831F;}
+.globalOfferBanner .sub{font-size:11px;color:#0C831F;opacity:.85;margin-top:2px;}
+
 .multiShopNotice{
   background:linear-gradient(135deg,#dbe9ff 0%,#c4dbff 100%);
   border:1px solid #a3c5ff;
@@ -107,7 +117,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .msTitle{font-size:13px;font-weight:700;color:#1857c1;}
 .msSub{font-size:12px;color:#1857c1;opacity:.85;margin-top:2px;}
 
-/* Shop group */
 .shopGroup{
   background:#fff;border-radius:14px;
   margin-bottom:12px;
@@ -134,9 +143,16 @@ button{font-family:inherit;cursor:pointer;border:none;}
   display:flex;flex-wrap:wrap;gap:8px;}
 .shopMeta span{display:inline-flex;align-items:center;gap:3px;}
 
+.shopOfferTag{
+  display:inline-block;
+  background:#0C831F;color:#fff;
+  padding:2px 8px;border-radius:10px;
+  font-size:10px;font-weight:800;
+  letter-spacing:.3px;margin-top:3px;
+}
+
 .shopBody{padding:12px 14px;}
 
-/* Distance banner */
 .distBanner{
   background:#dbe9ff;color:#1857c1;
   padding:8px 12px;border-radius:8px;
@@ -160,7 +176,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .itemRow .iWt{color:#888;font-weight:500;font-size:11px;margin-right:8px;}
 .itemRow .iAmt{font-weight:700;color:#1f1f1f;flex-shrink:0;}
 
-/* Vehicle picker */
 .vehicleSection{
   background:#fafafa;
   border-radius:10px;padding:12px;
@@ -218,7 +233,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   margin-top:3px;letter-spacing:.2px;text-transform:uppercase;
 }
 
-/* Bill */
 .billRow{
   display:flex;justify-content:space-between;align-items:center;
   padding:6px 0;font-size:13px;
@@ -227,6 +241,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .billRow .lbl{color:#666;}
 .billRow .lblHint{font-size:10px;color:#999;font-weight:500;display:block;margin-top:1px;}
 .billRow .val{font-weight:600;color:#1f1f1f;text-align:right;}
+.billRow.discount .lbl{color:#0C831F;font-weight:700;}
+.billRow.discount .val{color:#0C831F;font-weight:800;}
 
 .shopSubtotal{
   background:#dcf3e1;color:#0C831F;
@@ -236,7 +252,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
   margin-top:4px;
 }
 
-/* Grand total */
 .grandTotalCard{
   background:linear-gradient(135deg,#0C831F 0%,#0fa029 100%);
   color:#fff;border-radius:14px;
@@ -254,8 +269,12 @@ button{font-family:inherit;cursor:pointer;border:none;}
   border-top:1px solid rgba(255,255,255,.2);
   font-size:12px;font-weight:500;opacity:.95;
 }
+.grandSavings{
+  background:rgba(255,255,255,.18);
+  padding:6px 10px;border-radius:8px;margin-top:8px;
+  font-size:11px;font-weight:700;text-align:center;
+}
 
-/* Action bar */
 .actionBar{
   position:fixed;bottom:0;left:0;right:0;
   background:#fff;border-top:1px solid #ececec;
@@ -397,12 +416,15 @@ button{font-family:inherit;cursor:pointer;border:none;}
 <script type="module">
 import { db } from "/local-shop/js/firebase.js";
 import {
-  collection, addDoc, getDocs, query, where
+  collection, addDoc, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
-  parseWeightKg, getCartWeightKg, VEHICLES, vehicleFits,
-  haversineKm, getDeliveryFee, getDeliveryFeeBreakdown
+  parseWeightKg, vehicleFits, haversineKm,
+  getDeliveryFee, getDeliveryFeeBreakdown
 } from "/local-shop/js/weight-utils.js";
+import {
+  loadPricingConfig, configToVehiclesArray, calculateDiscount
+} from "/local-shop/js/pricing-config.js";
 
 const main = document.getElementById("mainContent");
 const toast = document.getElementById("toast");
@@ -417,13 +439,16 @@ let customerLng = null;
 let shopMeta = {};
 let gpsState = "idle";
 
+/* Loaded from admin pricing config */
+let pricingConfig = null;
+let VEHICLES = [];
+
 function showToast(msg, isError=false){
   toast.textContent = msg;
   toast.style.background = isError ? "#d23030" : "#1f1f1f";
   toast.classList.add("show");
   setTimeout(()=> toast.classList.remove("show"), 2400);
 }
-
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
@@ -448,7 +473,6 @@ function updateLocUi(){
   }
 }
 
-/* =========== Compute distances for each shop group =========== */
 function recomputeDistances(){
   shopGroups.forEach(g=>{
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
@@ -456,8 +480,17 @@ function recomputeDistances(){
   });
 }
 
-/* =========== INIT =========== */
 async function init(){
+  /* Load admin pricing config first */
+  try{
+    pricingConfig = await loadPricingConfig();
+    VEHICLES = configToVehiclesArray(pricingConfig);
+  }catch(e){
+    console.error("Pricing config load failed, using defaults:", e);
+    pricingConfig = await loadPricingConfig();
+    VEHICLES = configToVehiclesArray(pricingConfig);
+  }
+
   cart = JSON.parse(localStorage.getItem("cart") || "[]");
   if(!cart.length){
     showEmpty();
@@ -475,7 +508,8 @@ async function init(){
         weightKg: 0,
         subtotal: 0,
         selectedVehicleId: "bike",
-        distanceKm: null
+        distanceKm: null,
+        shopDiscount: null
       });
     }
     const g = map.get(key);
@@ -491,15 +525,18 @@ async function init(){
     g.selectedVehicleId = (VEHICLES.find(v => g.weightKg <= v.maxKg) || VEHICLES[VEHICLES.length-1]).id;
   });
 
-  /* Fetch shop meta */
   await loadShopMeta();
   recomputeDistances();
+
+  /* Attach per-shop discount to each group */
+  shopGroups.forEach(g=>{
+    const meta = shopMeta[g.shopName.toLowerCase()] || {};
+    g.shopDiscount = meta.discount || null;
+  });
 
   pageSub.textContent = `${cart.length} item${cart.length!==1?"s":""} from ${shopGroups.length} shop${shopGroups.length>1?"s":""}`;
   render();
   actionBar.style.display = "block";
-
-  /* Auto-capture GPS */
   autoCaptureLocation();
 }
 
@@ -515,7 +552,8 @@ async function loadShopMeta(){
         icon: s.icon || "🏪",
         isOpen: s.isOpen !== false,
         email: s.email || "",
-        category: s.category || ""
+        category: s.category || "",
+        discount: s.discount || null
       };
     });
   }catch(e){
@@ -523,7 +561,6 @@ async function loadShopMeta(){
   }
 }
 
-/* =========== RENDER =========== */
 function render(){
   let html = "";
 
@@ -561,6 +598,20 @@ function render(){
     </section>
   `;
 
+  /* Global discount banner */
+  const gd = pricingConfig.globalDiscount;
+  if(gd && gd.enabled && gd.value > 0){
+    const valueText = gd.type === "flat" ? `₹${gd.value} OFF` : `${gd.value}% OFF`;
+    html += `
+      <div class="globalOfferBanner">
+        <div class="ic">🎁</div>
+        <div class="txt">
+          <div class="ttl">${escapeHtml(gd.label || "Special Offer")} · ${valueText}</div>
+          <div class="sub">Auto-applied where eligible · shop offers may override this</div>
+        </div>
+      </div>`;
+  }
+
   if(shopGroups.length > 1){
     html += `
       <div class="multiShopNotice">
@@ -572,7 +623,6 @@ function render(){
       </div>`;
   }
 
-  /* Shop groups */
   shopGroups.forEach((g, idx)=>{
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
     const icon = meta.icon || "🏪";
@@ -580,10 +630,16 @@ function render(){
 
     html += `<div class="shopGroup" data-idx="${idx}">`;
 
-    /* Shop header — show weight + distance */
     let metaLine = `<span>📦 ${g.weightKg.toFixed(1)} kg</span>`;
     if(g.distanceKm !== null){
       metaLine += `<span>📏 ${g.distanceKm.toFixed(1)} km away</span>`;
+    }
+
+    /* Per-shop discount tag */
+    let shopDiscountTag = "";
+    if(g.shopDiscount && g.shopDiscount.enabled && Number(g.shopDiscount.value) > 0){
+      const valueText = g.shopDiscount.type === "flat" ? `₹${g.shopDiscount.value} OFF` : `${g.shopDiscount.value}% OFF`;
+      shopDiscountTag = `<div class="shopOfferTag">🏷️ ${escapeHtml(g.shopDiscount.label || "Offer")} · ${valueText}</div>`;
     }
 
     html += `
@@ -592,12 +648,12 @@ function render(){
         <div class="shopInfo">
           <div class="shopName">${escapeHtml(g.shopName)}${!isOpen ? ' · CLOSED' : ''}</div>
           <div class="shopMeta">${metaLine}</div>
+          ${shopDiscountTag}
         </div>
       </div>
       <div class="shopBody">
     `;
 
-    /* Distance hint */
     if(g.distanceKm === null){
       html += `
         <div class="distBanner warn">
@@ -640,8 +696,8 @@ function render(){
       const fits = g.weightKg <= v.maxKg;
       const isSelected = g.selectedVehicleId === v.id;
       const cls = `vehOpt ${isSelected?'selected':''} ${!fits?'disabled':''}`;
-      const fee = getDeliveryFee(v.id, g.distanceKm);
-      const breakdown = getDeliveryFeeBreakdown(v.id, g.distanceKm);
+      const fee = getDeliveryFee(v.id, g.distanceKm, VEHICLES);
+      const breakdown = getDeliveryFeeBreakdown(v.id, g.distanceKm, VEHICLES);
 
       let rateHint;
       if(g.distanceKm === null){
@@ -664,13 +720,23 @@ function render(){
     });
     html += `</div></div>`;
 
-    /* Subtotal for this shop */
+    /* Bill for this shop — using config values */
     const selectedVeh = VEHICLES.find(v => v.id === g.selectedVehicleId);
-    const deliveryFee = getDeliveryFee(g.selectedVehicleId, g.distanceKm);
-    const breakdown = getDeliveryFeeBreakdown(g.selectedVehicleId, g.distanceKm);
-    const handling = 5;
-    const platformFee = Math.round((g.subtotal + deliveryFee) * 0.05);
-    const shopTotal = g.subtotal + deliveryFee + handling + platformFee;
+    const deliveryFee = getDeliveryFee(g.selectedVehicleId, g.distanceKm, VEHICLES);
+    const breakdown = getDeliveryFeeBreakdown(g.selectedVehicleId, g.distanceKm, VEHICLES);
+    const handling = pricingConfig.handlingFee;
+    const platformFee = Math.round((g.subtotal + deliveryFee) * pricingConfig.platformFeePercent / 100);
+
+    /* Calculate discount (per-shop overrides global) */
+    const discount = calculateDiscount(g.subtotal, pricingConfig.globalDiscount, g.shopDiscount);
+    const shopTotal = g.subtotal + deliveryFee + handling + platformFee - discount.amount;
+
+    /* Save to group for later use */
+    g.__deliveryFee = deliveryFee;
+    g.__handling = handling;
+    g.__platformFee = platformFee;
+    g.__discount = discount;
+    g.__total = shopTotal;
 
     let deliveryHintText;
     if(g.distanceKm === null){
@@ -698,9 +764,19 @@ function render(){
         <span class="val">₹${handling}</span>
       </div>
       <div class="billRow">
-        <span class="lbl">Platform fee (5%)</span>
+        <span class="lbl">Platform fee (${pricingConfig.platformFeePercent}%)</span>
         <span class="val">₹${platformFee}</span>
-      </div>
+      </div>`;
+
+    if(discount.amount > 0){
+      html += `
+        <div class="billRow discount">
+          <span class="lbl">🎁 ${escapeHtml(discount.label)}</span>
+          <span class="val">−₹${discount.amount}</span>
+        </div>`;
+    }
+
+    html += `
       <div class="shopSubtotal">
         <span>${escapeHtml(g.shopName)} total</span>
         <span>₹${shopTotal}</span>
@@ -713,13 +789,17 @@ function render(){
   /* Grand total */
   let grandTotal = 0;
   let grandFare = 0;
+  let grandSavings = 0;
   shopGroups.forEach(g=>{
-    const fee = getDeliveryFee(g.selectedVehicleId, g.distanceKm);
-    const handling = 5;
-    const platformFee = Math.round((g.subtotal + fee) * 0.05);
-    grandFare += fee;
-    grandTotal += g.subtotal + fee + handling + platformFee;
+    grandFare += g.__deliveryFee;
+    grandTotal += g.__total;
+    grandSavings += g.__discount.amount;
   });
+
+  let savingsText = "";
+  if(grandSavings > 0){
+    savingsText = `<div class="grandSavings">🎉 You save ₹${grandSavings} on this order!</div>`;
+  }
 
   html += `
     <div class="grandTotalCard">
@@ -729,6 +809,7 @@ function render(){
         <span>${shopGroups.length} order${shopGroups.length>1?"s":""}</span>
         <span>Delivery: ₹${grandFare}</span>
       </div>
+      ${savingsText}
     </div>
   `;
 
@@ -745,7 +826,6 @@ function render(){
     });
   });
 
-  /* Input focus styling */
   ["custName", "custPhone", "custAddr"].forEach(id=>{
     const input = document.getElementById(id);
     if(!input) return;
@@ -784,16 +864,11 @@ function showEmpty(){
     </div>`;
 }
 
-/* =========== LOCATION =========== */
 function autoCaptureLocation(){
-  if(!navigator.geolocation){
-    gpsState = "failed"; updateLocUi(); return;
-  }
+  if(!navigator.geolocation){ gpsState = "failed"; updateLocUi(); return; }
   if(navigator.permissions && navigator.permissions.query){
     navigator.permissions.query({ name:"geolocation" }).then((result)=>{
-      if(result.state === "denied"){
-        gpsState = "failed"; updateLocUi(); return;
-      }
+      if(result.state === "denied"){ gpsState = "failed"; updateLocUi(); return; }
       requestLocation(true);
     }).catch(()=> requestLocation(true));
   }else{
@@ -818,11 +893,8 @@ function requestLocation(silent){
     customerLat = pos.coords.latitude;
     customerLng = pos.coords.longitude;
     gpsState = "captured";
-
-    /* Recompute distances and re-render — fees update */
     recomputeDistances();
     render();
-
     if(!silent) showToast("✓ Location captured · fees recalculated");
   }, (err)=>{
     gpsState = "failed";
@@ -836,7 +908,6 @@ function requestLocation(silent){
   }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
 }
 
-/* =========== VALIDATION =========== */
 function validate(){
   const name = document.getElementById("custName").value.trim();
   const phone = document.getElementById("custPhone").value.trim();
@@ -869,7 +940,7 @@ function validate(){
   }
 
   for(const g of shopGroups){
-    if(!vehicleFits(g.selectedVehicleId, g.weightKg)){
+    if(!vehicleFits(g.selectedVehicleId, g.weightKg, VEHICLES)){
       showToast(`Selected vehicle for ${g.shopName} is too small for the order weight.`, true);
       valid = false;
     }
@@ -878,15 +949,11 @@ function validate(){
   return valid ? { name, phone, addr } : null;
 }
 
-/* =========== PLACE ORDER =========== */
 let createdOrderIds = [];
 
 window.placeOrder = async ()=>{
   const v = validate();
-  if(!v){
-    showToast("Please fix the errors above", true);
-    return;
-  }
+  if(!v){ showToast("Please fix the errors above", true); return; }
 
   if((!customerLat || !customerLng) && !window.__gpsWarned){
     window.__gpsWarned = true;
@@ -907,10 +974,13 @@ window.placeOrder = async ()=>{
   for(const g of shopGroups){
     const veh = VEHICLES.find(x => x.id === g.selectedVehicleId);
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
-    const deliveryFee = getDeliveryFee(g.selectedVehicleId, g.distanceKm);
-    const handling = 5;
-    const platformFee = Math.round((g.subtotal + deliveryFee) * 0.05);
-    const total = g.subtotal + deliveryFee + handling + platformFee;
+
+    /* Use the saved values from render to keep what customer saw */
+    const deliveryFee = g.__deliveryFee;
+    const handling = g.__handling;
+    const platformFee = g.__platformFee;
+    const discount = g.__discount;
+    const total = g.__total;
 
     const baseOrder = {
       name: v.name,
@@ -947,6 +1017,15 @@ window.placeOrder = async ()=>{
       deliveryFee,
       handlingFee: handling,
       platformFee,
+      platformFeePercent: pricingConfig.platformFeePercent,
+
+      /* Discount snapshot — saves what was applied at order time */
+      discountAmount: discount.amount,
+      discountLabel: discount.label || "",
+      discountSource: discount.source,    // "shop" | "global" | "none"
+      discountType: discount.type || "",
+      discountValue: discount.value || 0,
+
       grandTotal: total,
       shopEarning: Math.round(g.subtotal * 0.9),
       deliveryEarning: Math.round(deliveryFee * 0.85),
