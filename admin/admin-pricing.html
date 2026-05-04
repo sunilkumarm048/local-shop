@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pricing Settings · Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:90px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#1f1f1f 0%,#3a3a3a 100%);
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);color:#fff;
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.1);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#fff;
+  border:1px solid rgba(255,255,255,.15);
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#fff;}
+.pageSub{font-size:12px;color:#bbb;margin-top:2px;}
+
+.container{max-width:900px;margin:0 auto;padding:14px 12px 0;}
+
+.section{
+  background:#fff;border-radius:14px;
+  padding:16px;margin-bottom:12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.sectionTitle{
+  font-size:13px;font-weight:800;color:#444;
+  text-transform:uppercase;letter-spacing:.4px;
+  margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.sectionTitle::before{
+  content:"";width:18px;height:2px;background:#0C831F;border-radius:1px;
+}
+
+.preview{
+  background:linear-gradient(135deg,#dbe9ff 0%,#c4dbff 100%);
+  border:1px solid #a3c5ff;
+  border-radius:12px;padding:14px;
+  margin-bottom:12px;
+}
+.previewTitle{
+  font-size:11px;font-weight:800;color:#1857c1;
+  letter-spacing:.4px;text-transform:uppercase;
+  margin-bottom:8px;display:flex;align-items:center;gap:6px;
+}
+.previewRow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;font-size:13px;color:#1f1f1f;
+}
+.previewRow:not(:last-child){border-bottom:1px dashed rgba(24,87,193,.2);}
+.previewRow .lbl{color:#1857c1;font-weight:600;}
+.previewRow .val{font-weight:700;}
+.previewRow.total .val{font-size:16px;font-weight:800;color:#0C831F;}
+
+.previewInputs{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+  padding-bottom:10px;margin-bottom:10px;
+  border-bottom:1px dashed rgba(24,87,193,.3);
+}
+.previewInputs label{
+  display:block;font-size:10px;font-weight:700;
+  color:#1857c1;text-transform:uppercase;
+  letter-spacing:.3px;margin-bottom:3px;
+}
+.previewInputs input{
+  width:100%;padding:7px 10px;border-radius:7px;
+  border:1.5px solid #a3c5ff;background:#fff;
+  font-size:13px;font-weight:600;font-family:inherit;
+  color:#1f1f1f;outline:none;
+}
+.previewInputs input:focus{border-color:#1857c1;}
+
+.field{margin-bottom:12px;}
+.fieldLabel{
+  display:block;font-size:11px;font-weight:700;
+  color:#444;margin-bottom:5px;letter-spacing:.2px;
+  text-transform:uppercase;
+}
+.fieldHint{
+  font-size:10px;color:#999;font-weight:500;
+  margin-top:3px;
+}
+.inputWrap{
+  display:flex;align-items:stretch;
+  border:1.5px solid #e5e5e5;border-radius:10px;
+  background:#fafafa;overflow:hidden;
+  transition:all .15s;
+}
+.inputWrap.focused{border-color:#0C831F;background:#fff;}
+.inputWrap.error{border-color:#d23030;background:#fff5f5;}
+.inputWrap .prefix, .inputWrap .suffix{
+  padding:0 10px;display:flex;align-items:center;
+  font-size:13px;font-weight:700;color:#666;
+  background:#f0f0f0;flex-shrink:0;
+}
+.inputWrap .prefix{border-right:1.5px solid #e5e5e5;}
+.inputWrap .suffix{border-left:1.5px solid #e5e5e5;}
+.inputWrap.focused .prefix, .inputWrap.focused .suffix{
+  background:#dcf3e1;color:#0C831F;border-color:#dcf3e1;
+}
+.inputField{
+  flex:1;border:none;background:transparent;
+  padding:10px 12px;font-size:14px;font-weight:600;
+  font-family:inherit;color:#1f1f1f;outline:none;
+  width:100%;min-width:0;
+}
+
+/* Vehicle row */
+.vehicleRow{
+  background:#fafafa;border:1px solid #ececec;
+  border-radius:12px;padding:12px;margin-bottom:10px;
+}
+.vehicleRowHeader{
+  display:flex;align-items:center;gap:10px;margin-bottom:10px;
+}
+.vehEmoji{font-size:24px;flex-shrink:0;}
+.vehTitle{
+  font-size:14px;font-weight:700;color:#1f1f1f;
+}
+.vehSubtitle{font-size:11px;color:#888;font-weight:500;}
+.vehFields{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+.vehFields .field{margin-bottom:0;}
+
+/* Discount */
+.discountToggle{
+  display:flex;align-items:center;gap:10px;
+  background:#fafafa;border-radius:10px;padding:12px;
+  margin-bottom:12px;cursor:pointer;
+  border:2px solid transparent;
+  transition:all .15s;
+}
+.discountToggle.active{
+  background:#f0fbf2;border-color:#0C831F;
+}
+.toggleSwitch{
+  width:42px;height:24px;border-radius:12px;
+  background:#ccc;position:relative;transition:all .15s;
+  flex-shrink:0;
+}
+.toggleSwitch::after{
+  content:"";position:absolute;top:2px;left:2px;
+  width:20px;height:20px;border-radius:50%;
+  background:#fff;transition:all .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.discountToggle.active .toggleSwitch{background:#0C831F;}
+.discountToggle.active .toggleSwitch::after{transform:translateX(18px);}
+.discountToggleText{flex:1;line-height:1.3;}
+.toggleTitle{font-size:13px;font-weight:700;color:#1f1f1f;}
+.toggleSub{font-size:11px;color:#666;}
+
+.discountFields{
+  display:none;
+  background:#fafafa;border-radius:10px;padding:12px;
+}
+.discountFields.show{display:block;}
+
+.typeRow{display:flex;gap:8px;margin-bottom:10px;}
+.typeOpt{
+  flex:1;padding:9px;border-radius:8px;
+  background:#fff;border:1.5px solid #e5e5e5;
+  font-size:12px;font-weight:700;color:#666;
+  cursor:pointer;transition:all .15s;text-align:center;
+}
+.typeOpt.active{
+  background:#dcf3e1;color:#0C831F;border-color:#0C831F;
+}
+
+/* Action bar (bottom save) */
+.actionBar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid #ececec;
+  padding:12px 16px;z-index:900;
+  box-shadow:0 -2px 12px rgba(0,0,0,.06);
+}
+.actionInner{
+  max-width:900px;margin:0 auto;
+  display:flex;gap:10px;
+}
+.btnReset{
+  background:#fff;color:#666;
+  border:1.5px solid #e0e0e0;
+  padding:13px 18px;border-radius:10px;
+  font-size:13px;font-weight:700;
+  flex-shrink:0;
+}
+.btnReset:active{transform:scale(.97);}
+.btnSave{
+  flex:1;background:#0C831F;color:#fff;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:800;letter-spacing:.3px;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  position:relative;transition:all .12s;
+}
+.btnSave:active{transform:scale(.98);}
+.btnSave:hover{background:#0a6e1a;}
+.btnSave:disabled{background:#a0d3a8;cursor:not-allowed;}
+.btnSave.loading{color:transparent;}
+.btnSave.loading::after{
+  content:"";position:absolute;
+  width:18px;height:18px;
+  border:2.5px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+
+.warnBanner{
+  background:#fff5d6;border:1px solid #f0d76a;
+  border-radius:12px;padding:12px 14px;
+  margin-bottom:12px;font-size:12px;color:#8a6500;
+  line-height:1.4;display:flex;gap:10px;align-items:flex-start;
+}
+.warnBanner .ic{font-size:18px;flex-shrink:0;}
+
+.lastEdited{
+  font-size:11px;color:#888;font-weight:500;
+  text-align:center;margin-top:8px;
+}
+
+.toast{
+  position:fixed;bottom:90px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1700;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;z-index:2000;
+}
+.modalBg.show{display:flex;}
+.modal{
+  background:#fff;width:100%;max-width:380px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;text-align:center;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.modal .icon{font-size:48px;margin-bottom:8px;}
+.modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;gap:10px;}
+.btnPrimary{flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;}
+}
+
+.loadingScreen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:60vh;text-align:center;padding:20px;
+}
+.loadingSpinner{
+  width:40px;height:40px;
+  border:4px solid #e5e5e5;border-top-color:#0C831F;
+  border-radius:50%;animation:spin .8s linear infinite;
+  margin-bottom:14px;
+}
+.loadingText{font-size:13px;color:#666;font-weight:600;}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="loadingScreen" id="loadingScreen">
+  <div class="loadingSpinner"></div>
+  <div class="loadingText">Loading pricing settings…</div>
+</div>
+
+<header class="header" id="adminHeader" style="display:none;">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">💰 Pricing Settings</div>
+      <div class="pageSub" id="headerSub">Configure platform-wide pricing</div>
+    </div>
+  </div>
+</header>
+
+<main class="container" id="mainContent" style="display:none;">
+
+  <div class="warnBanner">
+    <span class="ic">⚠️</span>
+    <span><b>Live pricing</b> — Changes here apply to ALL future orders. Existing orders are not affected. Use the Save button at the bottom to apply.</span>
+  </div>
+
+  <!-- LIVE PREVIEW -->
+  <div class="preview">
+    <div class="previewTitle">🧮 Live Preview · what customer pays</div>
+    <div class="previewInputs">
+      <div>
+        <label>Distance</label>
+        <input type="number" id="prevDistance" value="3" min="0" step="0.1">
+      </div>
+      <div>
+        <label>Cart Total</label>
+        <input type="number" id="prevSubtotal" value="200" min="0" step="1">
+      </div>
+    </div>
+    <div id="previewBody">—</div>
+  </div>
+
+  <!-- VEHICLES SECTION -->
+  <section class="section">
+    <div class="sectionTitle">🚛 Vehicle Pricing</div>
+    <div id="vehicleList"></div>
+  </section>
+
+  <!-- FEES SECTION -->
+  <section class="section">
+    <div class="sectionTitle">💵 Other Fees</div>
+    <div class="field">
+      <label class="fieldLabel">Handling Fee</label>
+      <div class="inputWrap">
+        <span class="prefix">₹</span>
+        <input class="inputField" id="handlingFee" type="number" min="0" step="1" value="5">
+      </div>
+      <div class="fieldHint">Flat charge added to every order</div>
+    </div>
+    <div class="field">
+      <label class="fieldLabel">Platform Fee (%)</label>
+      <div class="inputWrap">
+        <input class="inputField" id="platformFeePercent" type="number" min="0" max="50" step="0.5" value="5">
+        <span class="suffix">%</span>
+      </div>
+      <div class="fieldHint">Percentage of (items + delivery)</div>
+    </div>
+  </section>
+
+  <!-- GLOBAL DISCOUNT -->
+  <section class="section">
+    <div class="sectionTitle">🎁 Global Discount</div>
+
+    <div class="discountToggle" id="discountToggle" onclick="toggleDiscount()">
+      <div class="toggleSwitch"></div>
+      <div class="discountToggleText">
+        <div class="toggleTitle">Enable global discount</div>
+        <div class="toggleSub">Applies to ALL shops unless they have their own discount</div>
+      </div>
+    </div>
+
+    <div class="discountFields" id="discountFields">
+      <div class="field">
+        <label class="fieldLabel">Discount Type</label>
+        <div class="typeRow">
+          <div class="typeOpt active" data-type="percent" onclick="setDiscountType('percent')">% Percentage</div>
+          <div class="typeOpt" data-type="flat" onclick="setDiscountType('flat')">₹ Flat amount</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="fieldLabel">Value</label>
+        <div class="inputWrap" id="discountValueWrap">
+          <span class="prefix" id="discountPrefix">%</span>
+          <input class="inputField" id="discountValue" type="number" min="0" step="1" value="10">
+        </div>
+        <div class="fieldHint" id="discountHint">e.g., 10 means 10% off</div>
+      </div>
+      <div class="field">
+        <label class="fieldLabel">Label (shown to customer)</label>
+        <div class="inputWrap">
+          <input class="inputField" id="discountLabel" type="text" placeholder="e.g., Diwali Sale, Launch Offer" maxlength="40">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="lastEdited" id="lastEdited"></div>
+
+</main>
+
+<div class="actionBar" id="actionBar" style="display:none;">
+  <div class="actionInner">
+    <button class="btnReset" onclick="askReset()">Reset</button>
+    <button class="btnSave" id="btnSave" onclick="askSave()">💾 Save Pricing</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon" id="cIcon">❓</div>
+    <h3 id="cTitle">Are you sure?</h3>
+    <p id="cMsg">This action will affect all future orders.</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeConfirm()">Cancel</button>
+      <button class="btnPrimary" id="cBtn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  loadPricingConfig, clearPricingCache, configToVehiclesArray,
+  DEFAULT_PRICING, VEHICLE_ORDER
+} from "../js/pricing-config.js";
+import {
+  getDeliveryFee, getRequiredVehicle
+} from "../js/weight-utils.js";
+
+const ADMIN_EMAILS = ["sunilkumarm048@gmail.com"];
+
+const toast = document.getElementById("toast");
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2600);
+}
+
+let confirmCb = null;
+function openConfirm({icon="❓", title, msg, confirmText="Confirm", onConfirm}){
+  document.getElementById("cIcon").textContent  = icon;
+  document.getElementById("cTitle").textContent = title;
+  document.getElementById("cMsg").textContent   = msg;
+  document.getElementById("cBtn").textContent = confirmText;
+  confirmCb = onConfirm;
+  document.getElementById("confirmModal").classList.add("show");
+}
+window.closeConfirm = ()=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  confirmCb = null;
+};
+document.getElementById("cBtn").addEventListener("click", ()=>{
+  if(confirmCb) confirmCb();
+  closeConfirm();
+});
+document.getElementById("confirmModal").addEventListener("click",(e)=>{
+  if(e.target.id === "confirmModal") closeConfirm();
+});
+
+let currentConfig = null;
+
+window.goBack = ()=> location.href = "dashboard.html";
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user || !ADMIN_EMAILS.includes(user.email)){
+    showToast("Admin access required", true);
+    setTimeout(()=> location.href = "login.html", 1000);
+    return;
+  }
+
+  /* Load current config + last edited info */
+  await loadCurrent();
+  document.getElementById("loadingScreen").style.display = "none";
+  document.getElementById("adminHeader").style.display = "block";
+  document.getElementById("mainContent").style.display = "block";
+  document.getElementById("actionBar").style.display = "block";
+});
+
+async function loadCurrent(){
+  currentConfig = await loadPricingConfig(true);
+
+  /* Also fetch the doc itself for "last edited" metadata */
+  try{
+    const snap = await getDoc(doc(db, "config", "pricing"));
+    if(snap.exists()){
+      const data = snap.data();
+      if(data.updatedAt && data.updatedBy){
+        const t = data.updatedAt.toDate ? data.updatedAt.toDate() : new Date(data.updatedAt);
+        document.getElementById("lastEdited").textContent =
+          `Last updated by ${data.updatedBy} · ${t.toLocaleString("en-IN")}`;
+      }
+    }else{
+      document.getElementById("lastEdited").textContent = "Using default values · save to lock them in";
+    }
+  }catch(e){}
+
+  renderForm();
+  updatePreview();
+}
+
+function renderForm(){
+  /* Vehicles */
+  const list = document.getElementById("vehicleList");
+  list.innerHTML = "";
+  VEHICLE_ORDER.forEach(id=>{
+    const v = currentConfig.vehicles[id];
+    if(!v) return;
+    list.innerHTML += `
+      <div class="vehicleRow">
+        <div class="vehicleRowHeader">
+          <div class="vehEmoji">${v.icon}</div>
+          <div>
+            <div class="vehTitle">${v.name}</div>
+            <div class="vehSubtitle">ID: <code>${v.id}</code></div>
+          </div>
+        </div>
+        <div class="vehFields">
+          <div class="field">
+            <label class="fieldLabel">Max Weight</label>
+            <div class="inputWrap">
+              <input class="inputField" type="number" min="0" step="0.5"
+                data-veh="${v.id}" data-field="maxKg" value="${v.maxKg}">
+              <span class="suffix">kg</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="fieldLabel">Per KM</label>
+            <div class="inputWrap">
+              <span class="prefix">₹</span>
+              <input class="inputField" type="number" min="0" step="0.5"
+                data-veh="${v.id}" data-field="perKmRate" value="${v.perKmRate}">
+            </div>
+          </div>
+          <div class="field">
+            <label class="fieldLabel">Min Fee</label>
+            <div class="inputWrap">
+              <span class="prefix">₹</span>
+              <input class="inputField" type="number" min="0" step="1"
+                data-veh="${v.id}" data-field="minFee" value="${v.minFee}">
+            </div>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  /* Fees */
+  document.getElementById("handlingFee").value = currentConfig.handlingFee;
+  document.getElementById("platformFeePercent").value = currentConfig.platformFeePercent;
+
+  /* Discount */
+  const d = currentConfig.globalDiscount;
+  if(d.enabled){
+    document.getElementById("discountToggle").classList.add("active");
+    document.getElementById("discountFields").classList.add("show");
+  }
+  document.getElementById("discountValue").value = d.value;
+  document.getElementById("discountLabel").value = d.label || "";
+  setDiscountType(d.type || "percent");
+
+  /* Wire input listeners for live preview */
+  document.querySelectorAll("input").forEach(inp=>{
+    inp.addEventListener("input", updatePreview);
+  });
+
+  /* Focus styling */
+  document.querySelectorAll(".inputWrap").forEach(wrap=>{
+    const input = wrap.querySelector(".inputField");
+    if(!input) return;
+    input.addEventListener("focus", ()=> wrap.classList.add("focused"));
+    input.addEventListener("blur",  ()=> wrap.classList.remove("focused"));
+  });
+}
+
+window.toggleDiscount = ()=>{
+  const t = document.getElementById("discountToggle");
+  const f = document.getElementById("discountFields");
+  t.classList.toggle("active");
+  f.classList.toggle("show");
+  updatePreview();
+};
+
+window.setDiscountType = (type)=>{
+  document.querySelectorAll(".typeOpt").forEach(o=>{
+    o.classList.toggle("active", o.dataset.type === type);
+  });
+  document.getElementById("discountPrefix").textContent = type === "flat" ? "₹" : "%";
+  document.getElementById("discountHint").textContent =
+    type === "flat" ? "e.g., 50 means ₹50 off the cart total" : "e.g., 10 means 10% off";
+  updatePreview();
+};
+
+function readForm(){
+  const cfg = JSON.parse(JSON.stringify(currentConfig));
+
+  /* Vehicles */
+  document.querySelectorAll("[data-veh]").forEach(inp=>{
+    const id = inp.dataset.veh;
+    const field = inp.dataset.field;
+    const val = parseFloat(inp.value);
+    if(!isNaN(val) && cfg.vehicles[id]){
+      cfg.vehicles[id][field] = val;
+    }
+  });
+
+  /* Fees */
+  cfg.handlingFee = parseFloat(document.getElementById("handlingFee").value) || 0;
+  cfg.platformFeePercent = parseFloat(document.getElementById("platformFeePercent").value) || 0;
+
+  /* Discount */
+  const enabled = document.getElementById("discountToggle").classList.contains("active");
+  const activeType = document.querySelector(".typeOpt.active");
+  const type = activeType ? activeType.dataset.type : "percent";
+  const value = parseFloat(document.getElementById("discountValue").value) || 0;
+  const label = document.getElementById("discountLabel").value.trim();
+
+  cfg.globalDiscount = { enabled, type, value, label };
+  return cfg;
+}
+
+function updatePreview(){
+  const cfg = readForm();
+  const vehList = configToVehiclesArray(cfg);
+
+  const distance = parseFloat(document.getElementById("prevDistance").value) || 0;
+  const subtotal = parseFloat(document.getElementById("prevSubtotal").value) || 0;
+
+  /* Pick smallest vehicle (assume light cart, use bike) */
+  const veh = cfg.vehicles.bike;
+  const deliveryFee = getDeliveryFee("bike", distance, vehList);
+  const handling = cfg.handlingFee;
+  const platformFee = Math.round((subtotal + deliveryFee) * cfg.platformFeePercent / 100);
+
+  let discountAmount = 0;
+  let discountLabel = "";
+  if(cfg.globalDiscount.enabled && cfg.globalDiscount.value > 0){
+    if(cfg.globalDiscount.type === "flat"){
+      discountAmount = Math.min(cfg.globalDiscount.value, subtotal);
+    }else{
+      discountAmount = Math.round(subtotal * cfg.globalDiscount.value / 100);
+    }
+    discountLabel = cfg.globalDiscount.label || "Discount";
+  }
+
+  const total = subtotal + deliveryFee + handling + platformFee - discountAmount;
+
+  let html = `
+    <div class="previewRow">
+      <span class="lbl">Items total</span>
+      <span class="val">₹${subtotal}</span>
+    </div>
+    <div class="previewRow">
+      <span class="lbl">Delivery (bike, ${distance}km)</span>
+      <span class="val">₹${deliveryFee}</span>
+    </div>
+    <div class="previewRow">
+      <span class="lbl">Handling</span>
+      <span class="val">₹${handling}</span>
+    </div>
+    <div class="previewRow">
+      <span class="lbl">Platform fee (${cfg.platformFeePercent}%)</span>
+      <span class="val">₹${platformFee}</span>
+    </div>`;
+
+  if(discountAmount > 0){
+    html += `
+      <div class="previewRow">
+        <span class="lbl">${escapeHtml(discountLabel)}</span>
+        <span class="val" style="color:#0C831F;">−₹${discountAmount}</span>
+      </div>`;
+  }
+
+  html += `
+    <div class="previewRow total">
+      <span class="lbl">Customer pays</span>
+      <span class="val">₹${total}</span>
+    </div>`;
+
+  document.getElementById("previewBody").innerHTML = html;
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+window.askSave = ()=>{
+  const cfg = readForm();
+
+  /* Validate vehicle weight progression */
+  const order = VEHICLE_ORDER.map(id => cfg.vehicles[id]).filter(Boolean);
+  for(let i = 1; i < order.length; i++){
+    if(order[i].maxKg < order[i-1].maxKg){
+      showToast(`⚠️ ${order[i].name} max weight should be more than ${order[i-1].name}`, true);
+      return;
+    }
+  }
+
+  /* Validate non-negative */
+  for(const v of order){
+    if(v.maxKg < 0 || v.perKmRate < 0 || v.minFee < 0){
+      showToast(`⚠️ ${v.name} has negative values`, true);
+      return;
+    }
+  }
+  if(cfg.handlingFee < 0 || cfg.platformFeePercent < 0){
+    showToast("⚠️ Fees can't be negative", true);
+    return;
+  }
+
+  openConfirm({
+    icon:"💰",
+    title:"Save pricing changes?",
+    msg:"All new orders will use these prices. Existing orders are not affected.",
+    confirmText:"Yes, Save",
+    onConfirm: ()=> doSave(cfg)
+  });
+};
+
+async function doSave(cfg){
+  const btn = document.getElementById("btnSave");
+  btn.classList.add("loading");
+  btn.disabled = true;
+
+  try{
+    const user = auth.currentUser;
+    await setDoc(doc(db, "config", "pricing"), {
+      ...cfg,
+      updatedAt: serverTimestamp(),
+      updatedBy: user?.email || "unknown"
+    });
+    clearPricingCache();
+    showToast("✓ Pricing saved successfully");
+    setTimeout(loadCurrent, 800);
+  }catch(err){
+    console.error(err);
+    showToast("Could not save: " + (err.message || "try again"), true);
+  }finally{
+    btn.classList.remove("loading");
+    btn.disabled = false;
+  }
+}
+
+window.askReset = ()=>{
+  openConfirm({
+    icon:"🔄",
+    title:"Reset to defaults?",
+    msg:"All pricing values will be reset to safe defaults. This will be saved immediately.",
+    confirmText:"Yes, Reset",
+    onConfirm: async ()=>{
+      currentConfig = JSON.parse(JSON.stringify(DEFAULT_PRICING));
+      await doSave(currentConfig);
+    }
+  });
+};
+</script>
+
+</body>
+</html>

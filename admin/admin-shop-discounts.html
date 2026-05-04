@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shop Discounts · Admin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
+body{padding-bottom:30px;}
+button{font-family:inherit;cursor:pointer;border:none;}
+
+.header{
+  background:linear-gradient(180deg,#1f1f1f 0%,#3a3a3a 100%);
+  padding:14px 16px;position:sticky;top:0;z-index:1000;
+  box-shadow:0 1px 4px rgba(0,0,0,.15);color:#fff;
+}
+.topBar{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;}
+.backBtn{
+  background:rgba(255,255,255,.1);
+  width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:700;flex-shrink:0;color:#fff;
+  border:1px solid rgba(255,255,255,.15);
+}
+.backBtn:active{transform:scale(.94);}
+.titleBlock{flex:1;line-height:1.2;}
+.pageTitle{font-size:18px;font-weight:800;color:#fff;}
+.pageSub{font-size:12px;color:#bbb;margin-top:2px;}
+
+.searchWrap{margin:12px auto 0;max-width:1100px;position:relative;}
+.searchWrap input{
+  width:100%;padding:11px 14px 11px 38px;
+  border-radius:10px;border:1px solid rgba(255,255,255,.15);
+  font-size:13px;background:rgba(255,255,255,.08);color:#fff;
+  font-family:inherit;outline:none;
+}
+.searchWrap input::placeholder{color:rgba(255,255,255,.5);}
+.searchWrap input:focus{background:rgba(255,255,255,.15);border-color:#F0B91D;}
+.searchIcon{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:14px;color:#bbb;}
+
+.container{max-width:1100px;margin:0 auto;padding:14px 12px 0;}
+
+.infoBanner{
+  background:linear-gradient(135deg,#dbe9ff 0%,#c4dbff 100%);
+  border:1px solid #a3c5ff;border-radius:12px;
+  padding:12px 14px;margin-bottom:12px;
+  display:flex;gap:10px;align-items:flex-start;
+  font-size:12px;color:#1857c1;line-height:1.4;
+}
+.infoBanner .ic{font-size:18px;flex-shrink:0;}
+
+.shopCard{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  border:1px solid #ececec;
+}
+.shopCard.has-discount{border-left:4px solid #0C831F;}
+
+.shopTop{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.shopAvatar{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,#fff5d6,#ffeec1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.shopInfo{flex:1;min-width:0;line-height:1.3;}
+.shopName{
+  font-size:14px;font-weight:700;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.shopType{font-size:11px;color:#666;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+.discountStatus{
+  flex-shrink:0;padding:4px 10px;border-radius:14px;
+  font-size:10px;font-weight:800;letter-spacing:.3px;
+  text-transform:uppercase;
+}
+.discountStatus.active{background:#dcf3e1;color:#0C831F;}
+.discountStatus.inactive{background:#f0f0f0;color:#888;}
+
+.discountBox{
+  background:#fafafa;border-radius:10px;padding:12px;
+}
+
+.toggleRow{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:12px;cursor:pointer;
+}
+.toggleSwitch{
+  width:38px;height:22px;border-radius:11px;
+  background:#ccc;position:relative;transition:all .15s;
+  flex-shrink:0;
+}
+.toggleSwitch::after{
+  content:"";position:absolute;top:2px;left:2px;
+  width:18px;height:18px;border-radius:50%;
+  background:#fff;transition:all .15s;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggleRow.active .toggleSwitch{background:#0C831F;}
+.toggleRow.active .toggleSwitch::after{transform:translateX(16px);}
+.toggleText{font-size:12px;font-weight:700;color:#1f1f1f;}
+
+.discountFields{
+  display:none;
+}
+.discountFields.show{display:block;}
+
+.field{margin-bottom:10px;}
+.fieldLabel{
+  display:block;font-size:10px;font-weight:700;
+  color:#444;margin-bottom:4px;letter-spacing:.2px;
+  text-transform:uppercase;
+}
+.inputWrap{
+  display:flex;align-items:stretch;
+  border:1.5px solid #e5e5e5;border-radius:8px;
+  background:#fff;overflow:hidden;
+  transition:all .15s;
+}
+.inputWrap.focused{border-color:#0C831F;}
+.inputWrap .prefix{
+  padding:0 10px;display:flex;align-items:center;
+  font-size:13px;font-weight:700;color:#666;
+  background:#f0f0f0;border-right:1.5px solid #e5e5e5;
+}
+.inputWrap.focused .prefix{
+  background:#dcf3e1;color:#0C831F;border-right-color:#dcf3e1;
+}
+.inputField{
+  flex:1;border:none;background:transparent;
+  padding:9px 10px;font-size:13px;font-weight:600;
+  font-family:inherit;color:#1f1f1f;outline:none;
+  width:100%;min-width:0;
+}
+
+.typeRow{display:flex;gap:6px;}
+.typeOpt{
+  flex:1;padding:7px;border-radius:7px;
+  background:#fff;border:1.5px solid #e5e5e5;
+  font-size:11px;font-weight:700;color:#666;
+  cursor:pointer;transition:all .15s;text-align:center;
+}
+.typeOpt.active{
+  background:#dcf3e1;color:#0C831F;border-color:#0C831F;
+}
+
+.actionRow{display:flex;gap:8px;margin-top:10px;}
+.actionBtn{
+  flex:1;padding:9px;border-radius:8px;
+  font-size:12px;font-weight:700;letter-spacing:.2px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.actionBtn:active{transform:scale(.97);}
+.btn-save{background:#0C831F;color:#fff;}
+.btn-save:hover{background:#0a6e1a;}
+.btn-clear{background:#fff;color:#d23030;border:1.5px solid #ffd2d2;}
+.btn-clear:hover{background:#fff5f5;}
+
+.empty{
+  text-align:center;padding:60px 20px;
+  background:#fff;border-radius:14px;margin-top:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty .icon{font-size:64px;margin-bottom:14px;}
+.empty h3{font-size:17px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
+.empty p{font-size:13px;color:#777;line-height:1.5;}
+
+.skel{
+  background:#fff;border-radius:14px;
+  padding:14px;margin-bottom:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.skelLine{
+  height:14px;
+  background:linear-gradient(90deg,#f0f0f0 25%,#e8e8e8 50%,#f0f0f0 75%);
+  background-size:200% 100%;animation:shimmer 1.4s infinite;
+  border-radius:6px;margin-bottom:10px;
+}
+.skelLine.short{width:50%;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:#1f1f1f;color:#fff;padding:12px 20px;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;
+  transition:all .25s;z-index:1500;max-width:90%;text-align:center;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.loadingScreen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:60vh;text-align:center;padding:20px;
+}
+.loadingSpinner{
+  width:40px;height:40px;
+  border:4px solid #e5e5e5;border-top-color:#0C831F;
+  border-radius:50%;animation:spin .8s linear infinite;
+  margin-bottom:14px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loadingText{font-size:13px;color:#666;font-weight:600;}
+
+@media(min-width:768px){
+  .header{padding:16px 24px;}
+  .pageTitle{font-size:20px;}
+  .container{padding:18px 20px 0;}
+}
+@media(min-width:900px){
+  .shopList{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .shopCard{margin-bottom:0;}
+}
+</style>
+</head>
+
+<body>
+
+<div class="loadingScreen" id="loadingScreen">
+  <div class="loadingSpinner"></div>
+  <div class="loadingText">Loading shops…</div>
+</div>
+
+<header class="header" id="adminHeader" style="display:none;">
+  <div class="topBar">
+    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <div class="titleBlock">
+      <div class="pageTitle">🏷️ Shop Discounts</div>
+      <div class="pageSub" id="headerSub">Set per-shop offers</div>
+    </div>
+  </div>
+
+  <div class="searchWrap">
+    <span class="searchIcon">🔍</span>
+    <input id="search" placeholder="Search by shop name…" oninput="onSearch()">
+  </div>
+</header>
+
+<main class="container" id="mainContent" style="display:none;">
+
+  <div class="infoBanner">
+    <span class="ic">ℹ️</span>
+    <span><b>Per-shop discounts override the global discount.</b> If a shop has its own discount, customers buying from that shop get the shop discount instead of any global offer.</span>
+  </div>
+
+  <div id="shops" class="shopList"></div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script type="module">
+import { auth, db } from "../js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  collection, getDocs, doc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const ADMIN_EMAILS = ["sunilkumarm048@gmail.com"];
+
+const shopsDiv = document.getElementById("shops");
+const headerSub = document.getElementById("headerSub");
+const toast = document.getElementById("toast");
+
+let allShops = [];
+let searchTerm = "";
+
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2400);
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+
+window.onSearch = ()=>{
+  searchTerm = document.getElementById("search").value.toLowerCase().trim();
+  render();
+};
+
+window.goBack = ()=> location.href = "dashboard.html";
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user || !ADMIN_EMAILS.includes(user.email)){
+    showToast("Admin access required", true);
+    setTimeout(()=> location.href = "login.html", 1000);
+    return;
+  }
+  await loadShops();
+  document.getElementById("loadingScreen").style.display = "none";
+  document.getElementById("adminHeader").style.display = "block";
+  document.getElementById("mainContent").style.display = "block";
+});
+
+async function loadShops(){
+  try{
+    const snap = await getDocs(collection(db, "localshop-details"));
+    allShops = [];
+    snap.forEach(d => allShops.push({ ...d.data(), __id: d.id }));
+    allShops.sort((a,b)=> (a.shopName||"").localeCompare(b.shopName||""));
+    headerSub.textContent = `${allShops.length} shop${allShops.length!==1?"s":""}`;
+    render();
+  }catch(e){
+    console.error(e);
+    showToast("Could not load shops", true);
+  }
+}
+
+function render(){
+  let visible = allShops.slice();
+  if(searchTerm){
+    visible = visible.filter(s =>
+      (s.shopName||"").toLowerCase().includes(searchTerm)
+      || (s.email||"").toLowerCase().includes(searchTerm)
+    );
+  }
+
+  if(visible.length === 0){
+    shopsDiv.innerHTML = `
+      <div class="empty">
+        <div class="icon">🏪</div>
+        <h3>No shops</h3>
+        <p>${searchTerm ? "No shops match that search." : "No shops registered yet."}</p>
+      </div>`;
+    return;
+  }
+
+  let html = "";
+  visible.forEach(s=>{
+    const id = s.__id;
+    const d = s.discount || { enabled:false, type:"percent", value:0, label:"" };
+    const hasDiscount = d.enabled && Number(d.value) > 0;
+
+    html += `
+      <div class="shopCard ${hasDiscount?'has-discount':''}" data-shop-id="${id}">
+        <div class="shopTop">
+          <div class="shopAvatar">${s.icon || "🏪"}</div>
+          <div class="shopInfo">
+            <div class="shopName">${escapeHtml(s.shopName || "Unnamed")}</div>
+            <div class="shopType">${escapeHtml(s.category || "—")}</div>
+          </div>
+          <span class="discountStatus ${hasDiscount?'active':'inactive'}">
+            ${hasDiscount ? '✓ Active' : 'Off'}
+          </span>
+        </div>
+
+        <div class="discountBox">
+          <div class="toggleRow ${d.enabled?'active':''}" data-toggle-id="${id}">
+            <div class="toggleSwitch"></div>
+            <div class="toggleText">Enable discount for this shop</div>
+          </div>
+
+          <div class="discountFields ${d.enabled?'show':''}" data-fields-id="${id}">
+            <div class="field">
+              <label class="fieldLabel">Type</label>
+              <div class="typeRow">
+                <div class="typeOpt ${d.type==='percent'?'active':''}" data-type="percent" data-shop-id="${id}">% Percentage</div>
+                <div class="typeOpt ${d.type==='flat'?'active':''}" data-type="flat" data-shop-id="${id}">₹ Flat</div>
+              </div>
+            </div>
+            <div class="field">
+              <label class="fieldLabel">Value</label>
+              <div class="inputWrap">
+                <span class="prefix" data-prefix-id="${id}">${d.type==='flat'?'₹':'%'}</span>
+                <input class="inputField" type="number" min="0" step="1"
+                  data-value-id="${id}" value="${d.value || 0}">
+              </div>
+            </div>
+            <div class="field">
+              <label class="fieldLabel">Label (shown to customer)</label>
+              <div class="inputWrap">
+                <input class="inputField" type="text" maxlength="40"
+                  data-label-id="${id}"
+                  placeholder="e.g., Grand Opening, Weekend Special"
+                  value="${escapeHtml(d.label || '')}">
+              </div>
+            </div>
+            <div class="actionRow">
+              <button class="actionBtn btn-clear" data-clear-id="${id}">Clear</button>
+              <button class="actionBtn btn-save" data-save-id="${id}">💾 Save</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  });
+  shopsDiv.innerHTML = html;
+
+  /* Wire up toggles */
+  document.querySelectorAll("[data-toggle-id]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const id = el.dataset.toggleId;
+      el.classList.toggle("active");
+      document.querySelector(`[data-fields-id="${id}"]`).classList.toggle("show");
+    });
+  });
+
+  /* Wire up type buttons */
+  document.querySelectorAll("[data-type]").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const id = el.dataset.shopId;
+      const type = el.dataset.type;
+      document.querySelectorAll(`.typeOpt[data-shop-id="${id}"]`).forEach(o => o.classList.remove("active"));
+      el.classList.add("active");
+      document.querySelector(`[data-prefix-id="${id}"]`).textContent = type === "flat" ? "₹" : "%";
+    });
+  });
+
+  /* Wire up save buttons */
+  document.querySelectorAll("[data-save-id]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.saveId;
+      saveShopDiscount(id);
+    });
+  });
+
+  /* Wire up clear buttons */
+  document.querySelectorAll("[data-clear-id]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.clearId;
+      clearShopDiscount(id);
+    });
+  });
+
+  /* Focus styling */
+  document.querySelectorAll(".inputWrap").forEach(wrap=>{
+    const input = wrap.querySelector(".inputField");
+    if(!input) return;
+    input.addEventListener("focus", ()=> wrap.classList.add("focused"));
+    input.addEventListener("blur",  ()=> wrap.classList.remove("focused"));
+  });
+}
+
+async function saveShopDiscount(id){
+  const card = document.querySelector(`[data-shop-id="${id}"]`);
+  const enabled = document.querySelector(`[data-toggle-id="${id}"]`).classList.contains("active");
+  const activeType = document.querySelector(`.typeOpt.active[data-shop-id="${id}"]`);
+  const type = activeType ? activeType.dataset.type : "percent";
+  const value = parseFloat(document.querySelector(`[data-value-id="${id}"]`).value) || 0;
+  const label = document.querySelector(`[data-label-id="${id}"]`).value.trim();
+
+  if(enabled && value <= 0){
+    showToast("Discount value must be greater than 0", true);
+    return;
+  }
+  if(enabled && type === "percent" && value > 100){
+    showToast("Percentage can't exceed 100%", true);
+    return;
+  }
+
+  try{
+    await updateDoc(doc(db, "localshop-details", id), {
+      discount: { enabled, type, value, label }
+    });
+    showToast("✓ Discount saved");
+    /* Update local copy and re-render */
+    const shop = allShops.find(s => s.__id === id);
+    if(shop) shop.discount = { enabled, type, value, label };
+    render();
+  }catch(e){
+    console.error(e);
+    showToast("Could not save", true);
+  }
+}
+
+async function clearShopDiscount(id){
+  try{
+    await updateDoc(doc(db, "localshop-details", id), {
+      discount: { enabled: false, type: "percent", value: 0, label: "" }
+    });
+    showToast("Discount cleared");
+    const shop = allShops.find(s => s.__id === id);
+    if(shop) shop.discount = { enabled: false, type: "percent", value: 0, label: "" };
+    render();
+  }catch(e){
+    console.error(e);
+    showToast("Could not clear", true);
+  }
+}
+</script>
+
+</body>
+</html>
