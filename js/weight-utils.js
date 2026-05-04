@@ -1,10 +1,11 @@
 /**
- * Local Shop · Weight + delivery fee utilities
+ * Local Shop 路 Weight + delivery fee utilities
  *
- * Vehicle pricing is now distance-based:
- *   fee = max(minFee, distanceKm × perKmRate)
+ * Vehicle pricing is distance-based:
+ *   fee = max(minFee, distanceKm 脳 perKmRate)
  *
- * If distance is unknown (GPS missing), the minimum fee applies.
+ * Vehicles are now loaded dynamically from admin pricing config.
+ * Pass the VEHICLES array (from configToVehiclesArray(config)) to fee functions.
  */
 
 export const FALLBACK_KG_PER_UNIT = 0.3;
@@ -55,69 +56,26 @@ export function getCartWeightKg(cartItems){
   return total;
 }
 
-/* ============== VEHICLE CATALOG (per-km pricing) ============== */
+/* ============== STATIC VEHICLES (kept for backwards compatibility) ============== */
+/* Kept as a fallback. Pages should import VEHICLES from pricing-config and pass them
+   into the fee functions for live admin-controlled values. */
 
 export const VEHICLES = [
-  {
-    id: "bike",
-    name: "2-Wheeler",
-    icon: "🛵",
-    maxKg: 10,                 // CHANGED: was 20
-    perKmRate: 10,             // NEW: ₹10 per km
-    minFee: 30,                // NEW: minimum fare
-    capacity: "Up to 10 kg",
-    examples: "Daily groceries · small parcels"
-  },
-  {
-    id: "3wheeler",
-    name: "3-Wheeler",
-    icon: "🛺",
-    maxKg: 500,
-    perKmRate: 14,
-    minFee: 100,
-    capacity: "Up to 500 kg",
-    examples: "Bulk groceries · 1 AC · washing machine"
-  },
-  {
-    id: "tataAce",
-    name: "Tata Ace",
-    icon: "🚐",
-    maxKg: 750,
-    perKmRate: 18,
-    minFee: 200,
-    capacity: "Up to 750 kg",
-    examples: "1 fridge + 2 cupboards + bed"
-  },
-  {
-    id: "pickup8ft",
-    name: "Pickup 8ft",
-    icon: "🚛",
-    maxKg: 1250,
-    perKmRate: 22,
-    minFee: 300,
-    capacity: "Up to 1,250 kg",
-    examples: "Bulk goods · 2 BHK shifting"
-  },
-  {
-    id: "tata407",
-    name: "Tata 407",
-    icon: "🚚",
-    maxKg: 2500,
-    perKmRate: 30,
-    minFee: 500,
-    capacity: "Up to 2,500 kg",
-    examples: "Full house · construction materials"
-  }
+  { id:"bike",      name:"2-Wheeler",  icon:"馃浀", maxKg:10,    perKmRate:10, minFee:30,  capacity:"Up to 10 kg",     examples:"Daily groceries 路 small parcels" },
+  { id:"3wheeler",  name:"3-Wheeler",  icon:"馃浐", maxKg:500,   perKmRate:14, minFee:100, capacity:"Up to 500 kg",    examples:"Bulk groceries 路 1 AC 路 washing machine" },
+  { id:"tataAce",   name:"Tata Ace",   icon:"馃殣", maxKg:750,   perKmRate:18, minFee:200, capacity:"Up to 750 kg",    examples:"1 fridge + 2 cupboards + bed" },
+  { id:"pickup8ft", name:"Pickup 8ft", icon:"馃殯", maxKg:1250,  perKmRate:22, minFee:300, capacity:"Up to 1,250 kg",  examples:"Bulk goods 路 2 BHK shifting" },
+  { id:"tata407",   name:"Tata 407",   icon:"馃殮", maxKg:2500,  perKmRate:30, minFee:500, capacity:"Up to 2,500 kg",  examples:"Full house 路 construction materials" }
 ];
 
-/** Smallest vehicle that fits the given weight. */
-export function getRequiredVehicle(weightKg){
-  return VEHICLES.find(v => weightKg <= v.maxKg) || VEHICLES[VEHICLES.length - 1];
+/** Smallest vehicle that fits the given weight (uses given vehicle list, defaults to static). */
+export function getRequiredVehicle(weightKg, vehicleList = VEHICLES){
+  return vehicleList.find(v => weightKg <= v.maxKg) || vehicleList[vehicleList.length - 1];
 }
 
 /** Whether a vehicle can carry the given weight. */
-export function vehicleFits(vehicleId, weightKg){
-  const v = VEHICLES.find(x => x.id === vehicleId);
+export function vehicleFits(vehicleId, weightKg, vehicleList = VEHICLES){
+  const v = vehicleList.find(x => x.id === vehicleId);
   return v ? weightKg <= v.maxKg : false;
 }
 
@@ -126,7 +84,7 @@ export function vehicleFits(vehicleId, weightKg){
 /** Haversine distance in km. Returns null if any coord is missing. */
 export function haversineKm(lat1, lng1, lat2, lng2){
   if(lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
-  const R = 6371;   // Earth radius in km
+  const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLng = (lng2 - lng1) * Math.PI / 180;
   const a = Math.sin(dLat/2) ** 2 +
@@ -136,10 +94,9 @@ export function haversineKm(lat1, lng1, lat2, lng2){
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-/** Calculate delivery fee for a vehicle given a distance.
- *  If distance is null/0/missing, returns the vehicle's minimum fee. */
-export function getDeliveryFee(vehicleId, distanceKm){
-  const v = VEHICLES.find(x => x.id === vehicleId);
+/** Calculate delivery fee. Pass vehicleList from config for live values. */
+export function getDeliveryFee(vehicleId, distanceKm, vehicleList = VEHICLES){
+  const v = vehicleList.find(x => x.id === vehicleId);
   if(!v) return 0;
   if(distanceKm == null || distanceKm <= 0){
     return v.minFee;
@@ -148,9 +105,9 @@ export function getDeliveryFee(vehicleId, distanceKm){
   return Math.max(calculated, v.minFee);
 }
 
-/** Detailed breakdown — useful for showing "2.4 km × ₹10 = ₹24, min ₹30 → ₹30" */
-export function getDeliveryFeeBreakdown(vehicleId, distanceKm){
-  const v = VEHICLES.find(x => x.id === vehicleId);
+/** Detailed fee breakdown 鈥?useful for showing "X km 脳 鈧筜 = 鈧筞, min 鈧筗 鈫?鈧筞" */
+export function getDeliveryFeeBreakdown(vehicleId, distanceKm, vehicleList = VEHICLES){
+  const v = vehicleList.find(x => x.id === vehicleId);
   if(!v) return null;
 
   if(distanceKm == null || distanceKm <= 0){
