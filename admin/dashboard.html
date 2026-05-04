@@ -138,6 +138,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .actionCard.drivers  .actionIcon{background:#dcf3e1;}
 .actionCard.users    .actionIcon{background:#ffe8d1;}
 .actionCard.withdraw .actionIcon{background:#ffe0e0;}
+.actionCard.pricing  .actionIcon{background:#dcf3e1;}
+.actionCard.discounts .actionIcon{background:#fde0e0;}
 
 .actionTitle{font-size:14px;font-weight:700;color:#1f1f1f;line-height:1.25;margin-bottom:3px;}
 .actionSub{font-size:11px;color:#777;line-height:1.3;}
@@ -150,6 +152,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   padding:0 6px;
   display:flex;align-items:center;justify-content:center;
 }
+.actionBadge.success{background:#0C831F;}
 
 .loadingScreen{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -209,13 +212,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <body>
 
-<!-- Loading screen while we verify auth -->
 <div class="loadingScreen" id="loadingScreen">
   <div class="loadingSpinner"></div>
   <div class="loadingText">Verifying admin access…</div>
 </div>
 
-<!-- Main content (hidden until auth verified) -->
 <header class="header" id="adminHeader" style="display:none;">
   <div class="topBar">
     <div class="adminBadge">⚙️</div>
@@ -301,6 +302,24 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
   </div>
 
+  <div class="sectionTitle">💰 Pricing & Offers</div>
+  <div class="actionGrid">
+
+    <a href="pricing.html" class="actionCard pricing">
+      <div class="actionIcon">💰</div>
+      <div class="actionTitle">Pricing Settings</div>
+      <div class="actionSub">Vehicle rates, fees, global discount</div>
+    </a>
+
+    <a href="shop-discounts.html" class="actionCard discounts">
+      <div class="actionBadge success" id="discountsBadge" style="display:none;">0</div>
+      <div class="actionIcon">🏷️</div>
+      <div class="actionTitle">Shop Discounts</div>
+      <div class="actionSub">Per-shop offers and overrides</div>
+    </a>
+
+  </div>
+
 </main>
 
 <div id="toast" class="toast"></div>
@@ -324,7 +343,6 @@ import {
   collection, getDocs, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-/* ⚠️ ADMIN ACCESS WHITELIST — must match login.html and register.html */
 const ADMIN_EMAILS = [
   "sunilkumarm048@gmail.com",
 ];
@@ -374,23 +392,18 @@ window.logoutClick = ()=>{
   });
 };
 
-/* AUTH CHECK — redirect if not logged in or not an admin */
 onAuthStateChanged(auth, async (user)=>{
   if(!user){
-    /* Not logged in → go to login */
     location.href = "login.html";
     return;
   }
-
   if(!ADMIN_EMAILS.includes(user.email)){
-    /* Logged in but not admin → sign out and kick to login */
     try{ await signOut(auth); }catch(e){}
     showToast("⚠️ Not authorized as admin", true);
     setTimeout(()=> location.href = "login.html", 1500);
     return;
   }
 
-  /* Admin access granted */
   document.getElementById("loadingScreen").style.display = "none";
   document.getElementById("adminHeader").style.display = "block";
   document.getElementById("mainContent").style.display = "block";
@@ -409,6 +422,20 @@ async function loadStats(){
   try{
     const shopsSnap = await getDocs(collection(db, "localshop-details"));
     setStat("statShops", shopsSnap.size);
+
+    /* Count shops with active discounts */
+    let activeDiscounts = 0;
+    shopsSnap.forEach(d=>{
+      const s = d.data();
+      if(s.discount && s.discount.enabled && Number(s.discount.value) > 0){
+        activeDiscounts++;
+      }
+    });
+    if(activeDiscounts > 0){
+      const badge = document.getElementById("discountsBadge");
+      badge.style.display = "flex";
+      badge.textContent = activeDiscounts;
+    }
 
     const driversSnap = await getDocs(collection(db, "delivery"));
     setStat("statDrivers", driversSnap.size);
