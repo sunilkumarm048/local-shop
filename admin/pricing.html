@@ -730,19 +730,44 @@ async function doSave(cfg){
   btn.classList.add("loading");
   btn.disabled = true;
 
+  /* DEBUG: log what we're about to save */
+  console.log("[Pricing Save] Starting save...");
+  console.log("[Pricing Save] Current user:", auth.currentUser?.email);
+  console.log("[Pricing Save] Config to save:", cfg);
+
   try{
     const user = auth.currentUser;
-    await setDoc(doc(db, "config", "pricing"), {
+    if(!user){
+      throw new Error("Not logged in");
+    }
+
+    const dataToSave = {
       ...cfg,
       updatedAt: serverTimestamp(),
-      updatedBy: user?.email || "unknown"
-    });
+      updatedBy: user.email || "unknown"
+    };
+
+    console.log("[Pricing Save] Writing to Firestore: config/pricing");
+    await setDoc(doc(db, "config", "pricing"), dataToSave);
+    console.log("[Pricing Save] ✓ Saved successfully!");
+
     clearPricingCache();
     showToast("✓ Pricing saved successfully");
     setTimeout(loadCurrent, 800);
   }catch(err){
-    console.error(err);
-    showToast("Could not save: " + (err.message || "try again"), true);
+    console.error("[Pricing Save] FAILED:", err);
+    console.error("[Pricing Save] Error code:", err.code);
+    console.error("[Pricing Save] Error message:", err.message);
+
+    let userMsg = "Could not save: " + (err.message || "try again");
+    if(err.code === "permission-denied"){
+      userMsg = "⚠️ Firestore permission denied. Check security rules — config collection may need write access.";
+    }else if(err.code === "unavailable"){
+      userMsg = "⚠️ Network issue. Check your connection.";
+    }else if(err.code === "unauthenticated"){
+      userMsg = "⚠️ Not logged in. Please login again.";
+    }
+    showToast(userMsg, true);
   }finally{
     btn.classList.remove("loading");
     btn.disabled = false;
