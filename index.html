@@ -373,7 +373,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
         <div class="dropdownSection">
           <div class="dropdownLabel">Shopping</div>
-          <a href="/local-shop/customer/cart.html" class="dropdownItem">
+          <a href="/customer/cart.html" class="dropdownItem">
             <div class="itemIcon cart">🛒</div>
             <div class="itemContent">
               <div class="itemTitle">My Cart</div>
@@ -389,7 +389,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
             </div>
             <div class="itemArrow">›</div>
           </button>
-          <a href="/local-shop/customer/order-history.html" class="dropdownItem">
+          <a href="/customer/order-history.html" class="dropdownItem">
             <div class="itemIcon history">📜</div>
             <div class="itemContent">
               <div class="itemTitle">Order History</div>
@@ -397,7 +397,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
             </div>
             <div class="itemArrow">›</div>
           </a>
-          <a href="/local-shop/customer/Nearby-Shops.html" class="dropdownItem">
+          <a href="/customer/Nearby-Shops.html" class="dropdownItem">
             <div class="itemIcon nearby">🏪</div>
             <div class="itemContent">
               <div class="itemTitle">Nearby Shops</div>
@@ -409,7 +409,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
         <div class="dropdownSection">
           <div class="dropdownLabel">Partner with us</div>
-          <a href="/local-shop/shop/login.html" class="dropdownItem">
+          <a href="/shop/login.html" class="dropdownItem">
             <div class="itemIcon shop">🏪</div>
             <div class="itemContent">
               <div class="itemTitle">Shop Owner Login</div>
@@ -417,7 +417,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
             </div>
             <div class="itemArrow">›</div>
           </a>
-          <a href="/local-shop/delivery/login.html" class="dropdownItem">
+          <a href="/delivery/login.html" class="dropdownItem">
             <div class="itemIcon delivery">🚚</div>
             <div class="itemContent">
               <div class="itemTitle">Delivery Partner Login</div>
@@ -487,9 +487,9 @@ button{font-family:inherit;cursor:pointer;border:none;}
 <div id="toast" class="toast"></div>
 
 <script type="module">
-import { db } from "/local-shop/js/firebase.js";
+import { db } from "/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { initVoiceAI } from "/local-shop/js/voice-ai.js";
+import { initVoiceAI } from "/js/voice-ai.js";
 
 let allProducts = [];
 let allShops = [];
@@ -550,7 +550,7 @@ window.openLastOrder = ()=>{
   closeProfile();
   const orderId = localStorage.getItem("lastOrderId");
   if(orderId){
-    location.href = "/local-shop/customer/tracking.html?orderId=" + orderId;
+    location.href = "/customer/tracking.html?orderId=" + orderId;
   }else{
     showToast("No recent order found. Place an order first!");
   }
@@ -843,7 +843,7 @@ function updateCart(){
 }
 updateCart();
 
-window.openCart = ()=> location.href = "/local-shop/customer/cart.html";
+window.openCart = ()=> location.href = "/customer/cart.html";
 
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
