@@ -8,7 +8,7 @@
  * Admin can edit values via /admin/pricing.html
  */
 
-import { db } from "/local-shop/js/firebase.js";
+import { db } from "./firebase.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const CACHE_KEY = "pricingConfigCache";
