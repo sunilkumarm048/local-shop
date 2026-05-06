@@ -2,27 +2,26 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>My Cart · Local Shop</title>
+<title>Order Tracking · Local Shop</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-
 html,body{font-family:'Inter',Arial,sans-serif;background:#f4f4f4;color:#1f1f1f;overflow-x:hidden;}
-body{padding-bottom:90px;}
+body{padding-bottom:24px;}
 button{font-family:inherit;cursor:pointer;border:none;}
 
-/* HEADER */
 .header{
   background:linear-gradient(180deg,#F8CD46 0%,#F0B91D 100%);
   padding:14px 16px;
   position:sticky;top:0;z-index:1000;
   box-shadow:0 1px 4px rgba(0,0,0,.08);
 }
-.topBar{display:flex;align-items:center;gap:12px;max-width:900px;margin:0 auto;}
+.topBar{display:flex;align-items:center;gap:12px;max-width:700px;margin:0 auto;}
 .backBtn{
   background:rgba(255,255,255,.4);width:38px;height:38px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -32,202 +31,224 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .titleBlock{flex:1;min-width:0;line-height:1.2;}
 .pageTitle{font-size:18px;font-weight:800;color:#1f1f1f;}
-.pageSub{font-size:13px;color:#3a3a3a;margin-top:2px;}
+.pageSub{font-size:12px;color:#3a3a3a;margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 
-/* DELIVERY BANNER */
-.deliveryBanner{
-  max-width:900px;margin:12px auto 0;
-  background:#fff;border-radius:12px;padding:12px 14px;
-  display:flex;align-items:center;gap:12px;
+.etaCard{
+  max-width:700px;margin:12px auto 0;
+  background:#fff;border-radius:14px;padding:16px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
+  display:flex;align-items:center;gap:14px;
 }
-.bannerIcon{
-  width:42px;height:42px;background:#fff5d6;border-radius:50%;
+.etaIcon{
+  width:54px;height:54px;
+  background:linear-gradient(135deg,#0C831F,#0fa029);
+  border-radius:50%;
   display:flex;align-items:center;justify-content:center;
-  font-size:22px;flex-shrink:0;
+  font-size:26px;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(12,131,31,.25);
+  position:relative;
 }
-.bannerText{flex:1;line-height:1.25;}
-.bannerTitle{font-size:14px;font-weight:700;color:#1f1f1f;}
-.bannerSub{font-size:12px;color:#666;margin-top:2px;}
+.etaIcon::after{
+  content:"";position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid #0C831F;opacity:0;
+  animation:pulse 2s infinite;
+}
+.etaIcon.rejected{
+  background:linear-gradient(135deg,#d23030,#ee5454);
+  box-shadow:0 4px 12px rgba(210,48,48,.25);
+}
+.etaIcon.rejected::after{display:none;}
+@keyframes pulse{
+  0%{opacity:.6;transform:scale(1);}
+  100%{opacity:0;transform:scale(1.25);}
+}
 
-/* MAIN */
-.container{max-width:900px;margin:0 auto;padding:14px 12px 0;}
+.etaText{flex:1;line-height:1.25;min-width:0;}
+.etaTitle{font-size:16px;font-weight:800;color:#1f1f1f;}
+.etaSub{font-size:13px;color:#666;margin-top:3px;}
+
+.statusBadge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:20px;
+  font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.4px;
+  margin-top:6px;
+}
+.badge-pending{background:#fff5d6;color:#8a6500;}
+.badge-accepted{background:#dcf3e1;color:#0C831F;}
+.badge-ready{background:#dbe9ff;color:#1857c1;}
+.badge-out{background:#ffe8d1;color:#b65800;}
+.badge-arrived{background:#dcf3e1;color:#0C831F;}
+.badge-confirm{background:#e8d6f7;color:#6b21a8;}
+.badge-delivered{background:#e8d6f7;color:#6b21a8;}
+.badge-rejected{background:#fde0e0;color:#c41818;}
+
+.container{max-width:700px;margin:0 auto;padding:14px 12px 0;}
 
 .section{
   background:#fff;border-radius:14px;padding:14px;margin-bottom:12px;
   box-shadow:0 1px 4px rgba(0,0,0,.04);
 }
+.sectionTitle{font-size:15px;font-weight:700;color:#1f1f1f;margin-bottom:12px;}
 
-.sectionHeader{
-  display:flex;justify-content:space-between;align-items:center;
-  margin-bottom:10px;
-}
-.sectionTitle{font-size:15px;font-weight:700;color:#1f1f1f;}
-.itemCount{font-size:12px;color:#666;font-weight:500;}
+.mapSection{padding:0;overflow:hidden;}
+#map{height:340px;width:100%;background:#e9e9e9;}
+@media(min-width:600px){#map{height:380px;}}
 
-/* SHOP HEADER (when items grouped by shop) */
-.shopHeader{
-  display:flex;align-items:center;gap:8px;
-  font-size:12px;font-weight:700;color:#666;
-  margin:10px 0 6px;padding:6px 10px;
-  background:#fafafa;border-radius:8px;
-  border:1px solid #f0f0f0;
+.timeline{position:relative;padding-left:32px;}
+.timeline::before{
+  content:"";position:absolute;
+  left:11px;top:8px;bottom:8px;
+  width:2px;background:#e5e5e5;z-index:0;
 }
-.shopHeader:first-child{margin-top:0;}
-.shopHeader .ic{
-  width:22px;height:22px;border-radius:50%;
-  background:#fff5d6;
+.tlStep{position:relative;padding:6px 0 14px;}
+.tlStep:last-child{padding-bottom:0;}
+.tlDot{
+  position:absolute;left:-32px;top:6px;
+  width:24px;height:24px;border-radius:50%;
+  background:#fff;border:2px solid #e5e5e5;
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;
+  font-size:11px;font-weight:700;color:#bbb;z-index:1;
 }
-
-/* MULTI-SHOP NOTICE */
-.multiShopNote{
-  background:#dbe9ff;
-  border-radius:10px;
-  padding:10px 12px;
-  font-size:12px;color:#1857c1;line-height:1.4;
-  display:flex;align-items:flex-start;gap:8px;
-  margin-bottom:10px;
+.tlStep.done .tlDot{background:#0C831F;border-color:#0C831F;color:#fff;}
+.tlStep.done .tlDot::before{content:"✓";}
+.tlStep.active .tlDot{
+  background:#fff;border-color:#0C831F;color:#0C831F;
+  box-shadow:0 0 0 4px rgba(12,131,31,.15);
 }
-.multiShopNote .ic{font-size:16px;flex-shrink:0;}
-
-/* ITEM ROW */
-.item{
-  display:flex;align-items:flex-start;gap:12px;
-  padding:12px 0;border-bottom:1px solid #f0f0f0;
+.tlStep.active .tlDot::before{
+  content:"";width:8px;height:8px;border-radius:50%;
+  background:#0C831F;animation:pulseDot 1.4s infinite;
 }
-.item:last-child{border-bottom:none;padding-bottom:4px;}
+.tlStep.rejected .tlDot{background:#d23030;border-color:#d23030;color:#fff;}
+.tlStep.rejected .tlDot::before{content:"×";}
+@keyframes pulseDot{
+  0%,100%{opacity:1;transform:scale(1);}
+  50%{opacity:.4;transform:scale(.7);}
+}
+.tlLabel{font-size:14px;font-weight:600;color:#1f1f1f;line-height:1.3;}
+.tlStep:not(.done):not(.active):not(.rejected) .tlLabel{color:#999;font-weight:500;}
+.tlNote{font-size:12px;color:#666;margin-top:3px;line-height:1.3;}
+.tlStep.active .tlNote{color:#0C831F;font-weight:600;}
+.tlStep.rejected .tlNote{color:#d23030;font-weight:600;}
 
-.itemImg{
-  width:60px;height:60px;border-radius:10px;
-  background:#f5f5f5;
+.partnerCard{display:flex;align-items:center;gap:12px;}
+.partnerAvatar{
+  width:50px;height:50px;border-radius:50%;
+  background:linear-gradient(135deg,#F8CD46,#F0B91D);
   display:flex;align-items:center;justify-content:center;
   font-size:22px;font-weight:800;color:#fff;
-  flex-shrink:0;overflow:hidden;
-}
-.itemImg img{width:100%;height:100%;object-fit:cover;}
-
-.itemInfo{flex:1;min-width:0;line-height:1.3;}
-
-.itemName{
-  font-size:14px;font-weight:600;color:#1f1f1f;
-  display:-webkit-box;-webkit-line-clamp:2;
-  -webkit-box-orient:vertical;overflow:hidden;
-}
-
-.itemMeta{
-  font-size:11px;color:#888;margin-top:3px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-
-.itemPrice{
-  font-size:13px;color:#666;
-  margin-top:5px;
-  display:flex;align-items:center;gap:6px;
-  flex-wrap:wrap;
-}
-.itemPrice b{color:#1f1f1f;font-weight:700;}
-.itemPrice .mrpStrike{color:#bbb;text-decoration:line-through;font-size:11px;}
-.itemPrice .pct{
-  background:#dcf3e1;color:#0C831F;
-  font-size:10px;font-weight:700;
-  padding:1px 5px;border-radius:4px;
-}
-
-.itemRight{
-  display:flex;flex-direction:column;
-  align-items:flex-end;gap:6px;
   flex-shrink:0;
+  box-shadow:0 2px 6px rgba(240,185,29,.3);
 }
+.partnerInfo{flex:1;min-width:0;line-height:1.3;}
+.partnerName{font-size:14px;font-weight:700;color:#1f1f1f;}
+.partnerMeta{font-size:12px;color:#666;margin-top:2px;}
 
-/* QTY */
-.qtyBox{
-  display:flex;align-items:center;
+.callBtn{
+  width:42px;height:42px;border-radius:50%;
   background:#0C831F;color:#fff;
-  border-radius:7px;overflow:hidden;
-  min-width:78px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;text-decoration:none;
+  box-shadow:0 2px 6px rgba(12,131,31,.25);
 }
-.qtyBox button{
-  background:transparent;color:#fff;
-  width:24px;height:30px;
-  font-size:16px;font-weight:700;
-}
-.qtyBox span{
-  flex:1;text-align:center;
-  font-size:13px;font-weight:700;
-}
+.callBtn:active{transform:scale(.94);}
 
-.removeBtn{
-  background:transparent;color:#d23030;
-  font-size:11px;font-weight:600;
-  padding:2px 6px;border-radius:5px;
-}
-.removeBtn:hover{background:#fde0e0;}
+.partnerEmpty{text-align:center;padding:14px 8px;color:#888;font-size:13px;}
+.partnerEmpty .icon{font-size:30px;margin-bottom:6px;}
 
-/* BILL */
+.idRow{
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:12px;color:#666;padding:4px 0;
+}
+.idRow b{color:#1f1f1f;font-weight:600;font-family:monospace;}
+
+.miniItem{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;border-bottom:1px solid #f4f4f4;
+  font-size:13px;
+}
+.miniItem:last-child{border-bottom:none;padding-bottom:0;}
+.miniItem:first-child{padding-top:0;}
+.miniDot{width:8px;height:8px;border-radius:50%;background:#0C831F;flex-shrink:0;}
+.miniName{flex:1;color:#1f1f1f;font-weight:500;}
+.miniQty{color:#777;font-size:12px;margin-right:4px;}
+.miniPrice{font-weight:700;color:#1f1f1f;}
+
 .billRow{
   display:flex;justify-content:space-between;align-items:center;
-  padding:6px 0;font-size:13px;color:#3a3a3a;
+  padding:5px 0;font-size:13px;color:#3a3a3a;
 }
-.billRow b{font-weight:600;color:#1f1f1f;}
-.billDivider{border-top:1px dashed #e0e0e0;margin:8px 0;}
-.billTotal{font-size:15px;font-weight:800;color:#1f1f1f;padding-top:6px;}
-
-.savings{
-  background:#e8f8eb;color:#0C831F;
-  padding:8px 12px;border-radius:8px;
-  font-size:12px;font-weight:600;
-  margin-top:10px;text-align:center;
+.billRow b{color:#1f1f1f;font-weight:600;}
+.billDivider{border-top:1px dashed #e0e0e0;margin:6px 0;}
+.totalRow{
+  display:flex;justify-content:space-between;
+  padding-top:6px;font-size:14px;font-weight:800;
 }
 
-.freeTag{color:#0C831F;font-weight:700;}
-.strike{
-  text-decoration:line-through;color:#999;
-  margin-right:4px;font-weight:400;
+.addressBox{
+  background:#fafafa;border-radius:10px;padding:12px;
+  font-size:13px;color:#444;line-height:1.5;
 }
+.addressBox b{color:#1f1f1f;font-weight:700;display:block;margin-bottom:4px;}
 
-/* EMPTY */
-.empty{
-  text-align:center;padding:60px 20px;
-  background:#fff;border-radius:14px;margin-top:20px;
+.helpRow{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;cursor:pointer;
+  font-size:13px;font-weight:600;color:#1f1f1f;
 }
-.empty .icon{font-size:64px;margin-bottom:14px;}
-.empty h3{font-size:18px;font-weight:700;color:#1f1f1f;margin-bottom:6px;}
-.empty p{font-size:13px;color:#777;margin-bottom:20px;}
+.helpRow:not(:last-child){border-bottom:1px solid #f4f4f4;}
+.helpRow .arrow{margin-left:auto;color:#bbb;}
 
-.shopBtn{
+.modalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:2000;padding:0;
+}
+.modalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:#fff;width:100%;max-width:500px;
+  border-radius:20px 20px 0 0;
+  padding:24px 20px 28px;
+  animation:slideUp .25s ease;text-align:center;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.modal .icon{font-size:54px;margin-bottom:8px;}
+.modal h3{font-size:18px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
+.modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modalActions{display:flex;flex-direction:column;gap:10px;}
+
+.btnPrimary{
   background:#0C831F;color:#fff;
-  padding:12px 26px;border-radius:10px;
+  padding:14px;border-radius:10px;
   font-size:14px;font-weight:700;letter-spacing:.3px;
 }
-.shopBtn:active{transform:scale(.97);}
-
-/* CHECKOUT BAR */
-.checkoutBar{
-  position:fixed;bottom:0;left:0;right:0;
-  background:#0C831F;color:#fff;padding:12px 16px;
-  display:flex;justify-content:space-between;align-items:center;
-  cursor:pointer;z-index:999;
-  box-shadow:0 -2px 12px rgba(0,0,0,.15);
-  transition:opacity .2s, transform .2s;
+.btnPrimary:active{transform:scale(.98);}
+.btnSecondary{
+  background:#fff;color:#d23030;
+  border:1.5px solid #d23030;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:700;letter-spacing:.3px;
 }
-.checkoutBar.hidden{
-  opacity:0;transform:translateY(100%);pointer-events:none;
-}
-
-.coLeft{display:flex;flex-direction:column;line-height:1.2;}
-.coAmount{font-size:17px;font-weight:800;}
-.coLabel{font-size:12px;font-weight:500;opacity:.9;margin-top:2px;}
-
-.coRight{
-  display:flex;align-items:center;gap:6px;
+.btnSecondary:active{transform:scale(.98);}
+.btnNeutral{
+  background:#fff;color:#666;
+  border:1.5px solid #e0e0e0;
+  padding:14px;border-radius:10px;
   font-size:14px;font-weight:700;
 }
 
-/* TOAST */
+@media(min-width:600px){
+  .modalBg{align-items:center;padding:20px;}
+  .modal{border-radius:16px;max-width:420px;}
+}
+
 .toast{
-  position:fixed;bottom:90px;
+  position:fixed;bottom:24px;
   left:50%;transform:translateX(-50%) translateY(20px);
   background:#1f1f1f;color:#fff;
   padding:12px 20px;border-radius:10px;
@@ -244,11 +265,20 @@ button{font-family:inherit;cursor:pointer;border:none;}
   .pageTitle{font-size:20px;}
   .container{padding:18px 20px 0;}
   .section{padding:18px;}
-  .sectionTitle{font-size:16px;}
-  .itemImg{width:70px;height:70px;}
-  .itemName{font-size:15px;}
-  .checkoutBar{padding:14px 24px;}
-  .coAmount{font-size:18px;}
+}
+
+.leaflet-popup-content-wrapper{border-radius:8px;}
+.leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
+
+/* Last-update indicator (helps users see live updates are working) */
+.liveDot{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;color:#0C831F;font-weight:700;
+  margin-left:8px;
+}
+.liveDot::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:#0C831F;
+  animation:pulseDot 1.6s infinite;
 }
 </style>
 </head>
@@ -257,57 +287,398 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <header class="header">
   <div class="topBar">
-    <button class="backBtn" onclick="goBack()" aria-label="Back">←</button>
+    <button class="backBtn" onclick="goHome()" aria-label="Back">←</button>
     <div class="titleBlock">
-      <div class="pageTitle">My Cart</div>
-      <div class="pageSub" id="headerSub">0 items</div>
+      <div class="pageTitle">Order Tracking</div>
+      <div class="pageSub" id="orderIdSub">Loading order…</div>
     </div>
   </div>
 
-  <div class="deliveryBanner" id="deliveryBanner" style="display:none;">
-    <div class="bannerIcon">⚡</div>
-    <div class="bannerText">
-      <div class="bannerTitle">Delivery in 15 minutes</div>
-      <div class="bannerSub">Shipment of <span id="bannerCount">0</span> items</div>
+  <div class="etaCard">
+    <div class="etaIcon" id="etaIcon">⚡</div>
+    <div class="etaText">
+      <div class="etaTitle" id="etaTitle">Loading…</div>
+      <div class="etaSub" id="etaSub">Fetching your order details</div>
+      <span class="statusBadge badge-pending" id="statusBadge">Pending</span>
     </div>
   </div>
 </header>
 
-<main class="container" id="mainArea"></main>
+<main class="container">
 
-<div id="checkoutBar" class="checkoutBar hidden" onclick="checkout()">
-  <div class="coLeft">
-    <div class="coAmount">₹<span id="payAmount">0</span></div>
-    <div class="coLabel">TOTAL · <span id="payCount">0</span> items</div>
+  <section class="section mapSection">
+    <div id="map"></div>
+  </section>
+
+  <section class="section">
+    <div class="sectionTitle">
+      Order status
+      <span class="liveDot" id="liveDot" style="display:none;">LIVE</span>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <section class="section">
+    <div class="sectionTitle">Delivery partner</div>
+    <div id="partnerArea">
+      <div class="partnerEmpty">
+        <div class="icon">🛵</div>
+        Waiting for a delivery partner to be assigned
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="addressSection" style="display:none;">
+    <div class="sectionTitle">📍 Delivery address</div>
+    <div class="addressBox">
+      <b id="custName">—</b>
+      <div id="custAddr">—</div>
+      <div id="custPhone" style="margin-top:6px;color:#0C831F;font-weight:600;"></div>
+    </div>
+  </section>
+
+  <section class="section" id="orderDetails" style="display:none;">
+    <div class="sectionTitle">Order details</div>
+    <div id="itemsList"></div>
+
+    <div style="margin-top:14px;border-top:1px solid #f0f0f0;padding-top:10px;">
+      <div class="billRow"><span>Item total</span><span id="billItemTotal">—</span></div>
+      <div class="billRow"><span>Delivery</span><span id="billDelivery">—</span></div>
+      <div class="billRow"><span>Handling</span><span id="billHandling">—</span></div>
+      <div class="billDivider"></div>
+      <div class="totalRow">
+        <span>Total Paid</span>
+        <span>₹<span id="totalAmount">0</span></span>
+      </div>
+    </div>
+
+    <div class="idRow" style="margin-top:14px;">
+      <span>Order ID</span>
+      <b id="orderIdFull">—</b>
+    </div>
+    <div class="idRow">
+      <span>Shop</span>
+      <b id="shopNameField">—</b>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sectionTitle">Need help?</div>
+    <div class="helpRow" onclick="contactSupport()">
+      <span>💬</span> Chat with support
+      <span class="arrow">›</span>
+    </div>
+    <div class="helpRow" onclick="reportIssue()">
+      <span>⚠️</span> Report an issue
+      <span class="arrow">›</span>
+    </div>
+  </section>
+
+</main>
+
+<div class="modalBg" id="confirmModal">
+  <div class="modal">
+    <div class="icon">📦</div>
+    <h3>Did you receive your order?</h3>
+    <p>Please confirm that the delivery has been completed successfully.</p>
+    <div class="modalActions">
+      <button class="btnPrimary" onclick="confirmDelivery(true)">Yes, I got it ✓</button>
+      <button class="btnSecondary" onclick="confirmDelivery(false)">No, there's an issue</button>
+    </div>
   </div>
-  <div class="coRight">
-    Proceed to Pay <span>→</span>
+</div>
+
+<div class="modalBg" id="reportModal">
+  <div class="modal">
+    <div class="icon">⚠️</div>
+    <h3>Report an issue?</h3>
+    <p>The shop and delivery team will be notified. Continue?</p>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="submitReport()">Yes, Report</button>
+      <button class="btnNeutral" onclick="closeReport()">Cancel</button>
+    </div>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
-<script>
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-const mainArea       = document.getElementById("mainArea");
-const headerSub      = document.getElementById("headerSub");
-const deliveryBanner = document.getElementById("deliveryBanner");
-const bannerCount    = document.getElementById("bannerCount");
-const checkoutBar    = document.getElementById("checkoutBar");
-const payAmount      = document.getElementById("payAmount");
-const payCount       = document.getElementById("payCount");
-const toast          = document.getElementById("toast");
+<script type="module">
+import { db } from "../js/firebase.js";
+import { doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const DELIVERY_FEE = 0;
-const HANDLING_FEE = 5;
-const FREE_DELIVERY_OVER = 199;
+const urlParams = new URLSearchParams(window.location.search);
+const orderId = urlParams.get("orderId") || localStorage.getItem("lastOrderId");
 
-const COLORS = ["#FF6B6B","#4ECDC4","#FFA94D","#845EC2","#0C831F","#F4A261","#2A9D8F","#E76F51"];
-function colorFor(name){
-  let h = 0;
-  for(let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) >>> 0;
-  return COLORS[h % COLORS.length];
+if(!orderId){
+  document.getElementById("orderIdSub").textContent = "No order ID";
+  document.getElementById("etaTitle").textContent  = "Order not found";
+  document.getElementById("etaSub").textContent    = "Please go back and try again";
+}else{
+  document.getElementById("orderIdSub").textContent = "ID: " + orderId.slice(0,10) + "…";
+  document.getElementById("orderIdFull").textContent = orderId;
+}
+
+const toast = document.getElementById("toast");
+function showToast(msg, isError=false){
+  toast.textContent = msg;
+  toast.style.background = isError ? "#d23030" : "#1f1f1f";
+  toast.classList.add("show");
+  setTimeout(()=> toast.classList.remove("show"), 2600);
+}
+
+/* MAP */
+const map = L.map('map', { zoomControl: true }).setView([20.2961, 85.8245], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution:'© OpenStreetMap', maxZoom:19
+}).addTo(map);
+
+function emojiIcon(emoji, bg="#fff"){
+  return L.divIcon({
+    className:"",
+    html:`<div style="background:${bg};width:40px;height:40px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 3px 8px rgba(0,0,0,.25);border:2px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:20px;line-height:1;">${emoji}</div>
+          </div>`,
+    iconSize:[40,40], iconAnchor:[20,40], popupAnchor:[0,-40]
+  });
+}
+
+let deliveryMarker=null, customerMarker=null, shopMarker=null, routeLine=null;
+let confirmShown=false;
+let lastRouteKey=null;
+let redirectTimer=null;
+
+function drawLine(start, end, color="#0C831F"){
+  const key = `${start.lat},${start.lng}-${end.lat},${end.lng}`;
+  if(key === lastRouteKey) return;
+  if(routeLine) map.removeLayer(routeLine);
+  routeLine = L.polyline([[start.lat,start.lng],[end.lat,end.lng]], {
+    color, weight:4, opacity:.85, dashArray:"6,8"
+  }).addTo(map);
+  lastRouteKey = key;
+}
+
+const STAGES = [
+  { key:"placed",    label:"Order placed",     defaultNote:"Your order has been received" },
+  { key:"accepted",  label:"Accepted by shop", defaultNote:"Shop is preparing your order" },
+  { key:"ready",     label:"Order ready",      defaultNote:"Items packed and waiting for pickup" },
+  { key:"out",       label:"Out for delivery", defaultNote:"Your order is on the way" },
+  { key:"delivered", label:"Delivered",        defaultNote:"Enjoy your order!" }
+];
+
+/* ====================================================================
+   FIX: smarter stage calculation that uses status + pickupStep + deliveryStatus
+   together — so the timeline progresses correctly through all driver actions.
+   ==================================================================== */
+function getStageInfo(data){
+  const status   = (data.status || "").toLowerCase();
+  const dStatus  = (data.deliveryStatus || "").toLowerCase();
+  const step     = data.pickupStep || 0;
+  const driver   = data.deliveryBoyName || "Delivery partner";
+  const hasDriver= !!data.deliveryBoyId;
+
+  /* Rejected / Cancelled */
+  if(status === "rejected" || status === "cancelled"){
+    return { stage: -1, isRejected: true };
+  }
+
+  /* Delivered (final) */
+  if(status === "delivered" || dStatus === "delivered" || dStatus === "completed"){
+    return { stage: 4, activeNote: null };
+  }
+
+  /* Driver marked delivered, waiting for customer confirm — treat as "Almost delivered" */
+  if(status === "waitingcustomerconfirm" || dStatus === "waitingcustomerconfirm"){
+    return {
+      stage: 4,
+      activeNote: `${driver} marked delivered · please confirm below`,
+      awaitingConfirm: true
+    };
+  }
+
+  /* Out for delivery — check pickupStep for sub-state */
+  if(status === "out for delivery" || step >= 1){
+    if(step >= 2){
+      return {
+        stage: 3,
+        activeNote: `${driver} has arrived at your location 🎯`
+      };
+    }
+    return {
+      stage: 3,
+      activeNote: `${driver} picked up your order · on the way 🛵`
+    };
+  }
+
+  /* Order ready — driver may or may not be assigned yet */
+  if(status === "ready" || dStatus === "ready"){
+    if(hasDriver){
+      return {
+        stage: 2,
+        activeNote: `${driver} is heading to the shop to pick up your order`
+      };
+    }
+    return { stage: 2, activeNote: null };
+  }
+
+  /* Accepted by shop */
+  if(status === "accepted"){
+    return { stage: 1, activeNote: null };
+  }
+
+  /* Pending or unknown */
+  return { stage: 0, activeNote: null };
+}
+
+function renderTimeline(data){
+  const tl = document.getElementById("timeline");
+  const info = getStageInfo(data);
+
+  if(info.isRejected){
+    tl.innerHTML = `
+      <div class="tlStep done">
+        <div class="tlDot"></div>
+        <div class="tlLabel">Order placed</div>
+        <div class="tlNote">Your order was received</div>
+      </div>
+      <div class="tlStep rejected">
+        <div class="tlDot"></div>
+        <div class="tlLabel">Order rejected</div>
+        <div class="tlNote">Sorry, the shop couldn't accept this order</div>
+      </div>`;
+    return;
+  }
+
+  let html = "";
+  STAGES.forEach((s, i)=>{
+    let cls = "";
+    if(i < info.stage) cls = "done";
+    else if(i === info.stage){
+      cls = (info.stage === 4 && !info.awaitingConfirm) ? "done" : "active";
+    }
+
+    const note = (i === info.stage && info.activeNote) ? info.activeNote : s.defaultNote;
+
+    html += `
+      <div class="tlStep ${cls}">
+        <div class="tlDot"></div>
+        <div class="tlLabel">${s.label}</div>
+        <div class="tlNote">${escapeHtml(note)}</div>
+      </div>`;
+  });
+  tl.innerHTML = html;
+}
+
+function updateHero(data){
+  const title = document.getElementById("etaTitle");
+  const sub   = document.getElementById("etaSub");
+  const icon  = document.getElementById("etaIcon");
+  const badge = document.getElementById("statusBadge");
+
+  badge.className = "statusBadge";
+  icon.classList.remove("rejected");
+
+  const info = getStageInfo(data);
+  const driver = data.deliveryBoyName || "Driver";
+
+  if(info.isRejected){
+    title.textContent = "Order rejected";
+    sub.textContent   = "Sorry, the shop couldn't accept this order";
+    icon.textContent  = "✕";
+    icon.classList.add("rejected");
+    badge.classList.add("badge-rejected");
+    badge.textContent = "Rejected";
+    return;
+  }
+
+  switch(info.stage){
+    case 0:
+      title.textContent = "Order received";
+      sub.textContent   = "Waiting for shop to accept";
+      icon.textContent  = "📋";
+      badge.classList.add("badge-pending");
+      badge.textContent = "Pending";
+      break;
+    case 1:
+      title.textContent = "Arriving in 15 mins";
+      sub.textContent   = "Shop is preparing your order";
+      icon.textContent  = "👨‍🍳";
+      badge.classList.add("badge-accepted");
+      badge.textContent = "Preparing";
+      break;
+    case 2:
+      title.textContent = data.deliveryBoyId ? `${driver} is on the way to shop` : "Arriving in 10 mins";
+      sub.textContent   = data.deliveryBoyId ? "Order is packed and waiting for pickup" : "Order is ready for pickup";
+      icon.textContent  = "📦";
+      badge.classList.add("badge-ready");
+      badge.textContent = "Ready";
+      break;
+    case 3:
+      if((data.pickupStep||0) >= 2){
+        title.textContent = `${driver} has arrived!`;
+        sub.textContent   = "Please collect your order";
+        icon.textContent  = "🎯";
+        badge.classList.add("badge-arrived");
+        badge.textContent = "Arrived";
+      }else{
+        title.textContent = "Arriving in 5 mins";
+        sub.textContent   = `${driver} picked up your order`;
+        icon.textContent  = "🛵";
+        badge.classList.add("badge-out");
+        badge.textContent = "On the way";
+      }
+      break;
+    case 4:
+      if(info.awaitingConfirm){
+        title.textContent = "Awaiting your confirmation";
+        sub.textContent   = "Driver marked delivered · tap below to confirm";
+        icon.textContent  = "✋";
+        badge.classList.add("badge-confirm");
+        badge.textContent = "Confirm Delivery";
+      }else{
+        title.textContent = "Order delivered ✓";
+        sub.textContent   = "Hope you enjoyed your order!";
+        icon.textContent  = "🎉";
+        badge.classList.add("badge-delivered");
+        badge.textContent = "Delivered";
+      }
+      break;
+  }
+}
+
+function renderItems(items, data){
+  if(!items || !items.length){
+    document.getElementById("orderDetails").style.display = "none";
+    return;
+  }
+  document.getElementById("orderDetails").style.display = "block";
+  let html = "";
+  items.forEach(it=>{
+    const lt = (it.price||0) * (it.qty||1);
+    html += `
+      <div class="miniItem">
+        <div class="miniDot"></div>
+        <div class="miniName">${escapeHtml(it.name||"Item")}</div>
+        <div class="miniQty">× ${it.qty||1}</div>
+        <div class="miniPrice">₹${lt}</div>
+      </div>`;
+  });
+  document.getElementById("itemsList").innerHTML = html;
+
+  const itemTotal = data.total || 0;
+  const delivery = data.deliveryFee !== undefined ? data.deliveryFee : 0;
+  const handling = data.handlingFee !== undefined ? data.handlingFee : 0;
+  const grand = data.grandTotal || (itemTotal + delivery + handling);
+
+  document.getElementById("billItemTotal").textContent = "₹" + itemTotal;
+  document.getElementById("billDelivery").innerHTML = delivery === 0
+    ? `<span style="color:#0C831F;font-weight:700;">FREE</span>`
+    : "₹" + delivery;
+  document.getElementById("billHandling").textContent = "₹" + handling;
+  document.getElementById("totalAmount").textContent = grand;
 }
 
 function escapeHtml(str){
@@ -316,232 +687,193 @@ function escapeHtml(str){
   }[m]));
 }
 
-/* TOAST */
-function showToast(msg, isError=false){
-  toast.textContent = msg;
-  toast.style.background = isError ? "#d23030" : "#1f1f1f";
-  toast.classList.add("show");
-  setTimeout(()=> toast.classList.remove("show"), 2400);
-}
+function renderPartner(data){
+  const area = document.getElementById("partnerArea");
+  const name = data.deliveryBoyName;
 
-/* CART SYNC (FIX #1) */
-function reloadCart(){
-  cart = JSON.parse(localStorage.getItem("cart")) || [];
-  render();
-}
-window.addEventListener("pageshow", (e)=>{ if(e.persisted) reloadCart(); });
-window.addEventListener("storage", (e)=>{ if(e.key === "cart") reloadCart(); });
-window.addEventListener("focus", reloadCart);
-
-/* IMAGE ERROR HANDLER (FIX #3) */
-window.handleImgError = (img)=>{
-  const wrap = img.parentElement;
-  if(!wrap) return;
-  wrap.innerHTML = wrap.dataset.initial || "?";
-  wrap.style.background = wrap.dataset.bg || "#999";
-  wrap.style.color = "#fff";
-  wrap.style.fontWeight = "800";
-};
-
-/* RENDER */
-function render(){
-  if(cart.length === 0){
-    renderEmpty();
+  if(!name || name === "null"){
+    area.innerHTML = `
+      <div class="partnerEmpty">
+        <div class="icon">🛵</div>
+        Waiting for a delivery partner to be assigned
+      </div>`;
     return;
   }
 
-  /* FIX #7: Group items by shop */
-  const groups = new Map();
-  cart.forEach((item, idx)=>{
-    const shop = item.shopName || "Other items";
-    if(!groups.has(shop)) groups.set(shop, []);
-    groups.get(shop).push({ ...item, __idx: idx });
-  });
+  const initial = name.trim().charAt(0).toUpperCase();
+  const phone   = data.deliveryBoyPhone || "";
+  const vehicle = data.deliveryVehicle  || "On the way";
 
-  let itemTotal = 0;
-  let totalQty  = 0;
-  let mrpTotal  = 0;
-  let itemsHtml = "";
+  area.innerHTML = `
+    <div class="partnerCard">
+      <div class="partnerAvatar">${initial}</div>
+      <div class="partnerInfo">
+        <div class="partnerName">${escapeHtml(name)}</div>
+        <div class="partnerMeta">🚗 ${escapeHtml(vehicle)}</div>
+      </div>
+      ${phone ? `<a class="callBtn" href="tel:${escapeHtml(phone)}" aria-label="Call">📞</a>` : ""}
+    </div>`;
+}
 
-  /* Multi-shop notice */
-  if(groups.size > 1){
-    itemsHtml += `
-      <div class="multiShopNote">
-        <div class="ic">ℹ️</div>
-        <div>You have items from <b>${groups.size} shops</b>. Each shop will receive its own order at checkout.</div>
-      </div>`;
+function renderAddress(data){
+  if(data.name || data.address){
+    document.getElementById("addressSection").style.display = "block";
+    document.getElementById("custName").textContent  = data.name || "Customer";
+    document.getElementById("custAddr").textContent  = data.address || "";
+    const phoneEl = document.getElementById("custPhone");
+    phoneEl.textContent = data.phone ? "📞 " + data.phone : "";
   }
+}
 
-  groups.forEach((items, shopName)=>{
-    if(groups.size > 1){
-      itemsHtml += `
-        <div class="shopHeader">
-          <div class="ic">🏪</div>
-          ${escapeHtml(shopName)}
-        </div>`;
+/* LIVE LISTENER */
+if(orderId){
+  console.log("[Tracking] Setting up listener for order:", orderId);
+
+  onSnapshot(doc(db, "orders", orderId), (snap)=>{
+    if(!snap.exists()){
+      console.warn("[Tracking] Order not found in 'orders' collection. Maybe it's a transport order?");
+      document.getElementById("etaTitle").textContent = "Order not found";
+      document.getElementById("etaSub").textContent   = "This order may be a transport order — try transport-tracking.html";
+      return;
     }
 
-    items.forEach(item=>{
-      const lineTotal = item.price * item.qty;
-      itemTotal += lineTotal;
-      totalQty  += item.qty;
-      mrpTotal  += (item.mrp || item.price) * item.qty;
+    const data = snap.data();
 
-      const initial = (item.name || "?").trim().charAt(0).toUpperCase();
-      const bgColor = colorFor(item.name || "");
-
-      const imgInner = item.image
-        ? `<img src="${escapeHtml(item.image)}" alt="" onerror="handleImgError(this)">`
-        : escapeHtml(initial);
-      const imgStyle = item.image ? "" : `background:${bgColor};color:#fff;font-weight:800;`;
-
-      let mrpHtml = "";
-      if(item.mrp && item.mrp > item.price){
-        const off = Math.round(((item.mrp - item.price) / item.mrp) * 100);
-        mrpHtml = `
-          <span class="mrpStrike">₹${item.mrp}</span>
-          <span class="pct">${off}% OFF</span>
-        `;
-      }
-
-      itemsHtml += `
-        <div class="item">
-          <div class="itemImg" style="${imgStyle}"
-               data-initial="${escapeHtml(initial)}"
-               data-bg="${bgColor}">
-            ${imgInner}
-          </div>
-          <div class="itemInfo">
-            <div class="itemName">${escapeHtml(item.name)}</div>
-            ${item.weight ? `<div class="itemMeta">${escapeHtml(item.weight)}</div>` : ""}
-            <div class="itemPrice">
-              <b>₹${item.price}</b>
-              ${mrpHtml}
-            </div>
-          </div>
-          <div class="itemRight">
-            <div class="qtyBox">
-              <button onclick="changeQty(${item.__idx},-1)" aria-label="Decrease">−</button>
-              <span>${item.qty}</span>
-              <button onclick="changeQty(${item.__idx},1)" aria-label="Increase">+</button>
-            </div>
-            <button class="removeBtn" onclick="removeItem(${item.__idx})">Remove</button>
-          </div>
-        </div>`;
+    /* DEBUG: log every update so user can verify in DevTools */
+    console.log("[Tracking] Update received:", {
+      status: data.status,
+      deliveryStatus: data.deliveryStatus,
+      pickupStep: data.pickupStep,
+      deliveryBoyId: data.deliveryBoyId,
+      deliveryBoyName: data.deliveryBoyName
     });
+
+    /* Show LIVE indicator briefly on each update */
+    const liveDot = document.getElementById("liveDot");
+    liveDot.style.display = "inline-flex";
+    liveDot.style.animation = "none";
+    setTimeout(()=> liveDot.style.animation = "", 10);
+
+    updateHero(data);
+    renderTimeline(data);
+    renderPartner(data);
+    renderItems(data.items, data);
+    renderAddress(data);
+    document.getElementById("shopNameField").textContent = data.shopName || "—";
+
+    /* MAP */
+    const custLat = data.customerLat ?? data.lat;
+    const custLng = data.customerLng ?? data.lng;
+
+    if(custLat && custLng){
+      const pos = [custLat, custLng];
+      if(!customerMarker)
+        customerMarker = L.marker(pos, {icon:emojiIcon("🏠","#dbe9ff")}).addTo(map).bindPopup("Your location");
+      else
+        customerMarker.setLatLng(pos);
+    }
+
+    if(data.shopLat && data.shopLng){
+      const pos = [data.shopLat, data.shopLng];
+      if(!shopMarker)
+        shopMarker = L.marker(pos, {icon:emojiIcon(data.shopIcon || "🏪","#fff5d6")}).addTo(map).bindPopup(escapeHtml(data.shopName || "Shop"));
+      else
+        shopMarker.setLatLng(pos);
+    }
+
+    if(data.deliveryLat && data.deliveryLng){
+      const pos = [data.deliveryLat, data.deliveryLng];
+      if(!deliveryMarker)
+        deliveryMarker = L.marker(pos, {icon:emojiIcon("🛵","#dcf3e1")}).addTo(map).bindPopup("Delivery partner");
+      else
+        deliveryMarker.setLatLng(pos);
+
+      const step = data.pickupStep || 0;
+      if(step >= 1 && custLat && custLng){
+        /* After pickup → draw line to customer */
+        drawLine({lat:data.deliveryLat,lng:data.deliveryLng}, {lat:custLat,lng:custLng});
+      }else if(data.shopLat && data.shopLng){
+        /* Before pickup → draw line to shop */
+        drawLine({lat:data.deliveryLat,lng:data.deliveryLng}, {lat:data.shopLat,lng:data.shopLng});
+      }
+    }
+
+    /* Auto-fit map */
+    const points = [];
+    if(customerMarker) points.push(customerMarker.getLatLng());
+    if(shopMarker)     points.push(shopMarker.getLatLng());
+    if(deliveryMarker) points.push(deliveryMarker.getLatLng());
+    if(points.length === 1) map.setView(points[0], 15);
+    else if(points.length > 1) map.fitBounds(points, {padding:[60,60], maxZoom:16});
+
+    setTimeout(()=> map.invalidateSize(), 100);
+
+    /* CUSTOMER CONFIRM modal — show when driver marked delivered */
+    const dStatus = (data.deliveryStatus || "").toLowerCase();
+    const status = (data.status || "").toLowerCase();
+    if((dStatus === "waitingcustomerconfirm" || status === "waitingcustomerconfirm") && !confirmShown){
+      confirmShown = true;
+      setTimeout(()=> document.getElementById("confirmModal").classList.add("show"), 400);
+    }
+
+    /* Auto-redirect after delivered (10s) */
+    if(status === "delivered" && !redirectTimer){
+      redirectTimer = setTimeout(()=>{
+        location.href = "/customer/customer-order-history.html";
+      }, 10000);
+    }
+  }, (err)=>{
+    console.error("[Tracking] Listener error:", err);
+    showToast("Connection error. Refresh page.", true);
   });
-
-  /* Bill */
-  const deliveryFee = itemTotal >= FREE_DELIVERY_OVER ? 0 : DELIVERY_FEE;
-  const handling    = HANDLING_FEE;
-  const grandTotal  = itemTotal + deliveryFee + handling;
-  const mrpSavings  = mrpTotal - itemTotal;
-
-  headerSub.textContent = `${totalQty} item${totalQty>1?"s":""}`;
-  bannerCount.textContent = totalQty;
-  deliveryBanner.style.display = "flex";
-
-  mainArea.innerHTML = `
-    <div class="section">
-      <div class="sectionHeader">
-        <div class="sectionTitle">Items in your cart</div>
-        <div class="itemCount">${totalQty} item${totalQty>1?"s":""}</div>
-      </div>
-      ${itemsHtml}
-    </div>
-
-    <div class="section">
-      <div class="sectionTitle" style="margin-bottom:10px;">Bill details</div>
-
-      <div class="billRow">
-        <span>🧾 Item total</span>
-        <span><b>₹${itemTotal}</b></span>
-      </div>
-
-      <div class="billRow">
-        <span>🛵 Delivery charge</span>
-        <span>
-          ${deliveryFee === 0
-            ? `<span class="strike">₹25</span><span class="freeTag">FREE</span>`
-            : `<b>₹${deliveryFee}</b>`}
-        </span>
-      </div>
-
-      <div class="billRow">
-        <span>🛍️ Handling charge</span>
-        <span><b>₹${handling}</b></span>
-      </div>
-
-      <div class="billDivider"></div>
-
-      <div class="billRow billTotal">
-        <span>To Pay</span>
-        <span>₹${grandTotal}</span>
-      </div>
-
-      ${mrpSavings > 0
-        ? `<div class="savings">🎉 You're saving ₹${mrpSavings} on this order</div>`
-        : ``}
-    </div>
-
-    <div class="section" style="font-size:12px;color:#777;line-height:1.5;">
-      <b style="color:#1f1f1f;font-size:13px;">Cancellation Policy</b><br>
-      Orders cannot be cancelled once packed for delivery. In case of unexpected delays, a refund will be provided if applicable.
-    </div>
-  `;
-
-  payAmount.textContent = grandTotal;
-  payCount.textContent  = totalQty;
-  checkoutBar.classList.remove("hidden");
 }
 
-function renderEmpty(){
-  headerSub.textContent = "0 items";
-  deliveryBanner.style.display = "none";
-  checkoutBar.classList.add("hidden");
-  mainArea.innerHTML = `
-    <div class="empty">
-      <div class="icon">🛒</div>
-      <h3>Your cart is empty</h3>
-      <p>Looks like you haven't added anything yet.<br>Let's fix that!</p>
-      <button class="shopBtn" onclick="goBack()">Start Shopping</button>
-    </div>
-  `;
-}
-
-/* ACTIONS */
-window.changeQty = (i, delta)=>{
-  if(!cart[i]) return;
-  cart[i].qty += delta;
-  if(cart[i].qty <= 0) cart.splice(i, 1);
-  save();
-};
-
-window.removeItem = (i)=>{
-  if(!cart[i]) return;
-  const name = cart[i].name;
-  cart.splice(i, 1);
-  save();
-  showToast(`${name} removed from cart`);
-};
-
-function save(){
-  localStorage.setItem("cart", JSON.stringify(cart));
-  render();
-}
-
-/* FIX #4: absolute paths */
-window.goBack = ()=> window.location.href = "/index.html";
-
-window.checkout = ()=>{
-  if(cart.length === 0){
-    showToast("Your cart is empty", true);
-    return;
+window.confirmDelivery = async (received)=>{
+  document.getElementById("confirmModal").classList.remove("show");
+  try{
+    if(received){
+      await updateDoc(doc(db,"orders",orderId), {
+        status:"Delivered", deliveryStatus:"Delivered"
+      });
+      showToast("✓ Order completed!");
+      setTimeout(()=> location.href = "/customer/customer-order-history.html", 1500);
+    }else{
+      await updateDoc(doc(db,"orders",orderId), { deliveryStatus:"Issue" });
+      showToast("Issue reported. We'll look into it.", true);
+    }
+  }catch(err){
+    console.error(err);
+    showToast("Couldn't update. Try again.", true);
   }
-  window.location.href = "/customer/checkout.html";
 };
 
-render();
+window.reportIssue = ()=>{
+  if(!orderId){ showToast("No order to report", true); return; }
+  document.getElementById("reportModal").classList.add("show");
+};
+window.closeReport = ()=> document.getElementById("reportModal").classList.remove("show");
+window.submitReport = async ()=>{
+  closeReport();
+  try{
+    await updateDoc(doc(db,"orders",orderId), { deliveryStatus:"Issue" });
+    showToast("Issue reported successfully");
+  }catch(e){
+    showToast("Could not report issue", true);
+  }
+};
+
+window.contactSupport = ()=>{
+  window.location.href = "mailto:support@localshop.com?subject=Order " + (orderId||"");
+};
+
+window.goHome = ()=> window.location.href = "/index.html";
+
+document.getElementById("confirmModal").addEventListener("click", (e)=>{
+  if(e.target.id === "confirmModal"){ /* don't close on backdrop click — require explicit choice */ }
+});
+document.getElementById("reportModal").addEventListener("click", (e)=>{
+  if(e.target.id === "reportModal") closeReport();
+});
 </script>
 
 </body>
