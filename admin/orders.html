@@ -427,7 +427,7 @@ window.goBack = ()=> location.href = "dashboard.html";
 onAuthStateChanged(auth, (user)=>{
   if(!user || !ADMIN_EMAILS.includes(user.email)){
     showToast("Admin access required", true);
-    setTimeout(()=> location.href = "/local-shop/index.html", 1000);
+    setTimeout(()=> location.href = "/index.html", 1000);
     return;
   }
   startListeners();
