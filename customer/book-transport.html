@@ -656,7 +656,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
-import { db } from "/local-shop/js/firebase.js";
+import { db } from "/js/firebase.js";
 import { collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const toast = document.getElementById("toast");
@@ -1265,11 +1265,11 @@ window.goToTracking = ()=>{
   if(id){
     location.href = "transport-tracking.html?orderId=" + id;
   }else{
-    location.href = "/local-shop/index.html";
+    location.href = "/index.html";
   }
 };
 
-window.goBack = ()=> location.href = "/local-shop/index.html";
+window.goBack = ()=> location.href = "/index.html";
 </script>
 
 </body>
