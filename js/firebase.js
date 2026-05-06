@@ -18,3 +18,4 @@ export const auth = getAuth(app);
 
 // ✅ ALREADY OK
 export const db = getFirestore(app);
+  
