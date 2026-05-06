@@ -819,7 +819,7 @@ if(orderId){
     /* Auto-redirect after delivered (10s) */
     if(status === "delivered" && !redirectTimer){
       redirectTimer = setTimeout(()=>{
-        location.href = "/local-shop/customer/customer-order-history.html";
+        location.href = "/customer/customer-order-history.html";
       }, 10000);
     }
   }, (err)=>{
@@ -836,7 +836,7 @@ window.confirmDelivery = async (received)=>{
         status:"Delivered", deliveryStatus:"Delivered"
       });
       showToast("✓ Order completed!");
-      setTimeout(()=> location.href = "/local-shop/customer/customer-order-history.html", 1500);
+      setTimeout(()=> location.href = "/customer/customer-order-history.html", 1500);
     }else{
       await updateDoc(doc(db,"orders",orderId), { deliveryStatus:"Issue" });
       showToast("Issue reported. We'll look into it.", true);
@@ -866,7 +866,7 @@ window.contactSupport = ()=>{
   window.location.href = "mailto:support@localshop.com?subject=Order " + (orderId||"");
 };
 
-window.goHome = ()=> window.location.href = "/local-shop/index.html";
+window.goHome = ()=> window.location.href = "/index.html";
 
 document.getElementById("confirmModal").addEventListener("click", (e)=>{
   if(e.target.id === "confirmModal"){ /* don't close on backdrop click — require explicit choice */ }
