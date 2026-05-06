@@ -531,14 +531,14 @@ function save(){
 }
 
 /* FIX #4: absolute paths */
-window.goBack = ()=> window.location.href = "/local-shop/index.html";
+window.goBack = ()=> window.location.href = "/index.html";
 
 window.checkout = ()=>{
   if(cart.length === 0){
     showToast("Your cart is empty", true);
     return;
   }
-  window.location.href = "/local-shop/customer/checkout.html";
+  window.location.href = "/customer/checkout.html";
 };
 
 render();
