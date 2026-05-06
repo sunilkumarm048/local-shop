@@ -119,7 +119,7 @@ el.innerText = item ? item.qty : 0;
 }
 
 // UPDATE CART COUNT
-function updateCart(){
+function updateCart(){  
 
 let count = 0;
 cart.forEach(i=> count += i.qty);
