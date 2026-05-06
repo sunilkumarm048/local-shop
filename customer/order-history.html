@@ -311,7 +311,7 @@ async function loadOrders(){
         <div class="icon">📭</div>
         <h3>No orders yet</h3>
         <p>Your past orders will appear here once you place one.</p>
-        <a class="shopBtn" href="/local-shop/index.html">Start Shopping</a>
+        <a class="shopBtn" href="/index.html">Start Shopping</a>
       </div>`;
     return;
   }
@@ -400,7 +400,7 @@ function renderOrders(){
   /* Wire up clicks */
   ordersDiv.querySelectorAll(".orderCard").forEach(c=>{
     c.addEventListener("click", ()=>{
-      location.href = "/local-shop/customer/tracking.html?orderId=" + c.dataset.orderId;
+      location.href = "/customer/tracking.html?orderId=" + c.dataset.orderId;
     });
   });
 }
@@ -443,7 +443,7 @@ function renderCard(order){
     </div>`;
 }
 
-window.goHome = ()=> location.href = "/local-shop/index.html";
+window.goHome = ()=> location.href = "/index.html";
 
 loadOrders();
 </script>
