@@ -134,3 +134,4 @@ export function getDeliveryFeeBreakdown(vehicleId, distanceKm, vehicleList = VEH
     minFee: v.minFee
   };
 }
+  
