@@ -518,7 +518,7 @@ function renderPeakHours(delivered){
       svgHtml += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" class="${cls}"></circle>`;
     }
   });
-  /* Hour labels every 4 hours */
+  /* Hour labels every 4 hours */  
   for(let h = 0; h < 24; h += 4){
     const x = padL + (h / 23) * innerW;
     const lbl = h === 0 ? "12a" : h === 12 ? "12p" : (h > 12 ? (h-12)+"p" : h+"a");
