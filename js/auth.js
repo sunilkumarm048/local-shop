@@ -1,7 +1,7 @@
 
 import { auth } from "./firebase.js";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword }
-from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 window.signup = function(){
 
