@@ -323,7 +323,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script type="module">
-import { db } from "/local-shop/js/firebase.js";
+import { db } from "/js/firebase.js";
 import { doc, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const params = new URLSearchParams(location.search);
@@ -382,7 +382,7 @@ function showError(title, msg){
       <div class="icon">⚠️</div>
       <h3>${escapeHtml(title)}</h3>
       <p>${escapeHtml(msg)}</p>
-      <button class="btn" onclick="location.href='/local-shop/index.html'">Back to Home</button>
+      <button class="btn" onclick="location.href='/index.html'">Back to Home</button>
     </div>`;
 }
 
@@ -639,7 +639,7 @@ window.confirmCancel = async ()=>{
   }
 };
 
-window.goBack = ()=> location.href = "/local-shop/index.html";
+window.goBack = ()=> location.href = "/index.html";
 </script>
 
 </body>
