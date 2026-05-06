@@ -414,17 +414,17 @@ button{font-family:inherit;cursor:pointer;border:none;}
 </div>
 
 <script type="module">
-import { db } from "/local-shop/js/firebase.js";
+import { db } from "/js/firebase.js";
 import {
   collection, addDoc, getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import {
   parseWeightKg, vehicleFits, haversineKm,
   getDeliveryFee, getDeliveryFeeBreakdown
-} from "/local-shop/js/weight-utils.js";
+} from "/js/weight-utils.js";
 import {
   loadPricingConfig, configToVehiclesArray, calculateDiscount
-} from "/local-shop/js/pricing-config.js";
+} from "/js/pricing-config.js";
 
 const main = document.getElementById("mainContent");
 const toast = document.getElementById("toast");
@@ -1103,7 +1103,7 @@ window.placeOrder = async ()=>{
 
 window.goToTracking = ()=>{
   if(createdOrderIds.length === 0){
-    location.href = "/local-shop/index.html";
+    location.href = "/index.html";
     return;
   }
   const first = createdOrderIds[0];
@@ -1114,7 +1114,7 @@ window.goToTracking = ()=>{
   }
 };
 
-window.goBack = ()=> location.href = "/local-shop/index.html";
+window.goBack = ()=> location.href = "/index.html";
 
 init();
 </script>
