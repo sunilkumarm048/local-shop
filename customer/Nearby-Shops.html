@@ -580,7 +580,7 @@ function renderShops(){
 window.visitShop = (shopName)=>{
   localStorage.setItem("preselectedShop", shopName);
   showToast(`Opening ${shopName}…`);
-  setTimeout(()=> location.href = "/local-shop/index.html", 400);
+  setTimeout(()=> location.href = "/index.html", 400);
 };
 
 /* FIX: tapping a closed shop shows a friendly message instead of silently doing nothing */
@@ -588,7 +588,7 @@ window.closedShopTap = (shopName)=>{
   showToast(`${shopName} is currently closed`, true);
 };
 
-window.goHome = ()=> location.href = "/local-shop/index.html";
+window.goHome = ()=> location.href = "/index.html";
 </script>
 
 </body>
