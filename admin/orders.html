@@ -99,9 +99,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
   box-shadow:0 1px 4px rgba(0,0,0,.04);
   border:1px solid #ececec;
   transition:all .15s;
+  position:relative;
 }
 .orderCard.transport{border-left:4px solid #1857c1;}
 .orderCard.split{border-left:4px solid #F0B91D;}
+.orderCard.deleting{opacity:.4;pointer-events:none;}
 
 .orderTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
 .orderTopL{flex:1;min-width:0;line-height:1.3;}
@@ -155,9 +157,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .orderBottom{
   display:flex;align-items:center;justify-content:space-between;
-  margin-top:10px;gap:8px;
+  margin-top:10px;gap:8px;flex-wrap:wrap;
 }
 .orderTime{font-size:11px;color:#888;font-weight:500;}
+.btnGroup{display:flex;gap:6px;flex-shrink:0;}
+
 .expandBtn{
   background:transparent;color:#0C831F;
   font-size:11px;font-weight:700;padding:6px 10px;
@@ -165,6 +169,23 @@ button{font-family:inherit;cursor:pointer;border:none;}
   letter-spacing:.2px;
 }
 .expandBtn:active{transform:scale(.96);}
+
+/* === Delete button on every card === */
+.deleteBtn{
+  background:#fff;color:#d23030;
+  border:1px solid #ffd2d2;border-radius:7px;
+  padding:6px 10px;font-size:13px;font-weight:700;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;
+  letter-spacing:.2px;
+  transition:all .12s;
+}
+.deleteBtn:hover{background:#fff5f5;border-color:#ffaaaa;}
+.deleteBtn:active{transform:scale(.94);}
+.deleteBtn .delLabel{font-size:11px;font-weight:700;}
+
+@media(max-width:380px){
+  .deleteBtn .delLabel{display:none;}
+}
 
 .orderDetails{
   display:none;
@@ -251,10 +272,17 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .modal .icon{font-size:48px;margin-bottom:8px;}
 .modal h3{font-size:17px;font-weight:800;color:#1f1f1f;margin-bottom:6px;}
 .modal p{font-size:13px;color:#666;line-height:1.4;margin-bottom:18px;}
+.modal .modalRef{
+  background:#fafafa;border-radius:8px;padding:8px 12px;
+  font-size:12px;color:#444;font-family:monospace;
+  margin-bottom:16px;word-break:break-all;
+}
 .modalActions{display:flex;gap:10px;}
 .btnPrimary{flex:1;background:#0C831F;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
 .btnSecondary{flex:1;background:#fff;color:#666;border:1.5px solid #e0e0e0;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
 .btnDanger{flex:1;background:#d23030;color:#fff;padding:13px;border-radius:10px;font-size:14px;font-weight:700;}
+.btnDanger:disabled{background:#f0a0a0;cursor:not-allowed;}
+
 @media(min-width:600px){
   .modalBg{align-items:center;padding:20px;}
   .modal{border-radius:16px;max-width:380px;}
@@ -333,6 +361,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <div id="toast" class="toast"></div>
 
+<!-- Force-cancel modal (kept from before) -->
 <div class="modalBg" id="confirmModal">
   <div class="modal">
     <div class="icon" id="modalIcon">❓</div>
@@ -345,11 +374,25 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
+<!-- Delete confirmation modal -->
+<div class="modalBg" id="deleteModal">
+  <div class="modal">
+    <div class="icon">🗑️</div>
+    <h3 style="color:#d23030;">Delete this order?</h3>
+    <p>This will permanently remove the order from the database. The customer, shop, and driver will lose all record of it. This cannot be undone.</p>
+    <div class="modalRef" id="delModalRef">—</div>
+    <div class="modalActions">
+      <button class="btnSecondary" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btnDanger" id="confirmDeleteBtn" onclick="performDelete()">🗑️ Delete</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 import { auth, db } from "../js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
-  collection, onSnapshot, doc, updateDoc
+  collection, onSnapshot, doc, updateDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const ADMIN_EMAILS = ["sunilkumarm048@gmail.com"];
@@ -358,7 +401,6 @@ const ordersDiv = document.getElementById("orders");
 const headerSub = document.getElementById("headerSub");
 const toast = document.getElementById("toast");
 
-/* Cache by collection so re-renders are fast */
 let cache = { "orders": [], "split-orders": [], "transport-orders": [] };
 let firstLoad = { "orders": false, "split-orders": false, "transport-orders": false };
 
@@ -366,6 +408,8 @@ let currentStatus = "all";
 let currentCol = "all";
 let searchTerm = "";
 let expanded = new Set();
+
+let pendingDelete = null;   /* { id, col, name, shop } */
 
 function showToast(msg, isError=false){
   toast.textContent = msg;
@@ -398,6 +442,10 @@ document.getElementById("modalConfirmBtn").addEventListener("click", ()=>{
 });
 document.getElementById("confirmModal").addEventListener("click",(e)=>{
   if(e.target.id === "confirmModal") closeModal();
+});
+
+document.getElementById("deleteModal").addEventListener("click",(e)=>{
+  if(e.target.id === "deleteModal") closeDeleteModal();
 });
 
 document.querySelectorAll(".tab").forEach(tab=>{
@@ -463,7 +511,7 @@ function statusBucket(o){
   if(status === "rejected" || status === "cancelled" || dStatus === "cancelled") return "cancelled";
   if(status === "delivered" || dStatus === "delivered" || dStatus === "completed") return "delivered";
   if(status === "pending") return "pending";
-  return "active";  // accepted, ready, out for delivery, waitingcustomerconfirm
+  return "active";
 }
 
 function getStatusPill(o){
@@ -525,17 +573,12 @@ function updateSummary(){
 function render(){
   let visible = getAll();
 
-  /* Collection filter */
   if(currentCol !== "all"){
     visible = visible.filter(o => o.__col === currentCol);
   }
-
-  /* Status filter */
   if(currentStatus !== "all"){
     visible = visible.filter(o => statusBucket(o) === currentStatus);
   }
-
-  /* Search */
   if(searchTerm){
     visible = visible.filter(o=>{
       return (o.name||"").toLowerCase().includes(searchTerm)
@@ -546,7 +589,6 @@ function render(){
     });
   }
 
-  /* Sort newest first */
   visible.sort((a,b)=>{
     const ta = a.time?.toDate ? a.time.toDate().getTime() : new Date(a.time||0).getTime();
     const tb = b.time?.toDate ? b.time.toDate().getTime() : new Date(b.time||0).getTime();
@@ -582,7 +624,6 @@ function render(){
     const time = o.time?.toDate ? o.time.toDate() : (o.time ? new Date(o.time) : null);
     const timeStr = time ? formatTime(time) : "—";
 
-    /* Build details panel */
     let details = `<div class="orderDetails ${isExpanded?'show':''}" id="dt-${id}">`;
 
     if(o.items && o.items.length){
@@ -629,7 +670,6 @@ function render(){
       details += `</div>`;
     }
 
-    /* Force cancel button */
     const canCancel = !["delivered", "cancelled", "rejected"].includes(statusBucket(o));
     if(canCancel){
       details += `<button class="dangerBtn" onclick="forceCancel('${id}','${col}')">⚠️ Force Cancel (Admin Override)</button>`;
@@ -638,7 +678,7 @@ function render(){
     details += `</div>`;
 
     html += `
-      <div class="orderCard ${cls}">
+      <div class="orderCard ${cls}" id="card-${id}">
         <div class="orderTop">
           <div class="orderTopL">
             <div class="orderHeading">${escapeHtml(o.name || "Customer")}</div>
@@ -661,7 +701,12 @@ function render(){
 
         <div class="orderBottom">
           <div class="orderTime">🕒 ${timeStr}</div>
-          <button class="expandBtn" onclick="toggleExpand('${id}')">${isExpanded ? "Hide ▴" : "Details ▾"}</button>
+          <div class="btnGroup">
+            <button class="deleteBtn" onclick="askDelete('${id}','${col}','${escapeAttr(o.name||"Customer")}','${escapeAttr(o.shopName||"")}')" aria-label="Delete order">
+              🗑️ <span class="delLabel">Delete</span>
+            </button>
+            <button class="expandBtn" onclick="toggleExpand('${id}')">${isExpanded ? "Hide ▴" : "Details ▾"}</button>
+          </div>
         </div>
 
         ${details}
@@ -670,13 +715,16 @@ function render(){
   ordersDiv.innerHTML = html;
 }
 
+function escapeAttr(str){
+  return String(str).replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+
 window.toggleExpand = (id)=>{
   if(expanded.has(id)) expanded.delete(id);
   else expanded.add(id);
   const el = document.getElementById("dt-"+id);
   if(el) el.classList.toggle("show");
 
-  /* Update button text without full re-render */
   const btn = el?.previousElementSibling?.querySelector(".expandBtn");
   if(btn) btn.textContent = expanded.has(id) ? "Hide ▴" : "Details ▾";
 };
@@ -703,6 +751,57 @@ window.forceCancel = (id, col)=>{
       }
     }
   });
+};
+
+/* ============ DELETE ORDER ============ */
+window.askDelete = (id, col, customerName, shopName)=>{
+  pendingDelete = { id, col, customerName, shopName };
+
+  const colLabel = col === "transport-orders" ? "Transport Order"
+                 : col === "split-orders" ? "Split Order"
+                 : "Bike Order";
+
+  const refText = `${colLabel}\n${customerName}${shopName ? " · " + shopName : ""}\nID: ${id.slice(0,12)}…`;
+  document.getElementById("delModalRef").textContent = refText;
+
+  document.getElementById("confirmDeleteBtn").disabled = false;
+  document.getElementById("deleteModal").classList.add("show");
+};
+
+window.closeDeleteModal = ()=>{
+  document.getElementById("deleteModal").classList.remove("show");
+  pendingDelete = null;
+};
+
+window.performDelete = async ()=>{
+  if(!pendingDelete) return;
+
+  const { id, col } = pendingDelete;
+  const btn = document.getElementById("confirmDeleteBtn");
+  btn.disabled = true;
+  btn.textContent = "Deleting…";
+
+  /* Mark card visually as deleting */
+  const card = document.getElementById(`card-${id}`);
+  if(card) card.classList.add("deleting");
+
+  try{
+    await deleteDoc(doc(db, col, id));
+    showToast("✓ Order deleted permanently");
+    closeDeleteModal();
+    /* onSnapshot will re-render automatically */
+  }catch(err){
+    console.error("Delete failed:", err);
+    if(card) card.classList.remove("deleting");
+    btn.disabled = false;
+    btn.textContent = "🗑️ Delete";
+
+    let msg = "Could not delete: " + (err.message || "try again");
+    if(err.code === "permission-denied"){
+      msg = "⚠️ Firestore permission denied. Check security rules.";
+    }
+    showToast(msg, true);
+  }
 };
 
 function formatTime(date){
