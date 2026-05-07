@@ -667,7 +667,7 @@ function buildLegs(o){
 
   let pickupPt = null;
   let dropPt   = null;
-  let midPt    = null;     // for split-orders, an intermediate stop if defined
+  let midPt    = null;
 
   if(isTransport){
     pickupPt = {
@@ -686,14 +686,17 @@ function buildLegs(o){
       name: o.shopName || "Shop",
       icon: o.shopIcon || "🏪"
     };
+    /* Try EVERY possible field for the customer/drop coordinates */
+    const dropLatVal = o.customerLat ?? o.lat ?? o.dropLat ?? o.deliveryLat ?? null;
+    const dropLngVal = o.customerLng ?? o.lng ?? o.dropLng ?? o.deliveryLng ?? null;
     dropPt = {
-      lat: o.customerLat ?? o.lat,
-      lng: o.customerLng ?? o.lng,
+      lat: dropLatVal,
+      lng: dropLngVal,
       name: o.name || "Customer",
       icon: "🏠"
     };
 
-    /* Split order: if there's an intermediate target shop (rare in your data, but supported) */
+    /* Split order: optional intermediate target shop */
     if(isSplit && o.targetShopLat && o.targetShopLng){
       midPt = {
         lat: o.targetShopLat, lng: o.targetShopLng,
@@ -703,18 +706,34 @@ function buildLegs(o){
     }
   }
 
-  /* Build leg list dynamically */
-  /* Leg 1: You → Pickup (only if we have your location) */
-  if(myPt.lat && myPt.lng && pickupPt && pickupPt.lat && pickupPt.lng){
+  /* DEBUG: log what we got */
+  console.log("[Trip Legs Debug]", {
+    orderId: o.__id,
+    col: o.__col,
+    you: { lat: myPt.lat, lng: myPt.lng },
+    pickup: { lat: pickupPt?.lat, lng: pickupPt?.lng, name: pickupPt?.name },
+    mid: midPt ? { lat: midPt.lat, lng: midPt.lng, name: midPt.name } : null,
+    drop: { lat: dropPt?.lat, lng: dropPt?.lng, name: dropPt?.name },
+    savedDistanceKm: o.distanceKm
+  });
+
+  /* Leg 1: You → Pickup */
+  if(pickupPt && pickupPt.lat && pickupPt.lng){
+    let leg1Dist = null;
+    if(myPt.lat && myPt.lng){
+      leg1Dist = getDistance(myPt.lat, myPt.lng, pickupPt.lat, pickupPt.lng);
+    }
     legs.push({
       key:"to-pickup",
       label:"To pickup",
-      from: myPt, to: pickupPt,
-      dist: getDistance(myPt.lat, myPt.lng, pickupPt.lat, pickupPt.lng)
+      from: myPt.lat ? myPt : { ...myPt, name: "You (GPS off)" },
+      to: pickupPt,
+      dist: leg1Dist,
+      missing: !myPt.lat ? "your-gps" : null
     });
   }
 
-  /* Leg 2: Pickup → (mid shop, if split) */
+  /* Leg 2: Pickup → mid (split orders only) */
   if(midPt && pickupPt && pickupPt.lat && pickupPt.lng){
     legs.push({
       key:"to-mid",
@@ -724,14 +743,32 @@ function buildLegs(o){
     });
   }
 
-  /* Leg 3: (mid or pickup) → Drop */
+  /* Leg 3: (mid or pickup) → Drop — ALWAYS show this leg if we have shop OR if we have saved distance */
   const lastBeforeDrop = midPt || pickupPt;
-  if(lastBeforeDrop && lastBeforeDrop.lat && lastBeforeDrop.lng && dropPt && dropPt.lat && dropPt.lng){
+  if(lastBeforeDrop){
+    let leg3Dist = null;
+    let missingTag = null;
+
+    if(lastBeforeDrop.lat && lastBeforeDrop.lng && dropPt.lat && dropPt.lng){
+      /* Best case: live calculation */
+      leg3Dist = getDistance(lastBeforeDrop.lat, lastBeforeDrop.lng, dropPt.lat, dropPt.lng);
+    }else if(o.distanceKm != null && Number(o.distanceKm) > 0 && !midPt){
+      /* Fallback: use saved distanceKm from when customer placed order
+         This is the shop→customer distance saved at checkout time */
+      leg3Dist = Number(o.distanceKm);
+      missingTag = "saved";
+    }else if(!dropPt.lat || !dropPt.lng){
+      missingTag = "drop-gps";
+    }
+
+    /* Always push the leg if we have any distance OR a clear missing-data signal */
     legs.push({
       key:"to-drop",
       label:"To customer",
-      from: lastBeforeDrop, to: dropPt,
-      dist: getDistance(lastBeforeDrop.lat, lastBeforeDrop.lng, dropPt.lat, dropPt.lng)
+      from: lastBeforeDrop,
+      to: dropPt,
+      dist: leg3Dist,
+      missing: missingTag
     });
   }
 
@@ -753,6 +790,20 @@ function renderTripLegsHtml(legs){
 
   let html = `<div class="tripLegs"><div class="legsTitle">📍 Trip breakdown</div>`;
   legs.forEach(leg => {
+    let distHtml;
+    if(leg.dist != null){
+      let suffix = "";
+      if(leg.missing === "saved"){
+        suffix = ` <span style="opacity:.7;font-size:9px;">(est)</span>`;
+      }
+      distHtml = `<span class="legDist">${fmtDist(leg.dist)}${suffix}</span>`;
+    }else{
+      let hint = "—";
+      if(leg.missing === "your-gps") hint = "GPS off";
+      else if(leg.missing === "drop-gps") hint = "no map";
+      distHtml = `<span class="legDist" style="background:rgba(255,255,255,.12);font-size:10px;">${hint}</span>`;
+    }
+
     html += `
       <div class="legRow">
         <div class="legArrow">
@@ -760,7 +811,7 @@ function renderTripLegsHtml(legs){
           <span class="arr">→</span>
           <span class="to">${leg.to.icon} ${escapeHtml(shortName(leg.to.name))}</span>
         </div>
-        <span class="legDist">${fmtDist(leg.dist)}</span>
+        ${distHtml}
       </div>`;
   });
 
