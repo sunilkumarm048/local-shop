@@ -132,7 +132,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 .container{max-width:1100px;margin:0 auto;padding:14px 12px 0;}
 
-/* Vehicle warning banner — when partner has no vehicleType set */
 .noVehicleBanner{
   background:linear-gradient(135deg,#fff5d6 0%,#ffeec1 100%);
   border:1px solid #f0d76a;
@@ -208,7 +207,44 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 
 .noEarning{font-size:32px;font-weight:800;margin-bottom:2px;position:relative;z-index:1;}
-.noDist{font-size:13px;opacity:.95;font-weight:500;margin-bottom:14px;position:relative;z-index:1;}
+.noEarningSub{font-size:13px;opacity:.95;font-weight:500;margin-bottom:14px;position:relative;z-index:1;}
+
+/* ===== NEW: Trip legs breakdown ===== */
+.tripLegs{
+  background:rgba(255,255,255,.18);border-radius:10px;
+  padding:10px 12px;margin-bottom:12px;position:relative;z-index:1;
+}
+.legsTitle{
+  font-size:10px;font-weight:800;letter-spacing:.6px;
+  opacity:.9;margin-bottom:6px;text-transform:uppercase;
+}
+.legRow{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;padding:4px 0;
+}
+.legRow:not(:last-child){
+  border-bottom:1px dashed rgba(255,255,255,.25);
+  margin-bottom:2px;padding-bottom:6px;
+}
+.legRow.totalLeg{
+  font-weight:800;
+  border-top:1px solid rgba(255,255,255,.3);
+  margin-top:4px;padding-top:8px;font-size:14px;
+}
+.legArrow{flex:1;display:flex;align-items:center;gap:6px;min-width:0;}
+.legArrow .from, .legArrow .to{
+  display:flex;align-items:center;gap:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  min-width:0;flex-shrink:1;
+}
+.legArrow .arr{opacity:.7;flex-shrink:0;}
+.legDist{
+  background:rgba(255,255,255,.2);
+  padding:2px 8px;border-radius:10px;
+  font-size:12px;font-weight:800;
+  white-space:nowrap;flex-shrink:0;
+}
+.legRow.totalLeg .legDist{background:rgba(255,255,255,.32);}
 
 .noDetails{
   background:rgba(255,255,255,.15);border-radius:10px;
@@ -259,6 +295,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
   overflow:hidden;border:1px solid #ececec;
 }
 .orderCard.transport{border-left:4px solid #1857c1;}
+.orderCard.split{border-left:4px solid #6b21a8;}
 
 .cardTop{
   display:flex;align-items:center;justify-content:space-between;
@@ -287,6 +324,21 @@ button{font-family:inherit;cursor:pointer;border:none;}
   white-space:nowrap;
 }
 .vehBadge .vbIcon{font-size:13px;line-height:1;}
+
+/* ===== NEW: Active card distance pill (current leg + total) ===== */
+.activeLegBar{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:8px 14px;background:#fafafa;
+  border-bottom:1px solid #f4f4f4;
+}
+.activeLegPill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#dcf3e1;color:#0C831F;
+  padding:5px 11px;border-radius:14px;
+  font-size:12px;font-weight:800;
+}
+.activeLegPill.current{background:#0C831F;color:#fff;}
+.activeLegPill .ico{font-size:12px;}
 
 .journey{display:flex;padding:14px;gap:8px;align-items:flex-start;}
 .jStep{flex:1;text-align:center;position:relative;}
@@ -336,6 +388,12 @@ button{font-family:inherit;cursor:pointer;border:none;}
   font-size:10px;font-weight:800;color:#8a6500;
   text-transform:uppercase;letter-spacing:.5px;
   margin-bottom:4px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.targetLabel .distChip{
+  background:#0C831F;color:#fff;
+  padding:2px 8px;border-radius:10px;
+  font-size:10px;font-weight:800;letter-spacing:.3px;
 }
 .targetName{font-size:14px;font-weight:700;color:#1f1f1f;margin-bottom:3px;}
 .targetAddr{font-size:12px;color:#666;line-height:1.4;}
@@ -482,7 +540,6 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <main class="container">
 
-  <!-- Vehicle warning banner — only shows if no vehicleType set -->
   <div class="noVehicleBanner" id="noVehicleBanner" style="display:none;" onclick="goProfile()">
     <div class="ic">🛵</div>
     <div class="text">
@@ -551,7 +608,7 @@ const toast        = document.getElementById("toast");
 const noVehicleBanner = document.getElementById("noVehicleBanner");
 
 let myEmail = null;
-let myVehicleType = null;          // bike | 3wheeler | tataAce | pickup8ft | tata407 | null
+let myVehicleType = null;
 let myVehicleName = "";
 let myVehicleIcon = "🚚";
 let isOnline = localStorage.getItem("isOnline") !== "false";
@@ -564,7 +621,6 @@ const skippedOrderIds = new Set();
 let knownOrderIds = new Set();
 let firstLoadDone = { "orders": false, "split-orders": false, "transport-orders": false };
 
-/* Display labels for vehicle types */
 const VEHICLE_LABELS = {
   bike:      { icon:"🛵", name:"2-Wheeler" },
   "3wheeler":{ icon:"🛺", name:"3-Wheeler" },
@@ -577,6 +633,7 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
 
+/* ============ DISTANCE UTIL ============ */
 function getDistance(lat1, lon1, lat2, lon2){
   if(lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
   const R = 6371;
@@ -586,6 +643,147 @@ function getDistance(lat1, lon1, lat2, lon2){
             Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
             Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function fmtDist(d){
+  if(d == null || !isFinite(d)) return "—";
+  return d.toFixed(1) + " km";
+}
+
+/* ============ TRIP-LEG BUILDER ============
+   For each order, computes a list of legs: [{label, fromIcon, toIcon, fromName, toName, fromLat,fromLng, toLat,toLng, dist}]
+   - Bike order:   You → Shop → Customer
+   - Split order:  You → Pickup Shop → (optional 2nd Shop) → Customer
+   - Transport:    You → Pickup → Drop
+*/
+function buildLegs(o){
+  const isTransport = o.__col === "transport-orders";
+  const isSplit     = o.__col === "split-orders";
+
+  const legs = [];
+
+  /* Resolve all known points */
+  const myPt   = { lat: window.myLat, lng: window.myLng, name: "You", icon: myVehicleIcon || "🛵" };
+
+  let pickupPt = null;
+  let dropPt   = null;
+  let midPt    = null;     // for split-orders, an intermediate stop if defined
+
+  if(isTransport){
+    pickupPt = {
+      lat: o.pickupLat, lng: o.pickupLng,
+      name: o.shopName || o.pickupContactName || "Pickup",
+      icon: "🏪"
+    };
+    dropPt = {
+      lat: o.dropLat, lng: o.dropLng,
+      name: o.dropContactName || o.name || "Customer",
+      icon: "🏠"
+    };
+  }else{
+    pickupPt = {
+      lat: o.shopLat, lng: o.shopLng,
+      name: o.shopName || "Shop",
+      icon: o.shopIcon || "🏪"
+    };
+    dropPt = {
+      lat: o.customerLat ?? o.lat,
+      lng: o.customerLng ?? o.lng,
+      name: o.name || "Customer",
+      icon: "🏠"
+    };
+
+    /* Split order: if there's an intermediate target shop (rare in your data, but supported) */
+    if(isSplit && o.targetShopLat && o.targetShopLng){
+      midPt = {
+        lat: o.targetShopLat, lng: o.targetShopLng,
+        name: o.targetShopName || "Other shop",
+        icon: "🏪"
+      };
+    }
+  }
+
+  /* Build leg list dynamically */
+  /* Leg 1: You → Pickup (only if we have your location) */
+  if(myPt.lat && myPt.lng && pickupPt && pickupPt.lat && pickupPt.lng){
+    legs.push({
+      key:"to-pickup",
+      label:"To pickup",
+      from: myPt, to: pickupPt,
+      dist: getDistance(myPt.lat, myPt.lng, pickupPt.lat, pickupPt.lng)
+    });
+  }
+
+  /* Leg 2: Pickup → (mid shop, if split) */
+  if(midPt && pickupPt && pickupPt.lat && pickupPt.lng){
+    legs.push({
+      key:"to-mid",
+      label:"Shop to shop",
+      from: pickupPt, to: midPt,
+      dist: getDistance(pickupPt.lat, pickupPt.lng, midPt.lat, midPt.lng)
+    });
+  }
+
+  /* Leg 3: (mid or pickup) → Drop */
+  const lastBeforeDrop = midPt || pickupPt;
+  if(lastBeforeDrop && lastBeforeDrop.lat && lastBeforeDrop.lng && dropPt && dropPt.lat && dropPt.lng){
+    legs.push({
+      key:"to-drop",
+      label:"To customer",
+      from: lastBeforeDrop, to: dropPt,
+      dist: getDistance(lastBeforeDrop.lat, lastBeforeDrop.lng, dropPt.lat, dropPt.lng)
+    });
+  }
+
+  return legs;
+}
+
+function legsTotal(legs){
+  let total = 0;
+  let any = false;
+  legs.forEach(l => {
+    if(l.dist != null && isFinite(l.dist)){ total += l.dist; any = true; }
+  });
+  return any ? total : null;
+}
+
+/* Render trip legs HTML (for new-order banner) */
+function renderTripLegsHtml(legs){
+  if(legs.length === 0) return "";
+
+  let html = `<div class="tripLegs"><div class="legsTitle">📍 Trip breakdown</div>`;
+  legs.forEach(leg => {
+    html += `
+      <div class="legRow">
+        <div class="legArrow">
+          <span class="from">${leg.from.icon} ${escapeHtml(shortName(leg.from.name))}</span>
+          <span class="arr">→</span>
+          <span class="to">${leg.to.icon} ${escapeHtml(shortName(leg.to.name))}</span>
+        </div>
+        <span class="legDist">${fmtDist(leg.dist)}</span>
+      </div>`;
+  });
+
+  const total = legsTotal(legs);
+  if(total != null && legs.length > 1){
+    html += `
+      <div class="legRow totalLeg">
+        <div class="legArrow">
+          <span class="from">🧭 Total trip</span>
+        </div>
+        <span class="legDist">${fmtDist(total)}</span>
+      </div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function shortName(name){
+  /* Trim long names like full addresses */
+  if(!name) return "—";
+  const s = String(name);
+  if(s.length <= 22) return s;
+  return s.slice(0, 20) + "…";
 }
 
 function showToast(msg, isError=false){
@@ -726,6 +924,11 @@ function startLiveLocation(){
     if(!window.__gpsLocked){
       window.__gpsLocked = true;
       renderNewOrder();
+      renderActiveOrders();
+    }else{
+      /* re-render distances on every GPS tick */
+      renderNewOrder();
+      renderActiveOrders();
     }
   }, (err)=>{
     console.log("Geolocation error:", err);
@@ -747,7 +950,6 @@ onAuthStateChanged(auth, async (user)=>{
       document.getElementById("sbName").textContent = d.name || "Delivery Partner";
       document.getElementById("sbEmail").textContent = myEmail;
 
-      /* Load partner's vehicle type */
       myVehicleType = d.vehicleType || null;
       if(myVehicleType && VEHICLE_LABELS[myVehicleType]){
         myVehicleName = VEHICLE_LABELS[myVehicleType].name;
@@ -757,7 +959,6 @@ onAuthStateChanged(auth, async (user)=>{
         vbEl.style.display = "inline-flex";
         vbEl.innerHTML = `${myVehicleIcon} ${myVehicleName}`;
       }else{
-        /* No vehicle type set — show banner prompting profile */
         noVehicleBanner.style.display = "flex";
       }
     }else{
@@ -784,10 +985,6 @@ function listen(col){
       d.__col = col;
       list.push(d);
 
-      /* Detect a fresh ready order:
-         - For 'orders' and 'split-orders': deliveryStatus === "Ready"
-         - For 'transport-orders': status === "Ready" or "Pending" without driver
-         and the order's vehicleType matches partner's vehicleType */
       if(firstLoadDone[col]){
         const isMatch = orderMatchesPartner(d);
         const isReady = isOrderReadyForPickup(d);
@@ -812,25 +1009,18 @@ function listen(col){
   });
 }
 
-/* Check if an order's vehicleType matches the partner's
-   - Orders without vehicleType (legacy) match bike riders
-   - Transport orders only match if vehicleType is set on driver */
 function orderMatchesPartner(o){
   if(!myVehicleType){
-    /* Partner has no vehicleType set — only see legacy orders/split-orders without vehicleType */
     return o.__col !== "transport-orders";
   }
-
-  const orderVeh = o.vehicleType || "bike";   // legacy default
+  const orderVeh = o.vehicleType || "bike";
   return orderVeh === myVehicleType;
 }
 
 function isOrderReadyForPickup(o){
-  /* Transport orders are ready immediately when shop accepts + marks ready */
   if(o.__col === "transport-orders"){
     return o.deliveryStatus === "Ready" || (o.status === "Ready");
   }
-  /* Regular orders: deliveryStatus === "Ready" set by shop */
   return o.deliveryStatus === "Ready";
 }
 
@@ -877,18 +1067,15 @@ function renderNewOrder(){
     return;
   }
 
-  /* Combine all collections, find best matching candidate for THIS partner */
   const all = [...ordersCache.orders, ...ordersCache["split-orders"], ...ordersCache["transport-orders"]];
   let candidate = null, candidateDist = Infinity;
 
   all.forEach(o=>{
-    /* Must be ready, unassigned, and match partner's vehicle */
     if(!isOrderReadyForPickup(o)) return;
     if(o.deliveryBoyId) return;
     if(skippedOrderIds.has(o.__id)) return;
     if(!orderMatchesPartner(o)) return;
 
-    /* Use shopLat/Lng for orders/split-orders, pickupLat/Lng for transport-orders */
     const pickupLat = o.pickupLat ?? o.shopLat;
     const pickupLng = o.pickupLng ?? o.shopLng;
 
@@ -901,7 +1088,6 @@ function renderNewOrder(){
   });
 
   if(!candidate){
-    /* Custom message based on vehicle */
     const vehHint = myVehicleType
       ? `for ${myVehicleName} drivers`
       : `right now`;
@@ -916,12 +1102,13 @@ function renderNewOrder(){
 
   const o = candidate;
   const earning = Math.round(o.deliveryEarning || (o.total * 0.1) || 0);
-  const distText = candidateDist !== Infinity
-    ? candidateDist.toFixed(1) + " km away"
-    : "Nearby";
 
-  /* Pickup name + customer address vary by collection */
+  /* Build trip legs */
+  const legs = buildLegs(o);
+  const totalDist = legsTotal(legs);
+
   const isTransport = o.__col === "transport-orders";
+  const isSplit     = o.__col === "split-orders";
   const pickupName  = isTransport
     ? (o.shopName || o.pickupAddress?.split(",")[0] || "Pickup")
     : (o.shopName || "Pickup shop");
@@ -929,23 +1116,30 @@ function renderNewOrder(){
     ? (o.dropAddress || o.address || "Drop location")
     : (o.address || "Customer address");
 
-  /* Vehicle badge for the new-order banner */
   let vehHeader = "";
   if(o.vehicleName && o.vehicleIcon){
     vehHeader = `<div class="noTopRight">${o.vehicleIcon} ${escapeHtml(o.vehicleName)}</div>`;
   }
 
-  /* Weight chip (if order has it) */
   let weightLine = "";
   if(o.cartWeightKg && o.cartWeightKg > 0){
     weightLine = `<div class="noLine"><div class="ic">⚖️</div><span>${o.cartWeightKg.toFixed(1)} kg</span></div>`;
   }
 
+  const subText = totalDist != null
+    ? `📍 Total trip ${fmtDist(totalDist)} · Order ₹${o.total||0}`
+    : `📍 Distance unavailable · Order ₹${o.total||0}`;
+
+  /* Trip legs HTML — always show breakdown */
+  const legsHtml = renderTripLegsHtml(legs);
+
   newOrderArea.innerHTML = `
     <div class="newOrderBanner">
-      <div class="noTop">NEW ORDER ${vehHeader}</div>
+      <div class="noTop">NEW ORDER${isSplit ? ' · SPLIT' : ''} ${vehHeader}</div>
       <div class="noEarning">₹${earning}</div>
-      <div class="noDist">📍 ${distText} · Total ₹${o.total||0}</div>
+      <div class="noEarningSub">${subText}</div>
+
+      ${legsHtml}
 
       <div class="noDetails">
         <div class="noLine"><div class="ic">🏪</div><span>${escapeHtml(pickupName)}</span></div>
@@ -996,10 +1190,10 @@ function renderActiveOrders(){
   all.forEach(o=>{
     const id = o.__id, col = o.__col;
     const isTransport = col === "transport-orders";
+    const isSplit     = col === "split-orders";
     const step = o.pickupStep || 0;
     const orderShort = "#" + id.slice(-6).toUpperCase();
 
-    /* Pickup vs Drop coords vary by collection */
     const pickupLat = o.pickupLat ?? o.shopLat;
     const pickupLng = o.pickupLng ?? o.shopLng;
     const dropLat   = isTransport ? o.dropLat : (o.customerLat ?? o.lat);
@@ -1030,6 +1224,15 @@ function renderActiveOrders(){
       targetPhone = isTransport ? (o.dropContactPhone || "") : (o.phone || "");
     }
 
+    /* Distance to TARGET (current leg) */
+    const distToTarget = getDistance(window.myLat, window.myLng, targetLat, targetLng);
+
+    /* Distance from current target to FINAL drop (only relevant if heading to pickup) */
+    let distRemaining = null;
+    if(step < 2 && pickupLat && pickupLng && dropLat && dropLng){
+      distRemaining = getDistance(pickupLat, pickupLng, dropLat, dropLng);
+    }
+
     let actionBtn = "";
     if(step === 0){
       actionBtn = `<button class="actionBtn btn-pickup" onclick="nextStep('${id}','${col}',0)">📦 I've Picked Up</button>`;
@@ -1039,23 +1242,52 @@ function renderActiveOrders(){
       actionBtn = `<button class="actionBtn btn-deliver" onclick="markDelivered('${id}','${col}')">✓ Mark Delivered</button>`;
     }
 
-    /* Vehicle + weight badges */
     let vehBadgeHtml = "";
     if(o.vehicleName && o.vehicleIcon){
       vehBadgeHtml = `<div class="vehBadge"><span class="vbIcon">${o.vehicleIcon}</span>${escapeHtml(o.vehicleName)}</div>`;
     }
 
     let suffix = "";
-    if(col === "split-orders") suffix = " · SPLIT";
-    else if(isTransport) suffix = " · TRANSPORT";
+    let cardClass = "";
+    if(isSplit){ suffix = " · SPLIT"; cardClass = "split"; }
+    else if(isTransport){ suffix = " · TRANSPORT"; cardClass = "transport"; }
+
+    /* Active leg bar — current + next legs */
+    const currentLegLabel = step < 2 ? "To pickup" : "To drop";
+    const remainingLegLabel = step < 2 ? "Then to drop" : "";
+
+    let legBarHtml = `<div class="activeLegBar">`;
+    if(distToTarget != null){
+      legBarHtml += `
+        <span class="activeLegPill current">
+          <span class="ico">${step < 2 ? "🏪" : "🏠"}</span>
+          ${currentLegLabel}: ${fmtDist(distToTarget)}
+        </span>`;
+    }
+    if(distRemaining != null && step < 2){
+      legBarHtml += `
+        <span class="activeLegPill">
+          <span class="ico">🏠</span>
+          ${remainingLegLabel}: ${fmtDist(distRemaining)}
+        </span>`;
+      const totalAhead = (distToTarget || 0) + distRemaining;
+      legBarHtml += `
+        <span class="activeLegPill">
+          <span class="ico">🧭</span>
+          Total ahead: ${fmtDist(totalAhead)}
+        </span>`;
+    }
+    legBarHtml += `</div>`;
 
     html += `
-      <div class="orderCard ${isTransport?'transport':''}" data-order-id="${id}">
+      <div class="orderCard ${cardClass}" data-order-id="${id}">
         <div class="cardTop">
           <div class="orderNum">${orderShort}${suffix}</div>
           ${vehBadgeHtml}
           <div class="statusPill ${pillCls}">${stepLabel}</div>
         </div>
+
+        ${legBarHtml}
 
         <div class="journey">
           <div class="jStep ${step>0?"done":"active"}">
@@ -1075,7 +1307,10 @@ function renderActiveOrders(){
         </div>
 
         <div class="targetBox">
-          <div class="targetLabel">${targetLabel}</div>
+          <div class="targetLabel">
+            <span>${targetLabel}</span>
+            ${distToTarget != null ? `<span class="distChip">📏 ${fmtDist(distToTarget)}</span>` : ""}
+          </div>
           <div class="targetName">${escapeHtml(targetName)}</div>
           ${targetAddr ? `<div class="targetAddr">📍 ${escapeHtml(targetAddr)}</div>` : ""}
           <div class="targetActions">
@@ -1253,4 +1488,3 @@ window.addEventListener("beforeunload", ()=>{
 
 </body>
 </html>
-  
