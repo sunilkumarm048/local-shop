@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -48,9 +49,31 @@ button{font-family:inherit;cursor:pointer;border:none;}
   content:"";width:18px;height:2px;background:#0C831F;border-radius:1px;
 }
 
+/* ============ DELIVERY MODE TOGGLE ============ */
+.modeToggle{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:8px;margin-bottom:14px;
+}
+.modeOpt{
+  background:#fff;border:2px solid #e5e5e5;border-radius:12px;
+  padding:14px 10px;text-align:center;cursor:pointer;
+  transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.modeOpt:hover{border-color:#b3e5bf;}
+.modeOpt.selected{
+  border-color:#0C831F;background:#f0fbf2;
+  box-shadow:0 2px 8px rgba(12,131,31,.15);
+}
+.modeOpt .modeIcon{font-size:28px;line-height:1;}
+.modeOpt .modeName{font-size:13px;font-weight:700;color:#1f1f1f;}
+.modeOpt.selected .modeName{color:#0C831F;}
+.modeOpt .modeDesc{font-size:10px;color:#888;font-weight:500;line-height:1.3;}
+
 .field{margin-bottom:10px;}
 .field:last-child{margin-bottom:0;}
 .fieldLabel{display:block;font-size:11px;font-weight:600;color:#666;margin-bottom:5px;}
+.fieldLabel .req{color:#d23030;font-weight:700;}
 .inputWrap{
   display:flex;align-items:stretch;
   border:1.5px solid #e5e5e5;border-radius:10px;
@@ -77,6 +100,15 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .errorText{display:none;font-size:11px;color:#d23030;font-weight:500;margin-top:4px;}
 .errorText.show{display:block;}
 
+.subSectionLabel{
+  font-size:11px;font-weight:800;color:#666;
+  letter-spacing:.4px;text-transform:uppercase;
+  margin:14px 0 8px;
+  display:flex;align-items:center;gap:6px;
+}
+.subSectionLabel .ic{font-size:14px;}
+.subSectionLabel:first-child{margin-top:0;}
+
 .locBtn{
   background:#dcf3e1;color:#0C831F;
   padding:9px 14px;border-radius:8px;
@@ -94,7 +126,99 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .locConfirm.error{background:#fde0e0;color:#c41818;}
 .locConfirm.loading{background:#dbe9ff;color:#1857c1;}
 
-/* Global discount banner */
+/* ============ MAP PICKER (For Other mode) ============ */
+.mapPickerWrap{
+  margin-top:8px;
+  border:1.5px solid #e5e5e5;border-radius:12px;
+  overflow:hidden;background:#fafafa;
+}
+.searchBox{
+  position:relative;
+  border-bottom:1.5px solid #e5e5e5;
+  background:#fff;
+}
+.searchBox input{
+  width:100%;border:none;background:transparent;
+  padding:11px 12px 11px 38px;font-size:13px;font-weight:500;
+  font-family:inherit;color:#1f1f1f;outline:none;
+}
+.searchBox .searchIcon{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  font-size:14px;color:#888;
+}
+.searchBox .clearBtn{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:#f0f0f0;color:#666;
+  width:24px;height:24px;border-radius:50%;
+  font-size:14px;font-weight:700;
+  display:none;align-items:center;justify-content:center;
+}
+.searchBox .clearBtn.show{display:flex;}
+.searchSpinner{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;border:2px solid #e5e5e5;
+  border-top-color:#0C831F;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+.searchSpinner.show{display:block;}
+@keyframes spin{to{transform:translateY(-50%) rotate(360deg);}}
+
+.searchResults{
+  max-height:200px;overflow-y:auto;
+  background:#fff;border-bottom:1.5px solid #e5e5e5;
+  display:none;
+}
+.searchResults.show{display:block;}
+.searchResult{
+  padding:10px 12px;font-size:13px;
+  border-bottom:1px solid #f4f4f4;
+  cursor:pointer;display:flex;gap:10px;align-items:flex-start;
+}
+.searchResult:hover{background:#fafafa;}
+.searchResult:last-child{border-bottom:none;}
+.searchResult .pin{font-size:14px;flex-shrink:0;margin-top:1px;}
+.searchResult .info{flex:1;min-width:0;line-height:1.3;}
+.searchResult .ttl{font-weight:600;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.searchResult .sub{font-size:11px;color:#888;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+#pickerMap{
+  height:260px;width:100%;background:#e9e9e9;
+  position:relative;
+}
+.mapHint{
+  position:absolute;bottom:10px;left:50%;
+  transform:translateX(-50%);
+  background:rgba(31,31,31,.85);color:#fff;
+  padding:6px 12px;border-radius:18px;
+  font-size:11px;font-weight:600;
+  z-index:401;pointer-events:none;
+  white-space:nowrap;
+}
+
+.useMyLocBtn{
+  background:#fff;color:#0C831F;border:1px solid #b3e5bf;
+  padding:8px 14px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  display:inline-flex;align-items:center;gap:5px;
+  margin:10px;
+}
+.useMyLocBtn:active{transform:scale(.96);}
+.useMyLocBtn:hover{background:#f0fbf2;}
+
+.mapAddressBox{
+  padding:10px 12px;background:#fff;
+  border-top:1.5px solid #e5e5e5;font-size:12px;
+}
+.mapAddressBox .lbl{
+  font-size:10px;font-weight:700;color:#888;
+  letter-spacing:.3px;text-transform:uppercase;margin-bottom:3px;
+}
+.mapAddressBox .val{font-size:13px;color:#1f1f1f;font-weight:500;line-height:1.4;
+  word-break:break-word;}
+.mapAddressBox.empty .val{color:#999;font-style:italic;}
+
 .globalOfferBanner{
   background:linear-gradient(135deg,#dcf3e1 0%,#b3e5bf 100%);
   border:1px solid #0C831F;border-radius:12px;
@@ -307,9 +431,9 @@ button{font-family:inherit;cursor:pointer;border:none;}
   border:2.5px solid rgba(255,255,255,.3);
   border-top-color:#fff;border-radius:50%;
   top:50%;left:50%;transform:translate(-50%,-50%);
-  animation:spin .7s linear infinite;
+  animation:spin2 .7s linear infinite;
 }
-@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg);}}
+@keyframes spin2{to{transform:translate(-50%,-50%) rotate(360deg);}}
 
 .toast{
   position:fixed;bottom:90px;left:50%;
@@ -374,7 +498,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
 @media(min-width:768px){
   .header{padding:16px 24px;}
   .pageTitle{font-size:20px;}
+  #pickerMap{height:320px;}
 }
+
+.leaflet-popup-content-wrapper{border-radius:8px;}
+.leaflet-popup-content{font-family:inherit;font-size:13px;font-weight:600;margin:8px 12px;}
 </style>
 </head>
 
@@ -413,6 +541,8 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script type="module">
 import { db } from "/js/firebase.js";
 import {
@@ -434,12 +564,29 @@ const pageSub = document.getElementById("pageSub");
 
 let cart = [];
 let shopGroups = [];
-let customerLat = null;
-let customerLng = null;
 let shopMeta = {};
-let gpsState = "idle";
 
-/* Loaded from admin pricing config */
+/* Delivery state — split into self vs other */
+let deliveryMode = "self";   // "self" | "other"
+
+/* For "self" mode — uses GPS */
+let myGpsLat = null, myGpsLng = null;
+let myGpsState = "idle";
+
+/* For "other" mode — uses map picker */
+let pickedLat = null, pickedLng = null;
+let pickedAddress = "";
+let pickerMap = null, pickerMarker = null;
+let searchDebounce = null;
+
+/* Computed final delivery point (used for distance calculation) */
+function getDeliveryPoint(){
+  if(deliveryMode === "other"){
+    return { lat: pickedLat, lng: pickedLng };
+  }
+  return { lat: myGpsLat, lng: myGpsLng };
+}
+
 let pricingConfig = null;
 let VEHICLES = [];
 
@@ -461,27 +608,27 @@ function updateLocUi(){
   if(!el) return;
   el.classList.remove("success","warn","error","loading","show");
 
-  if(gpsState === "detecting"){
+  if(myGpsState === "detecting"){
     el.classList.add("show","loading");
     el.innerHTML = `⏳ Detecting your location…`;
-  }else if(gpsState === "captured"){
+  }else if(myGpsState === "captured"){
     el.classList.add("show","success");
     el.innerHTML = `✓ Location captured · accurate fees applied`;
-  }else if(gpsState === "failed"){
+  }else if(myGpsState === "failed"){
     el.classList.add("show","warn");
     el.innerHTML = `⚠️ GPS not captured · Tap the button to enable accurate distance-based fees`;
   }
 }
 
 function recomputeDistances(){
+  const point = getDeliveryPoint();
   shopGroups.forEach(g=>{
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
-    g.distanceKm = haversineKm(meta.lat, meta.lng, customerLat, customerLng);
+    g.distanceKm = haversineKm(meta.lat, meta.lng, point.lat, point.lng);
   });
 }
 
 async function init(){
-  /* Load admin pricing config first */
   try{
     pricingConfig = await loadPricingConfig();
     VEHICLES = configToVehiclesArray(pricingConfig);
@@ -497,7 +644,6 @@ async function init(){
     return;
   }
 
-  /* Group by shop & compute weights */
   const map = new Map();
   cart.forEach(it=>{
     const key = (it.shopName || "Unknown Shop").toLowerCase();
@@ -520,7 +666,6 @@ async function init(){
   });
   shopGroups = Array.from(map.values());
 
-  /* Default vehicle = smallest that fits */
   shopGroups.forEach(g=>{
     g.selectedVehicleId = (VEHICLES.find(v => g.weightKg <= v.maxKg) || VEHICLES[VEHICLES.length-1]).id;
   });
@@ -528,7 +673,6 @@ async function init(){
   await loadShopMeta();
   recomputeDistances();
 
-  /* Attach per-shop discount to each group */
   shopGroups.forEach(g=>{
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
     g.shopDiscount = meta.discount || null;
@@ -564,12 +708,30 @@ async function loadShopMeta(){
 function render(){
   let html = "";
 
-  /* Customer info */
+  /* DELIVERY DETAILS — with mode toggle */
   html += `
     <section class="section">
       <div class="sectionLabel">Delivery details</div>
+
+      <div class="modeToggle">
+        <div class="modeOpt ${deliveryMode==='self'?'selected':''}" data-mode="self">
+          <div class="modeIcon">📍</div>
+          <div class="modeName">For Me</div>
+          <div class="modeDesc">Deliver to my current location</div>
+        </div>
+        <div class="modeOpt ${deliveryMode==='other'?'selected':''}" data-mode="other">
+          <div class="modeIcon">🎁</div>
+          <div class="modeName">For Someone Else</div>
+          <div class="modeDesc">Pick recipient location on map</div>
+        </div>
+      </div>
+  `;
+
+  if(deliveryMode === "self"){
+    /* SELF MODE — current behavior */
+    html += `
       <div class="field">
-        <label class="fieldLabel" for="custName">Your name</label>
+        <label class="fieldLabel" for="custName">Your name <span class="req">*</span></label>
         <div class="inputWrap" id="nameWrap">
           <input class="inputField" id="custName" type="text" placeholder="Full name"
             value="${escapeAttr(localStorage.getItem('lastCustomerName') || '')}">
@@ -577,7 +739,7 @@ function render(){
         <div class="errorText" id="nameError">Please enter your name</div>
       </div>
       <div class="field">
-        <label class="fieldLabel" for="custPhone">Phone</label>
+        <label class="fieldLabel" for="custPhone">Phone <span class="req">*</span></label>
         <div class="inputWrap" id="phoneWrap">
           <span class="phonePrefix">+91</span>
           <input class="inputField" id="custPhone" type="tel" placeholder="10-digit number"
@@ -587,7 +749,7 @@ function render(){
         <div class="errorText" id="phoneError">Enter valid 10-digit Indian number</div>
       </div>
       <div class="field">
-        <label class="fieldLabel" for="custAddr">Delivery address</label>
+        <label class="fieldLabel" for="custAddr">Delivery address <span class="req">*</span></label>
         <div class="inputWrap" id="addrWrap">
           <textarea class="inputField textarea" id="custAddr" placeholder="House no, area, landmark, city">${escapeHtml(localStorage.getItem('lastCustomerAddress') || '')}</textarea>
         </div>
@@ -595,8 +757,78 @@ function render(){
         <button class="locBtn" onclick="captureLocation()">📍 Use my GPS location</button>
         <div class="locConfirm" id="locConfirm"></div>
       </div>
-    </section>
-  `;
+    `;
+  }else{
+    /* OTHER MODE — sender + recipient + map picker */
+    html += `
+      <div class="subSectionLabel"><span class="ic">👤</span>Your details (sender)</div>
+      <div class="field">
+        <label class="fieldLabel" for="senderName">Your name <span class="req">*</span></label>
+        <div class="inputWrap" id="senderNameWrap">
+          <input class="inputField" id="senderName" type="text" placeholder="Sender's name"
+            value="${escapeAttr(localStorage.getItem('lastCustomerName') || '')}">
+        </div>
+        <div class="errorText" id="senderNameError">Please enter your name</div>
+      </div>
+      <div class="field">
+        <label class="fieldLabel" for="senderPhone">Your phone <span class="req">*</span></label>
+        <div class="inputWrap" id="senderPhoneWrap">
+          <span class="phonePrefix">+91</span>
+          <input class="inputField" id="senderPhone" type="tel" placeholder="10-digit number"
+            inputmode="numeric" maxlength="10"
+            value="${escapeAttr(localStorage.getItem('lastCustomerPhone') || '')}">
+        </div>
+        <div class="errorText" id="senderPhoneError">Enter valid 10-digit number</div>
+      </div>
+
+      <div class="subSectionLabel"><span class="ic">🎁</span>Recipient details</div>
+      <div class="field">
+        <label class="fieldLabel" for="recName">Recipient's name <span class="req">*</span></label>
+        <div class="inputWrap" id="recNameWrap">
+          <input class="inputField" id="recName" type="text" placeholder="Who's receiving the order">
+        </div>
+        <div class="errorText" id="recNameError">Please enter recipient name</div>
+      </div>
+      <div class="field">
+        <label class="fieldLabel" for="recPhone">Recipient's phone <span class="req">*</span></label>
+        <div class="inputWrap" id="recPhoneWrap">
+          <span class="phonePrefix">+91</span>
+          <input class="inputField" id="recPhone" type="tel" placeholder="10-digit number"
+            inputmode="numeric" maxlength="10">
+        </div>
+        <div class="errorText" id="recPhoneError">Enter valid 10-digit number</div>
+      </div>
+
+      <div class="subSectionLabel"><span class="ic">🗺️</span>Recipient's location</div>
+      <div class="mapPickerWrap">
+        <div class="searchBox">
+          <span class="searchIcon">🔍</span>
+          <input id="addrSearch" type="text" placeholder="Search address, area, landmark…">
+          <div class="searchSpinner" id="searchSpinner"></div>
+          <button class="clearBtn" id="searchClearBtn" onclick="clearSearch()">×</button>
+        </div>
+        <div class="searchResults" id="searchResults"></div>
+        <div id="pickerMap">
+          <div class="mapHint">Tap the map or drag the pin to set delivery location</div>
+        </div>
+        <button class="useMyLocBtn" onclick="centerOnMyGps()">📍 Use my GPS</button>
+        <div class="mapAddressBox empty" id="mapAddressBox">
+          <div class="lbl">Selected location</div>
+          <div class="val" id="pickedAddrText">Tap the map to select a location</div>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:10px;">
+        <label class="fieldLabel" for="recExtra">Extra delivery instructions</label>
+        <div class="inputWrap">
+          <textarea class="inputField textarea" id="recExtra" placeholder="Flat number, landmark, gate code, etc. (optional)"></textarea>
+        </div>
+      </div>
+      <div class="errorText" id="pickedError">Please pick the recipient's location on the map</div>
+    `;
+  }
+
+  html += `</section>`;
 
   /* Global discount banner */
   const gd = pricingConfig.globalDiscount;
@@ -635,7 +867,6 @@ function render(){
       metaLine += `<span>📏 ${g.distanceKm.toFixed(1)} km away</span>`;
     }
 
-    /* Per-shop discount tag */
     let shopDiscountTag = "";
     if(g.shopDiscount && g.shopDiscount.enabled && Number(g.shopDiscount.value) > 0){
       const valueText = g.shopDiscount.type === "flat" ? `₹${g.shopDiscount.value} OFF` : `${g.shopDiscount.value}% OFF`;
@@ -655,10 +886,13 @@ function render(){
     `;
 
     if(g.distanceKm === null){
+      const hint = deliveryMode === "self"
+        ? "Tap GPS button above to get accurate distance-based delivery fee"
+        : "Pick recipient location on the map to get accurate fee";
       html += `
         <div class="distBanner warn">
           <span class="ic">📍</span>
-          <span>Tap GPS button above to get accurate distance-based delivery fee</span>
+          <span>${hint}</span>
         </div>`;
     }else{
       html += `
@@ -668,7 +902,6 @@ function render(){
         </div>`;
     }
 
-    /* Items */
     html += `<div class="itemsList">`;
     g.items.forEach(it=>{
       const lineTotal = (Number(it.price)||0) * (it.qty||1);
@@ -683,7 +916,6 @@ function render(){
     });
     html += `</div>`;
 
-    /* Vehicle picker */
     html += `
       <div class="vehicleSection">
         <div class="vehicleSectionLabel">
@@ -720,18 +952,15 @@ function render(){
     });
     html += `</div></div>`;
 
-    /* Bill for this shop — using config values */
     const selectedVeh = VEHICLES.find(v => v.id === g.selectedVehicleId);
     const deliveryFee = getDeliveryFee(g.selectedVehicleId, g.distanceKm, VEHICLES);
     const breakdown = getDeliveryFeeBreakdown(g.selectedVehicleId, g.distanceKm, VEHICLES);
     const handling = pricingConfig.handlingFee;
     const platformFee = Math.round((g.subtotal + deliveryFee) * pricingConfig.platformFeePercent / 100);
 
-    /* Calculate discount (per-shop overrides global) */
     const discount = calculateDiscount(g.subtotal, pricingConfig.globalDiscount, g.shopDiscount);
     const shopTotal = g.subtotal + deliveryFee + handling + platformFee - discount.amount;
 
-    /* Save to group for later use */
     g.__deliveryFee = deliveryFee;
     g.__handling = handling;
     g.__platformFee = platformFee;
@@ -740,7 +969,7 @@ function render(){
 
     let deliveryHintText;
     if(g.distanceKm === null){
-      deliveryHintText = `Min fee · enable GPS for distance pricing`;
+      deliveryHintText = `Min fee · set delivery location for distance pricing`;
     }else if(breakdown.minApplied){
       deliveryHintText = `${g.distanceKm.toFixed(1)} km × ₹${selectedVeh.perKmRate} = ₹${breakdown.calculated} → min ₹${selectedVeh.minFee} applied`;
     }else{
@@ -786,7 +1015,6 @@ function render(){
     html += `</div></div>`;
   });
 
-  /* Grand total */
   let grandTotal = 0;
   let grandFare = 0;
   let grandSavings = 0;
@@ -815,6 +1043,21 @@ function render(){
 
   main.innerHTML = html;
 
+  /* Wire up mode toggle */
+  main.querySelectorAll(".modeOpt").forEach(opt=>{
+    opt.addEventListener("click", ()=>{
+      const newMode = opt.dataset.mode;
+      if(newMode === deliveryMode) return;
+      deliveryMode = newMode;
+      recomputeDistances();
+      render();
+      /* Init map if switching to "other" mode */
+      if(deliveryMode === "other"){
+        setTimeout(initPickerMap, 50);
+      }
+    });
+  });
+
   /* Wire up vehicle picker */
   main.querySelectorAll(".vehOpt").forEach(opt=>{
     opt.addEventListener("click", ()=>{
@@ -823,29 +1066,42 @@ function render(){
       const vid = opt.dataset.vid;
       shopGroups[idx].selectedVehicleId = vid;
       render();
+      /* Re-init map if in other mode (re-render destroys the map div) */
+      if(deliveryMode === "other"){
+        setTimeout(initPickerMap, 50);
+      }
     });
   });
 
-  ["custName", "custPhone", "custAddr"].forEach(id=>{
-    const input = document.getElementById(id);
-    if(!input) return;
+  /* Wire up input focus styling for all inputs */
+  main.querySelectorAll(".inputField").forEach(input=>{
     const wrap = input.closest(".inputWrap");
+    if(!wrap) return;
     input.addEventListener("focus", ()=>{
       wrap.classList.add("focused");
       wrap.classList.remove("error");
-      input.parentElement.parentElement.querySelector(".errorText")?.classList.remove("show");
+      const errEl = wrap.parentElement?.querySelector(".errorText");
+      if(errEl) errEl.classList.remove("show");
     });
     input.addEventListener("blur", ()=> wrap.classList.remove("focused"));
   });
 
-  const phoneInput = document.getElementById("custPhone");
-  if(phoneInput){
-    phoneInput.addEventListener("input", ()=>{
-      phoneInput.value = phoneInput.value.replace(/\D/g,"").slice(0,10);
-    });
-  }
+  /* Phone digits-only */
+  ["custPhone", "senderPhone", "recPhone"].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){
+      el.addEventListener("input", ()=>{
+        el.value = el.value.replace(/\D/g,"").slice(0,10);
+      });
+    }
+  });
 
-  updateLocUi();
+  if(deliveryMode === "self"){
+    updateLocUi();
+  }else{
+    /* Init map after DOM ready */
+    setTimeout(initPickerMap, 50);
+  }
 
   document.getElementById("actionFareSub").textContent =
     `${shopGroups.length} order${shopGroups.length>1?"s":""} · Pay on delivery`;
@@ -864,11 +1120,237 @@ function showEmpty(){
     </div>`;
 }
 
+/* =========== MAP PICKER (For Other mode) =========== */
+function initPickerMap(){
+  const el = document.getElementById("pickerMap");
+  if(!el) return;
+
+  /* Destroy old map if it exists */
+  if(pickerMap){
+    try{ pickerMap.remove(); }catch(e){}
+    pickerMap = null;
+    pickerMarker = null;
+  }
+
+  /* Default center: India / Bhubaneswar */
+  let center = [20.2961, 85.8245];
+  let zoom = 12;
+
+  if(pickedLat && pickedLng){
+    center = [pickedLat, pickedLng];
+    zoom = 16;
+  }else if(myGpsLat && myGpsLng){
+    center = [myGpsLat, myGpsLng];
+    zoom = 14;
+  }
+
+  pickerMap = L.map(el, { zoomControl:true }).setView(center, zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap', maxZoom:19
+  }).addTo(pickerMap);
+
+  /* Tap to place pin */
+  pickerMap.on("click", (e)=>{
+    setPickedLocation(e.latlng.lat, e.latlng.lng, true);
+  });
+
+  /* Restore previous pin if exists */
+  if(pickedLat && pickedLng){
+    placePinAt(pickedLat, pickedLng);
+  }
+
+  setTimeout(()=> pickerMap.invalidateSize(), 100);
+
+  /* Wire up search box */
+  const searchInput = document.getElementById("addrSearch");
+  if(searchInput){
+    searchInput.addEventListener("input", onSearchInput);
+    searchInput.addEventListener("focus", ()=>{
+      if(searchInput.value.trim().length >= 3){
+        document.getElementById("searchResults").classList.add("show");
+      }
+    });
+  }
+
+  /* Hide results when clicking outside */
+  document.addEventListener("click", (e)=>{
+    if(!e.target.closest(".searchBox") && !e.target.closest(".searchResults")){
+      const r = document.getElementById("searchResults");
+      if(r) r.classList.remove("show");
+    }
+  });
+}
+
+function placePinAt(lat, lng){
+  if(!pickerMap) return;
+  const pinIcon = L.divIcon({
+    className:"",
+    html:`<div style="background:#0C831F;width:34px;height:34px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 3px 8px rgba(0,0,0,.3);border:3px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:14px;color:#fff;font-weight:800;">📍</div>
+          </div>`,
+    iconSize:[34,34], iconAnchor:[17,34]
+  });
+
+  if(pickerMarker){
+    pickerMarker.setLatLng([lat, lng]);
+  }else{
+    pickerMarker = L.marker([lat, lng], { icon: pinIcon, draggable: true }).addTo(pickerMap);
+    pickerMarker.on("dragend", (e)=>{
+      const p = e.target.getLatLng();
+      setPickedLocation(p.lat, p.lng, true);
+    });
+  }
+}
+
+async function setPickedLocation(lat, lng, doReverseGeocode){
+  pickedLat = lat;
+  pickedLng = lng;
+  placePinAt(lat, lng);
+  recomputeDistances();
+  render();
+  setTimeout(initPickerMap, 50);   /* re-init since render replaces DOM */
+
+  if(doReverseGeocode){
+    const text = await reverseGeocode(lat, lng);
+    pickedAddress = text || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    updatePickedAddressUi();
+  }
+}
+
+function updatePickedAddressUi(){
+  const box = document.getElementById("mapAddressBox");
+  const txt = document.getElementById("pickedAddrText");
+  if(!box || !txt) return;
+  if(pickedAddress){
+    box.classList.remove("empty");
+    txt.textContent = pickedAddress;
+  }else{
+    box.classList.add("empty");
+    txt.textContent = "Tap the map to select a location";
+  }
+}
+
+async function reverseGeocode(lat, lng){
+  try{
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=18`,
+      { headers: { "Accept-Language": "en" } }
+    );
+    const data = await res.json();
+    return data.display_name || "";
+  }catch(e){
+    console.error("Reverse geocode failed:", e);
+    return "";
+  }
+}
+
+function onSearchInput(e){
+  const q = e.target.value.trim();
+  const clearBtn = document.getElementById("searchClearBtn");
+  clearBtn.classList.toggle("show", q.length > 0);
+
+  clearTimeout(searchDebounce);
+  if(q.length < 3){
+    document.getElementById("searchResults").classList.remove("show");
+    return;
+  }
+  searchDebounce = setTimeout(()=> doSearch(q), 350);
+}
+
+async function doSearch(query){
+  const spinner = document.getElementById("searchSpinner");
+  const resultsBox = document.getElementById("searchResults");
+  spinner.classList.add("show");
+
+  try{
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&countrycodes=in&addressdetails=1`,
+      { headers: { "Accept-Language": "en" } }
+    );
+    const data = await res.json();
+
+    if(!data.length){
+      resultsBox.innerHTML = `<div style="padding:14px;text-align:center;color:#888;font-size:13px;">No results found</div>`;
+      resultsBox.classList.add("show");
+      return;
+    }
+
+    let html = "";
+    data.forEach(item=>{
+      const display = item.display_name || "";
+      const parts = display.split(", ");
+      const main = parts[0] || display;
+      const sub = parts.slice(1, 4).join(", ") || "";
+      html += `
+        <div class="searchResult" data-lat="${item.lat}" data-lng="${item.lon}" data-display="${escapeAttr(display)}">
+          <div class="pin">📍</div>
+          <div class="info">
+            <div class="ttl">${escapeHtml(main)}</div>
+            ${sub ? `<div class="sub">${escapeHtml(sub)}</div>` : ""}
+          </div>
+        </div>`;
+    });
+    resultsBox.innerHTML = html;
+    resultsBox.classList.add("show");
+
+    resultsBox.querySelectorAll(".searchResult").forEach(r=>{
+      r.addEventListener("click", ()=>{
+        const lat = parseFloat(r.dataset.lat);
+        const lng = parseFloat(r.dataset.lng);
+        const display = r.dataset.display;
+
+        pickedAddress = display;
+        document.getElementById("addrSearch").value = display.split(", ").slice(0,2).join(", ");
+        resultsBox.classList.remove("show");
+
+        if(pickerMap){
+          pickerMap.setView([lat, lng], 16);
+        }
+        setPickedLocation(lat, lng, false);   // already have address from search
+        updatePickedAddressUi();
+      });
+    });
+  }catch(err){
+    console.error("Search failed:", err);
+    resultsBox.innerHTML = `<div style="padding:14px;text-align:center;color:#d23030;font-size:13px;">Search error · check connection</div>`;
+    resultsBox.classList.add("show");
+  }finally{
+    spinner.classList.remove("show");
+  }
+}
+
+window.clearSearch = ()=>{
+  document.getElementById("addrSearch").value = "";
+  document.getElementById("searchClearBtn").classList.remove("show");
+  document.getElementById("searchResults").classList.remove("show");
+};
+
+window.centerOnMyGps = ()=>{
+  if(myGpsLat && myGpsLng){
+    if(pickerMap){
+      pickerMap.setView([myGpsLat, myGpsLng], 16);
+    }
+    setPickedLocation(myGpsLat, myGpsLng, true);
+    showToast("✓ Centered on your location");
+  }else{
+    showToast("Getting your location…");
+    requestLocation(false, (lat, lng)=>{
+      if(pickerMap){
+        pickerMap.setView([lat, lng], 16);
+      }
+      setPickedLocation(lat, lng, true);
+    });
+  }
+};
+
+/* =========== GPS (For Self mode) =========== */
 function autoCaptureLocation(){
-  if(!navigator.geolocation){ gpsState = "failed"; updateLocUi(); return; }
+  if(!navigator.geolocation){ myGpsState = "failed"; updateLocUi(); return; }
   if(navigator.permissions && navigator.permissions.query){
     navigator.permissions.query({ name:"geolocation" }).then((result)=>{
-      if(result.state === "denied"){ gpsState = "failed"; updateLocUi(); return; }
+      if(result.state === "denied"){ myGpsState = "failed"; updateLocUi(); return; }
       requestLocation(true);
     }).catch(()=> requestLocation(true));
   }else{
@@ -879,25 +1361,29 @@ function autoCaptureLocation(){
 window.captureLocation = ()=>{
   if(!navigator.geolocation){
     showToast("Geolocation not supported", true);
-    gpsState = "failed"; updateLocUi(); return;
+    myGpsState = "failed"; updateLocUi(); return;
   }
   requestLocation(false);
 };
 
-function requestLocation(silent){
-  gpsState = "detecting";
+function requestLocation(silent, cb){
+  myGpsState = "detecting";
   updateLocUi();
-  if(!silent) showToast("Getting your location…");
+  if(!silent && deliveryMode === "self") showToast("Getting your location…");
 
   navigator.geolocation.getCurrentPosition((pos)=>{
-    customerLat = pos.coords.latitude;
-    customerLng = pos.coords.longitude;
-    gpsState = "captured";
-    recomputeDistances();
-    render();
-    if(!silent) showToast("✓ Location captured · fees recalculated");
+    myGpsLat = pos.coords.latitude;
+    myGpsLng = pos.coords.longitude;
+    myGpsState = "captured";
+
+    if(deliveryMode === "self"){
+      recomputeDistances();
+      render();
+      if(!silent) showToast("✓ Location captured · fees recalculated");
+    }
+    if(cb) cb(myGpsLat, myGpsLng);
   }, (err)=>{
-    gpsState = "failed";
+    myGpsState = "failed";
     updateLocUi();
     if(!silent){
       const msg = err.code === 1
@@ -908,45 +1394,111 @@ function requestLocation(silent){
   }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
 }
 
+/* =========== VALIDATION =========== */
 function validate(){
-  const name = document.getElementById("custName").value.trim();
-  const phone = document.getElementById("custPhone").value.trim();
-  const addr = document.getElementById("custAddr").value.trim();
   let valid = true;
 
-  if(!name){
-    document.getElementById("nameWrap").classList.add("error");
-    document.getElementById("nameError").classList.add("show");
-    valid = false;
-  }
-  if(phone.length !== 10 || !/^[6-9]/.test(phone)){
-    document.getElementById("phoneWrap").classList.add("error");
-    document.getElementById("phoneError").classList.add("show");
-    valid = false;
-  }
-  if(addr.length < 10){
-    document.getElementById("addrWrap").classList.add("error");
-    document.getElementById("addrError").classList.add("show");
-    valid = false;
-  }
+  if(deliveryMode === "self"){
+    const name = document.getElementById("custName").value.trim();
+    const phone = document.getElementById("custPhone").value.trim();
+    const addr = document.getElementById("custAddr").value.trim();
 
+    if(!name){
+      document.getElementById("nameWrap").classList.add("error");
+      document.getElementById("nameError").classList.add("show");
+      valid = false;
+    }
+    if(phone.length !== 10 || !/^[6-9]/.test(phone)){
+      document.getElementById("phoneWrap").classList.add("error");
+      document.getElementById("phoneError").classList.add("show");
+      valid = false;
+    }
+    if(addr.length < 10){
+      document.getElementById("addrWrap").classList.add("error");
+      document.getElementById("addrError").classList.add("show");
+      valid = false;
+    }
+
+    if(!commonValidate()) valid = false;
+    if(!valid) return null;
+
+    return {
+      mode: "self",
+      senderName: name, senderPhone: phone,
+      recipientName: name, recipientPhone: phone,
+      address: addr,
+      lat: myGpsLat, lng: myGpsLng
+    };
+  }else{
+    /* Other mode */
+    const senderName = document.getElementById("senderName").value.trim();
+    const senderPhone = document.getElementById("senderPhone").value.trim();
+    const recName = document.getElementById("recName").value.trim();
+    const recPhone = document.getElementById("recPhone").value.trim();
+    const recExtra = document.getElementById("recExtra").value.trim();
+
+    if(!senderName){
+      document.getElementById("senderNameWrap").classList.add("error");
+      document.getElementById("senderNameError").classList.add("show");
+      valid = false;
+    }
+    if(senderPhone.length !== 10 || !/^[6-9]/.test(senderPhone)){
+      document.getElementById("senderPhoneWrap").classList.add("error");
+      document.getElementById("senderPhoneError").classList.add("show");
+      valid = false;
+    }
+    if(!recName){
+      document.getElementById("recNameWrap").classList.add("error");
+      document.getElementById("recNameError").classList.add("show");
+      valid = false;
+    }
+    if(recPhone.length !== 10 || !/^[6-9]/.test(recPhone)){
+      document.getElementById("recPhoneWrap").classList.add("error");
+      document.getElementById("recPhoneError").classList.add("show");
+      valid = false;
+    }
+
+    if(!pickedLat || !pickedLng){
+      document.getElementById("pickedError").classList.add("show");
+      showToast("Please pick the recipient's location on the map", true);
+      valid = false;
+    }
+
+    if(!commonValidate()) valid = false;
+    if(!valid) return null;
+
+    /* Combine address: reverse-geocoded text + extra instructions */
+    let fullAddr = pickedAddress || `${pickedLat.toFixed(4)}, ${pickedLng.toFixed(4)}`;
+    if(recExtra) fullAddr = `${recExtra} · ${fullAddr}`;
+
+    return {
+      mode: "other",
+      senderName, senderPhone,
+      recipientName: recName, recipientPhone: recPhone,
+      address: fullAddr,
+      lat: pickedLat, lng: pickedLng,
+      extraNotes: recExtra
+    };
+  }
+}
+
+function commonValidate(){
   const closedShops = shopGroups.filter(g=>{
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
     return meta.isOpen === false;
   });
   if(closedShops.length > 0){
     showToast(`${closedShops[0].shopName} is currently closed. Please remove its items.`, true);
-    valid = false;
+    return false;
   }
 
   for(const g of shopGroups){
     if(!vehicleFits(g.selectedVehicleId, g.weightKg, VEHICLES)){
       showToast(`Selected vehicle for ${g.shopName} is too small for the order weight.`, true);
-      valid = false;
+      return false;
     }
   }
-
-  return valid ? { name, phone, addr } : null;
+  return true;
 }
 
 let createdOrderIds = [];
@@ -955,18 +1507,25 @@ window.placeOrder = async ()=>{
   const v = validate();
   if(!v){ showToast("Please fix the errors above", true); return; }
 
-  if((!customerLat || !customerLng) && !window.__gpsWarned){
-    window.__gpsWarned = true;
-    showToast("⚠️ Tap GPS button for accurate fare · or continue with min fee", true);
+  if((!v.lat || !v.lng) && !window.__locWarned){
+    window.__locWarned = true;
+    if(v.mode === "self"){
+      showToast("⚠️ Tap GPS button for accurate fare · or continue with min fee", true);
+    }else{
+      showToast("⚠️ Pin recipient location on the map for accurate fare", true);
+    }
     return;
   }
 
   btnPlace.classList.add("loading");
   btnPlace.disabled = true;
 
-  localStorage.setItem("lastCustomerName", v.name);
-  localStorage.setItem("lastCustomerPhone", v.phone);
-  localStorage.setItem("lastCustomerAddress", v.addr);
+  /* Save sender info (always — doesn't matter if recipient or self) */
+  localStorage.setItem("lastCustomerName", v.senderName);
+  localStorage.setItem("lastCustomerPhone", v.senderPhone);
+  if(v.mode === "self"){
+    localStorage.setItem("lastCustomerAddress", v.address);
+  }
 
   createdOrderIds = [];
   let success = 0, failed = 0;
@@ -975,7 +1534,6 @@ window.placeOrder = async ()=>{
     const veh = VEHICLES.find(x => x.id === g.selectedVehicleId);
     const meta = shopMeta[g.shopName.toLowerCase()] || {};
 
-    /* Use the saved values from render to keep what customer saw */
     const deliveryFee = g.__deliveryFee;
     const handling = g.__handling;
     const platformFee = g.__platformFee;
@@ -983,12 +1541,22 @@ window.placeOrder = async ()=>{
     const total = g.__total;
 
     const baseOrder = {
-      name: v.name,
-      phone: v.phone,
-      customerPhone: v.phone,
-      address: v.addr,
-      customerLat, customerLng,
-      lat: customerLat, lng: customerLng,
+      /* RECIPIENT (where order goes — used by driver for delivery) */
+      name: v.recipientName,
+      phone: v.recipientPhone,
+      customerPhone: v.recipientPhone,
+      address: v.address,
+      customerLat: v.lat, customerLng: v.lng,
+      lat: v.lat, lng: v.lng,
+
+      /* SENDER (paying customer — for "for someone else" orders) */
+      senderName: v.senderName,
+      senderPhone: v.senderPhone,
+
+      /* MODE flag */
+      deliveryMode: v.mode,    // "self" | "other"
+      isGiftOrder: v.mode === "other",
+      extraNotes: v.extraNotes || null,
 
       shopName: g.shopName,
       shopEmail: meta.email || "",
@@ -1019,10 +1587,9 @@ window.placeOrder = async ()=>{
       platformFee,
       platformFeePercent: pricingConfig.platformFeePercent,
 
-      /* Discount snapshot — saves what was applied at order time */
       discountAmount: discount.amount,
       discountLabel: discount.label || "",
-      discountSource: discount.source,    // "shop" | "global" | "none"
+      discountSource: discount.source,
       discountType: discount.type || "",
       discountValue: discount.value || 0,
 
@@ -1047,11 +1614,11 @@ window.placeOrder = async ()=>{
       baseOrder.pickupContactName = meta.email || g.shopName;
       baseOrder.pickupContactPhone = "";
 
-      baseOrder.dropAddress = v.addr;
-      baseOrder.dropLat = customerLat;
-      baseOrder.dropLng = customerLng;
-      baseOrder.dropContactName = v.name;
-      baseOrder.dropContactPhone = v.phone;
+      baseOrder.dropAddress = v.address;
+      baseOrder.dropLat = v.lat;
+      baseOrder.dropLng = v.lng;
+      baseOrder.dropContactName = v.recipientName;
+      baseOrder.dropContactPhone = v.recipientPhone;
 
       baseOrder.estimatedFare = deliveryFee;
       baseOrder.goodsType = "groceries";
@@ -1094,10 +1661,18 @@ window.placeOrder = async ()=>{
   const modal = document.getElementById("successModal");
   document.getElementById("successTitle").textContent =
     success > 1 ? `${success} orders placed! 🎉` : "Order placed! 🎉";
-  document.getElementById("successMsg").textContent =
-    success > 1
+
+  let successMsg;
+  if(deliveryMode === "other"){
+    successMsg = success > 1
+      ? `${success} orders are on their way to ${v.recipientName}. They'll get an SMS update.`
+      : `Your order is being processed and will be delivered to ${v.recipientName}.`;
+  }else{
+    successMsg = success > 1
       ? `Your ${success} orders are now being processed. Track each shop's order separately.`
       : "Your order is now being processed. Track it for live updates.";
+  }
+  document.getElementById("successMsg").textContent = successMsg;
   modal.classList.add("show");
 };
 
@@ -1121,4 +1696,3 @@ init();
 
 </body>
 </html>
-  
