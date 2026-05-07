@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
@@ -31,14 +32,28 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .brand{font-size:22px;font-weight:800;color:#1f1f1f;letter-spacing:-.5px;flex-shrink:0;}
 .brand span{color:#fff;}
 
-.deliveryInfo{flex:1;min-width:0;line-height:1.15;}
+.deliveryInfo{flex:1;min-width:0;line-height:1.15;cursor:pointer;}
 .deliveryTime{font-size:15px;font-weight:800;color:#1f1f1f;}
 .location{
   font-size:13px;color:#3a3a3a;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  display:flex;align-items:center;gap:3px;margin-top:2px;
+  display:flex;align-items:center;gap:5px;margin-top:2px;
+}
+.location.giftMode{
+  background:#fff;color:#0C831F;font-weight:700;
+  padding:2px 8px;border-radius:14px;
+  display:inline-flex;width:fit-content;
+  border:1px solid #b3e5bf;
+  box-shadow:0 1px 3px rgba(0,0,0,.08);
 }
 .location .arrow{font-size:10px;}
+.location .changeBtn{
+  font-size:10px;color:#0C831F;font-weight:800;
+  letter-spacing:.3px;text-transform:uppercase;
+  margin-left:4px;
+  padding:1px 6px;border-radius:8px;
+  background:#dcf3e1;
+}
 
 .profileWrap{position:relative;flex-shrink:0;}
 .profileBtn{
@@ -136,6 +151,26 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .sectionTitle{font-size:17px;font-weight:700;color:#1f1f1f;letter-spacing:-.2px;}
 
+.locationContext{
+  background:linear-gradient(135deg,#dcf3e1 0%,#b3e5bf 100%);
+  border:1px solid #0C831F;
+  border-radius:12px;padding:10px 14px;
+  margin:10px 4px 0;
+  display:flex;gap:10px;align-items:center;
+}
+.locationContext .ic{font-size:20px;flex-shrink:0;}
+.locationContext .txt{flex:1;line-height:1.3;min-width:0;}
+.locationContext .ttl{font-size:12px;font-weight:800;color:#0C831F;}
+.locationContext .sub{font-size:11px;color:#0C831F;opacity:.85;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.locationContext .change{
+  background:#fff;color:#0C831F;
+  padding:5px 12px;border-radius:8px;
+  font-size:11px;font-weight:700;
+  border:1px solid #0C831F;flex-shrink:0;
+}
+.locationContext .change:active{transform:scale(.96);}
+
 .catScroll{
   display:flex;gap:8px;
   overflow-x:auto;padding:2px 4px 6px;
@@ -163,11 +198,12 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .shopScroll{scrollbar-width:none;}
 
 .shopCard{
-  min-width:110px;
+  min-width:120px;
   background:#fff;border:1px solid #ececec;
   border-radius:12px;padding:10px 8px;
   text-align:center;cursor:pointer;
   transition:all .15s;flex-shrink:0;
+  position:relative;
 }
 .shopCard:hover, .shopCard.active{
   border-color:#0C831F;
@@ -191,6 +227,14 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .shopType{
   font-size:10px;color:#888;margin-top:2px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+
+.shopDist{
+  display:inline-block;
+  background:#dbe9ff;color:#1857c1;
+  font-size:9px;font-weight:800;
+  padding:2px 6px;border-radius:8px;
+  margin-top:5px;letter-spacing:.2px;
 }
 
 .products{
@@ -349,6 +393,178 @@ button{font-family:inherit;cursor:pointer;border:none;}
   z-index:1500;max-width:90%;text-align:center;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ============ LOCATION PICKER MODAL ============ */
+.locModalBg{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:2000;
+}
+.locModalBg.show{display:flex;animation:fadeIn .2s;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.locModal{
+  background:#fff;width:100%;max-width:540px;
+  border-radius:20px 20px 0 0;
+  max-height:92vh;overflow-y:auto;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+
+.locModalHeader{
+  position:sticky;top:0;background:#fff;
+  padding:18px 20px 14px;
+  border-bottom:1px solid #f0f0f0;
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:1;
+}
+.locModalTitle{font-size:17px;font-weight:800;color:#1f1f1f;}
+.locModalSub{font-size:12px;color:#666;margin-top:2px;}
+.locModalClose{
+  width:32px;height:32px;border-radius:50%;
+  background:#f4f4f4;display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:600;color:#666;
+}
+.locModalClose:active{transform:scale(.94);}
+
+.locModalBody{padding:14px 20px 20px;}
+
+.locModeToggle{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:10px;margin-bottom:14px;
+}
+.locModeOpt{
+  background:#fff;border:2px solid #e5e5e5;border-radius:12px;
+  padding:14px 10px;text-align:center;cursor:pointer;
+  transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.locModeOpt:hover{border-color:#b3e5bf;}
+.locModeOpt.selected{
+  border-color:#0C831F;background:#f0fbf2;
+  box-shadow:0 2px 8px rgba(12,131,31,.15);
+}
+.locModeOpt .modeIcon{font-size:30px;line-height:1;}
+.locModeOpt .modeName{font-size:13px;font-weight:700;color:#1f1f1f;}
+.locModeOpt.selected .modeName{color:#0C831F;}
+.locModeOpt .modeDesc{font-size:10px;color:#888;font-weight:500;line-height:1.3;}
+
+.gpsStatus{
+  background:#fafafa;border-radius:10px;padding:12px;
+  font-size:12px;color:#666;line-height:1.4;
+  display:flex;gap:10px;align-items:center;
+  margin-bottom:8px;
+}
+.gpsStatus .ic{font-size:18px;flex-shrink:0;}
+.gpsStatus.success{background:#dcf3e1;color:#0C831F;}
+.gpsStatus.warn{background:#fff5d6;color:#8a6500;}
+.gpsStatus .name{font-weight:700;}
+
+.gpsRetryBtn{
+  background:#fff;color:#0C831F;border:1px solid #0C831F;
+  padding:7px 14px;border-radius:8px;
+  font-size:12px;font-weight:700;
+  margin-left:auto;flex-shrink:0;
+}
+
+/* Map picker (For Other) */
+.locMapWrap{
+  border:1.5px solid #e5e5e5;border-radius:12px;
+  overflow:hidden;background:#fafafa;
+  margin-bottom:8px;
+}
+.locSearchBox{
+  position:relative;
+  border-bottom:1.5px solid #e5e5e5;
+  background:#fff;
+}
+.locSearchBox input{
+  width:100%;border:none;background:transparent;
+  padding:11px 12px 11px 38px;font-size:13px;font-weight:500;
+  font-family:inherit;color:#1f1f1f;outline:none;
+}
+.locSearchBox .searchIcon{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  font-size:14px;color:#888;
+}
+.locSearchBox .clearBtn{
+  position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  background:#f0f0f0;color:#666;
+  width:24px;height:24px;border-radius:50%;
+  font-size:14px;font-weight:700;
+  display:none;align-items:center;justify-content:center;
+}
+.locSearchBox .clearBtn.show{display:flex;}
+.locSearchSpinner{
+  position:absolute;right:14px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;border:2px solid #e5e5e5;
+  border-top-color:#0C831F;border-radius:50%;
+  animation:spin .7s linear infinite;display:none;
+}
+.locSearchSpinner.show{display:block;}
+@keyframes spin{to{transform:translateY(-50%) rotate(360deg);}}
+
+.locSearchResults{
+  max-height:180px;overflow-y:auto;
+  background:#fff;border-bottom:1.5px solid #e5e5e5;
+  display:none;
+}
+.locSearchResults.show{display:block;}
+.locSearchResult{
+  padding:10px 12px;font-size:13px;
+  border-bottom:1px solid #f4f4f4;
+  cursor:pointer;display:flex;gap:10px;align-items:flex-start;
+}
+.locSearchResult:hover{background:#fafafa;}
+.locSearchResult:last-child{border-bottom:none;}
+.locSearchResult .pin{font-size:14px;flex-shrink:0;margin-top:1px;}
+.locSearchResult .info{flex:1;min-width:0;line-height:1.3;}
+.locSearchResult .ttl{font-weight:600;color:#1f1f1f;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.locSearchResult .sub{font-size:11px;color:#888;margin-top:1px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+#locPickerMap{
+  height:240px;width:100%;background:#e9e9e9;
+  position:relative;
+}
+.mapHint{
+  position:absolute;bottom:10px;left:50%;
+  transform:translateX(-50%);
+  background:rgba(31,31,31,.85);color:#fff;
+  padding:6px 12px;border-radius:18px;
+  font-size:11px;font-weight:600;
+  z-index:401;pointer-events:none;
+  white-space:nowrap;
+}
+
+.locAddrBox{
+  padding:10px 12px;background:#fff;
+  border-top:1.5px solid #e5e5e5;font-size:12px;
+}
+.locAddrBox .lbl{
+  font-size:10px;font-weight:700;color:#888;
+  letter-spacing:.3px;text-transform:uppercase;margin-bottom:3px;
+}
+.locAddrBox .val{font-size:13px;color:#1f1f1f;font-weight:500;line-height:1.4;
+  word-break:break-word;}
+.locAddrBox.empty .val{color:#999;font-style:italic;}
+
+.locConfirmBtn{
+  width:100%;background:#0C831F;color:#fff;
+  padding:14px;border-radius:10px;
+  font-size:14px;font-weight:800;letter-spacing:.3px;
+  margin-top:6px;
+}
+.locConfirmBtn:active{transform:scale(.98);}
+.locConfirmBtn:disabled{background:#a0d3a8;cursor:not-allowed;}
+
+@media(min-width:600px){
+  .locModalBg{align-items:center;padding:20px;}
+  .locModal{border-radius:16px;max-height:88vh;max-width:480px;}
+}
+
+.leaflet-popup-content-wrapper{border-radius:8px;}
 </style>
 </head>
 
@@ -357,7 +573,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 <header class="header">
   <div class="topBar">
     <div class="brand">Local<span>Shop</span></div>
-    <div class="deliveryInfo">
+    <div class="deliveryInfo" id="deliveryInfoTrigger" onclick="openLocModal()">
       <div class="deliveryTime">Delivery in 15 mins</div>
       <div class="location" id="location">📍 Getting location… <span class="arrow">▾</span></div>
     </div>
@@ -450,6 +666,16 @@ button{font-family:inherit;cursor:pointer;border:none;}
 <div class="backdrop" id="backdrop" onclick="closeProfile()"></div>
 
 <main class="container">
+
+  <div id="giftContext" class="locationContext" style="display:none;">
+    <div class="ic">🎁</div>
+    <div class="txt">
+      <div class="ttl">Sending to someone else</div>
+      <div class="sub" id="giftContextAddr">—</div>
+    </div>
+    <button class="change" onclick="openLocModal()">Change</button>
+  </div>
+
   <section class="section">
     <div id="categories" class="catScroll"></div>
   </section>
@@ -486,6 +712,69 @@ button{font-family:inherit;cursor:pointer;border:none;}
 
 <div id="toast" class="toast"></div>
 
+<!-- ============ LOCATION PICKER MODAL ============ -->
+<div class="locModalBg" id="locModal">
+  <div class="locModal">
+    <div class="locModalHeader">
+      <div>
+        <div class="locModalTitle">📍 Where to deliver?</div>
+        <div class="locModalSub" id="locModalSub">Choose delivery location</div>
+      </div>
+      <button class="locModalClose" onclick="closeLocModal()" aria-label="Close">×</button>
+    </div>
+
+    <div class="locModalBody">
+
+      <div class="locModeToggle">
+        <div class="locModeOpt" data-mode="self" id="modeSelfBtn">
+          <div class="modeIcon">📍</div>
+          <div class="modeName">For Me</div>
+          <div class="modeDesc">My current location</div>
+        </div>
+        <div class="locModeOpt" data-mode="other" id="modeOtherBtn">
+          <div class="modeIcon">🎁</div>
+          <div class="modeName">For Someone Else</div>
+          <div class="modeDesc">Pick on map</div>
+        </div>
+      </div>
+
+      <!-- Self mode panel -->
+      <div id="selfPanel" style="display:none;">
+        <div class="gpsStatus" id="gpsStatusBox">
+          <span class="ic">📍</span>
+          <span id="gpsStatusText">Getting your location…</span>
+          <button class="gpsRetryBtn" onclick="retryGps()" style="display:none;" id="gpsRetryBtn">Retry</button>
+        </div>
+        <button class="locConfirmBtn" id="confirmSelfBtn" onclick="confirmSelf()" disabled>Use This Location</button>
+      </div>
+
+      <!-- Other mode panel -->
+      <div id="otherPanel" style="display:none;">
+        <div class="locMapWrap">
+          <div class="locSearchBox">
+            <span class="searchIcon">🔍</span>
+            <input id="locAddrSearch" type="text" placeholder="Search address, area, landmark…">
+            <div class="locSearchSpinner" id="locSearchSpinner"></div>
+            <button class="clearBtn" id="locSearchClear" onclick="clearLocSearch()">×</button>
+          </div>
+          <div class="locSearchResults" id="locSearchResults"></div>
+          <div id="locPickerMap">
+            <div class="mapHint">Tap the map or drag the pin to set location</div>
+          </div>
+          <div class="locAddrBox empty" id="locAddrBox">
+            <div class="lbl">Selected location</div>
+            <div class="val" id="locPickedAddr">Tap the map to select a location</div>
+          </div>
+        </div>
+        <button class="locConfirmBtn" id="confirmOtherBtn" onclick="confirmOther()" disabled>Use This Location</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script type="module">
 import { db } from "/js/firebase.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -493,7 +782,7 @@ import { initVoiceAI } from "/js/voice-ai.js";
 
 let allProducts = [];
 let allShops = [];
-let openShopNames = new Set(); // FIX: tracks which shops are currently open
+let openShopNames = new Set();
 
 let shopTypeMap = {};
 let topCategories = [];
@@ -504,6 +793,19 @@ let searchTerm = "";
 
 let cart = JSON.parse(localStorage.getItem("cart")) || [];
 let searchDebounceId = null;
+
+/* ============ DELIVERY LOCATION STATE (persisted) ============ */
+let deliveryMode = localStorage.getItem("deliveryMode") || "self";
+let deliveryLat = parseFloat(localStorage.getItem("deliveryLat")) || null;
+let deliveryLng = parseFloat(localStorage.getItem("deliveryLng")) || null;
+let deliveryAddress = localStorage.getItem("deliveryAddress") || "";
+let deliveryAreaName = localStorage.getItem("deliveryAreaName") || "";
+
+/* Modal-internal state (committed to above only on Confirm) */
+let modalMode = deliveryMode;
+let modalLat = null, modalLng = null, modalAddress = "", modalAreaName = "";
+let pickerMap = null, pickerMarker = null, locSearchDebounce = null;
+let gpsState = "idle";
 
 const toast = document.getElementById("toast");
 function showToast(msg, isError=false){
@@ -557,30 +859,445 @@ window.openLastOrder = ()=>{
 };
 
 document.addEventListener("keydown", (e)=>{
-  if(e.key === "Escape") closeProfile();
+  if(e.key === "Escape"){
+    closeProfile();
+    closeLocModal();
+  }
 });
 
-function getLocation(){
-  if(!navigator.geolocation){
-    document.getElementById("location").innerHTML = "📍 Location unavailable <span class='arrow'>▾</span>";
+/* ============ LOCATION CHIP RENDERING ============ */
+function renderLocationChip(){
+  const el = document.getElementById("location");
+  const giftCtx = document.getElementById("giftContext");
+
+  if(deliveryMode === "other" && deliveryLat && deliveryLng){
+    /* Gift mode — show shortened area + Change button */
+    const short = (deliveryAreaName || "Recipient location").split(",").slice(0,2).join(",");
+    el.innerHTML = `🎁 <b>${escapeHtml(short)}</b> <span class="changeBtn">Change</span>`;
+    el.classList.add("giftMode");
+    giftCtx.style.display = "flex";
+    document.getElementById("giftContextAddr").textContent = deliveryAddress || short;
+  }else{
+    el.classList.remove("giftMode");
+    giftCtx.style.display = "none";
+    if(deliveryAreaName){
+      el.innerHTML = `📍 ${escapeHtml(deliveryAreaName)} <span class="arrow">▾</span>`;
+    }else{
+      el.innerHTML = `📍 Set location <span class="arrow">▾</span>`;
+    }
+  }
+}
+renderLocationChip();
+
+/* ============ INITIAL GPS — only if no saved location at all ============ */
+function tryInitialGps(){
+  if(deliveryLat && deliveryLng) return;   // already have something
+  if(!navigator.geolocation) return;
+
+  if(navigator.permissions && navigator.permissions.query){
+    navigator.permissions.query({ name:"geolocation" }).then((result)=>{
+      if(result.state === "denied") return;
+      doGetGps(true);
+    }).catch(()=> doGetGps(true));
+  }else{
+    doGetGps(true);
+  }
+}
+
+function doGetGps(silent){
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const area = await reverseGeocode(lat, lng, /*shortOnly=*/true);
+
+    deliveryMode = "self";
+    deliveryLat = lat;
+    deliveryLng = lng;
+    deliveryAreaName = area || "Your area";
+    deliveryAddress = area || "";
+
+    persistDeliveryLocation();
+    renderLocationChip();
+    if(allShops.length) { renderShops(); renderProducts(); }
+  }, (err)=>{
+    console.warn("GPS failed:", err);
+  }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
+}
+
+tryInitialGps();
+
+/* ============ MODAL OPEN/CLOSE ============ */
+window.openLocModal = ()=>{
+  closeProfile();
+  /* Initialize modal state from current saved values */
+  modalMode = deliveryMode;
+  modalLat = deliveryLat;
+  modalLng = deliveryLng;
+  modalAddress = deliveryAddress;
+  modalAreaName = deliveryAreaName;
+
+  document.getElementById("locModal").classList.add("show");
+  switchModalMode(modalMode);
+};
+
+window.closeLocModal = ()=>{
+  document.getElementById("locModal").classList.remove("show");
+  /* Cleanup map */
+  if(pickerMap){
+    try{ pickerMap.remove(); }catch(e){}
+    pickerMap = null; pickerMarker = null;
+  }
+};
+
+document.getElementById("locModal").addEventListener("click", (e)=>{
+  if(e.target.id === "locModal") closeLocModal();
+});
+
+/* Mode toggle */
+document.querySelectorAll(".locModeOpt").forEach(opt=>{
+  opt.addEventListener("click", ()=>{
+    const mode = opt.dataset.mode;
+    switchModalMode(mode);
+  });
+});
+
+function switchModalMode(mode){
+  modalMode = mode;
+  document.querySelectorAll(".locModeOpt").forEach(o=>{
+    o.classList.toggle("selected", o.dataset.mode === mode);
+  });
+  document.getElementById("selfPanel").style.display = mode === "self" ? "block" : "none";
+  document.getElementById("otherPanel").style.display = mode === "other" ? "block" : "none";
+
+  if(mode === "self"){
+    initSelfPanel();
+  }else{
+    setTimeout(initOtherPanel, 50);
+  }
+}
+
+/* ============ SELF MODE PANEL ============ */
+function initSelfPanel(){
+  const box = document.getElementById("gpsStatusBox");
+  const text = document.getElementById("gpsStatusText");
+  const retry = document.getElementById("gpsRetryBtn");
+  const confirmBtn = document.getElementById("confirmSelfBtn");
+
+  /* If we already have a saved self location, offer to use it directly */
+  if(deliveryMode === "self" && deliveryLat && deliveryLng){
+    box.classList.add("success");
+    box.classList.remove("warn");
+    text.innerHTML = `<b>${escapeHtml(deliveryAreaName || "Your saved location")}</b><br><span style="opacity:.85;font-size:11px;">Tap below to use this · or Retry for fresh GPS</span>`;
+    retry.style.display = "inline-flex";
+    retry.textContent = "Refresh GPS";
+
+    /* Use the saved values for confirmation */
+    modalLat = deliveryLat;
+    modalLng = deliveryLng;
+    modalAddress = deliveryAddress;
+    modalAreaName = deliveryAreaName;
+    confirmBtn.disabled = false;
     return;
   }
-  navigator.geolocation.getCurrentPosition(async (pos)=>{
-    try{
-      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
-      const data = await res.json();
-      const a = data.address || {};
-      const area = a.suburb || a.neighbourhood || a.village || a.town || a.city || a.state || "Your area";
-      document.getElementById("location").innerHTML = `📍 ${area} <span class='arrow'>▾</span>`;
-    }catch(e){
-      document.getElementById("location").innerHTML = "📍 Your area <span class='arrow'>▾</span>";
-    }
-  }, ()=>{
-    document.getElementById("location").innerHTML = "📍 Set location <span class='arrow'>▾</span>";
-  });
-}
-getLocation();
 
+  /* Otherwise fetch GPS now */
+  fetchGpsForModal();
+}
+
+function fetchGpsForModal(){
+  const box = document.getElementById("gpsStatusBox");
+  const text = document.getElementById("gpsStatusText");
+  const retry = document.getElementById("gpsRetryBtn");
+  const confirmBtn = document.getElementById("confirmSelfBtn");
+
+  box.classList.remove("success", "warn");
+  text.innerHTML = "⏳ Detecting your location…";
+  retry.style.display = "none";
+  confirmBtn.disabled = true;
+
+  if(!navigator.geolocation){
+    box.classList.add("warn");
+    text.innerHTML = "Geolocation not supported on this device.";
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    const lat = pos.coords.latitude;
+    const lng = pos.coords.longitude;
+    const area = await reverseGeocode(lat, lng, /*shortOnly=*/true);
+
+    modalLat = lat;
+    modalLng = lng;
+    modalAreaName = area || "Your location";
+    modalAddress = area || "";
+
+    box.classList.add("success");
+    text.innerHTML = `✓ <b>${escapeHtml(modalAreaName)}</b>`;
+    retry.style.display = "inline-flex";
+    retry.textContent = "Retry";
+    confirmBtn.disabled = false;
+  }, (err)=>{
+    box.classList.add("warn");
+    const msg = err.code === 1
+      ? "Location permission denied. Please enable in browser settings."
+      : "Couldn't get GPS. Tap Retry.";
+    text.innerHTML = msg;
+    retry.style.display = "inline-flex";
+    retry.textContent = "Retry";
+  }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
+}
+
+window.retryGps = fetchGpsForModal;
+
+window.confirmSelf = ()=>{
+  if(!modalLat || !modalLng) return;
+  deliveryMode = "self";
+  deliveryLat = modalLat;
+  deliveryLng = modalLng;
+  deliveryAddress = modalAddress;
+  deliveryAreaName = modalAreaName;
+  persistDeliveryLocation();
+  renderLocationChip();
+  if(allShops.length) { renderShops(); renderProducts(); }
+  closeLocModal();
+  showToast("✓ Showing shops near you");
+};
+
+/* ============ OTHER MODE PANEL — map picker ============ */
+function initOtherPanel(){
+  const el = document.getElementById("locPickerMap");
+  if(!el) return;
+
+  if(pickerMap){
+    try{ pickerMap.remove(); }catch(e){}
+    pickerMap = null; pickerMarker = null;
+  }
+
+  /* Center: existing modal pick > existing other-mode saved > GPS > Bhubaneswar */
+  let center = [20.2961, 85.8245];
+  let zoom = 12;
+
+  if(deliveryMode === "other" && deliveryLat && deliveryLng){
+    center = [deliveryLat, deliveryLng];
+    zoom = 16;
+    modalLat = deliveryLat;
+    modalLng = deliveryLng;
+    modalAddress = deliveryAddress;
+    modalAreaName = deliveryAreaName;
+  }
+
+  pickerMap = L.map(el, { zoomControl:true }).setView(center, zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap', maxZoom:19
+  }).addTo(pickerMap);
+
+  pickerMap.on("click", (e)=>{
+    setPickedLoc(e.latlng.lat, e.latlng.lng, true);
+  });
+
+  if(modalLat && modalLng){
+    placePinAt(modalLat, modalLng);
+    if(modalAddress){
+      document.getElementById("locAddrBox").classList.remove("empty");
+      document.getElementById("locPickedAddr").textContent = modalAddress;
+      document.getElementById("confirmOtherBtn").disabled = false;
+    }
+  }
+
+  setTimeout(()=> pickerMap.invalidateSize(), 100);
+
+  /* Search wiring */
+  const searchInput = document.getElementById("locAddrSearch");
+  searchInput.value = "";
+  searchInput.oninput = onLocSearchInput;
+  searchInput.onfocus = ()=>{
+    if(searchInput.value.trim().length >= 3){
+      document.getElementById("locSearchResults").classList.add("show");
+    }
+  };
+  document.getElementById("locSearchClear").classList.remove("show");
+  document.getElementById("locSearchResults").classList.remove("show");
+  document.getElementById("locSearchResults").innerHTML = "";
+}
+
+function placePinAt(lat, lng){
+  if(!pickerMap) return;
+  const pinIcon = L.divIcon({
+    className:"",
+    html:`<div style="background:#0C831F;width:34px;height:34px;border-radius:50% 50% 50% 0;
+          transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;
+          box-shadow:0 3px 8px rgba(0,0,0,.3);border:3px solid #fff;">
+          <div style="transform:rotate(45deg);font-size:14px;color:#fff;font-weight:800;">📍</div>
+          </div>`,
+    iconSize:[34,34], iconAnchor:[17,34]
+  });
+
+  if(pickerMarker){
+    pickerMarker.setLatLng([lat, lng]);
+  }else{
+    pickerMarker = L.marker([lat, lng], { icon: pinIcon, draggable: true }).addTo(pickerMap);
+    pickerMarker.on("dragend", (e)=>{
+      const p = e.target.getLatLng();
+      setPickedLoc(p.lat, p.lng, true);
+    });
+  }
+}
+
+async function setPickedLoc(lat, lng, doReverseGeocode){
+  modalLat = lat;
+  modalLng = lng;
+  placePinAt(lat, lng);
+
+  if(doReverseGeocode){
+    const fullAddr = await reverseGeocode(lat, lng, false);
+    const shortAddr = await reverseGeocode(lat, lng, true);
+    modalAddress = fullAddr || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    modalAreaName = shortAddr || "Selected location";
+  }
+
+  document.getElementById("locAddrBox").classList.remove("empty");
+  document.getElementById("locPickedAddr").textContent = modalAddress || "Selected location";
+  document.getElementById("confirmOtherBtn").disabled = false;
+}
+
+async function reverseGeocode(lat, lng, shortOnly){
+  try{
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&zoom=${shortOnly?14:18}`,
+      { headers: { "Accept-Language": "en" } }
+    );
+    const data = await res.json();
+    if(shortOnly){
+      const a = data.address || {};
+      return a.suburb || a.neighbourhood || a.village || a.town || a.city_district || a.city || a.county || a.state || "";
+    }
+    return data.display_name || "";
+  }catch(e){
+    console.error("Reverse geocode failed:", e);
+    return "";
+  }
+}
+
+function onLocSearchInput(e){
+  const q = e.target.value.trim();
+  document.getElementById("locSearchClear").classList.toggle("show", q.length > 0);
+
+  clearTimeout(locSearchDebounce);
+  if(q.length < 3){
+    document.getElementById("locSearchResults").classList.remove("show");
+    return;
+  }
+  locSearchDebounce = setTimeout(()=> doLocSearch(q), 350);
+}
+
+async function doLocSearch(query){
+  const spinner = document.getElementById("locSearchSpinner");
+  const resultsBox = document.getElementById("locSearchResults");
+  spinner.classList.add("show");
+
+  try{
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=6&countrycodes=in&addressdetails=1`,
+      { headers: { "Accept-Language": "en" } }
+    );
+    const data = await res.json();
+
+    if(!data.length){
+      resultsBox.innerHTML = `<div style="padding:14px;text-align:center;color:#888;font-size:13px;">No results found</div>`;
+      resultsBox.classList.add("show");
+      return;
+    }
+
+    let html = "";
+    data.forEach(item=>{
+      const display = item.display_name || "";
+      const parts = display.split(", ");
+      const main = parts[0] || display;
+      const sub = parts.slice(1, 4).join(", ") || "";
+      html += `
+        <div class="locSearchResult" data-lat="${item.lat}" data-lng="${item.lon}" data-display="${escapeAttr(display)}" data-main="${escapeAttr(main + (parts[1] ? ", " + parts[1] : ""))}">
+          <div class="pin">📍</div>
+          <div class="info">
+            <div class="ttl">${escapeHtml(main)}</div>
+            ${sub ? `<div class="sub">${escapeHtml(sub)}</div>` : ""}
+          </div>
+        </div>`;
+    });
+    resultsBox.innerHTML = html;
+    resultsBox.classList.add("show");
+
+    resultsBox.querySelectorAll(".locSearchResult").forEach(r=>{
+      r.addEventListener("click", ()=>{
+        const lat = parseFloat(r.dataset.lat);
+        const lng = parseFloat(r.dataset.lng);
+        modalAddress = r.dataset.display;
+        modalAreaName = r.dataset.main || modalAddress.split(",").slice(0,2).join(",");
+        modalLat = lat;
+        modalLng = lng;
+
+        document.getElementById("locAddrSearch").value = modalAreaName;
+        resultsBox.classList.remove("show");
+
+        if(pickerMap){
+          pickerMap.setView([lat, lng], 16);
+        }
+        setPickedLoc(lat, lng, false);
+      });
+    });
+  }catch(err){
+    console.error("Search failed:", err);
+    resultsBox.innerHTML = `<div style="padding:14px;text-align:center;color:#d23030;font-size:13px;">Search error · check connection</div>`;
+    resultsBox.classList.add("show");
+  }finally{
+    spinner.classList.remove("show");
+  }
+}
+
+window.clearLocSearch = ()=>{
+  document.getElementById("locAddrSearch").value = "";
+  document.getElementById("locSearchClear").classList.remove("show");
+  document.getElementById("locSearchResults").classList.remove("show");
+};
+
+window.confirmOther = ()=>{
+  if(!modalLat || !modalLng){
+    showToast("Pick a location on the map first", true);
+    return;
+  }
+  deliveryMode = "other";
+  deliveryLat = modalLat;
+  deliveryLng = modalLng;
+  deliveryAddress = modalAddress;
+  deliveryAreaName = modalAreaName || modalAddress.split(",").slice(0,2).join(",");
+  persistDeliveryLocation();
+  renderLocationChip();
+  if(allShops.length) { renderShops(); renderProducts(); }
+  closeLocModal();
+  showToast("✓ Showing shops near recipient location");
+};
+
+function persistDeliveryLocation(){
+  localStorage.setItem("deliveryMode", deliveryMode);
+  localStorage.setItem("deliveryLat", deliveryLat || "");
+  localStorage.setItem("deliveryLng", deliveryLng || "");
+  localStorage.setItem("deliveryAddress", deliveryAddress || "");
+  localStorage.setItem("deliveryAreaName", deliveryAreaName || "");
+}
+
+/* ============ DISTANCE CALCULATION ============ */
+function haversineKm(lat1, lng1, lat2, lng2){
+  if(lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) *
+            Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/* ============ DATA LOADING ============ */
 async function loadData(){
   try{
     const [pSnap, cSnap, sSnap] = await Promise.all([
@@ -589,7 +1306,6 @@ async function loadData(){
       getDocs(collection(db, "localshop-details"))
     ]);
 
-    /* Build shop-type lookup */
     shopTypeMap = {};
     const seenCats = new Map();
 
@@ -608,7 +1324,6 @@ async function loadData(){
     });
     topCategories = Array.from(seenCats.values());
 
-    /* Enrich shops + track which are open */
     openShopNames = new Set();
     allShops = sSnap.docs.map(d=>{
       const s = { ...d.data(), __id: d.id };
@@ -625,7 +1340,6 @@ async function loadData(){
         s.__typeName    = s.category || "";
       }
 
-      /* FIX: track shop open/closed status. Default to OPEN if field missing. */
       s.__isOpen = s.isOpen !== false;
       if(s.__isOpen && s.shopName){
         openShopNames.add(s.shopName.toLowerCase());
@@ -634,7 +1348,6 @@ async function loadData(){
       return s;
     });
 
-    /* Enrich products with shop's topCategory */
     const shopByName = {};
     allShops.forEach(s=>{ shopByName[(s.shopName||"").toLowerCase()] = s; });
 
@@ -650,7 +1363,6 @@ async function loadData(){
     renderShops();
     renderProducts();
 
-    /* ✨ Voice AI — initialize after products are loaded */
     initVoiceAI({
       getProducts: () => allProducts,
       getShops:    () => allShops,
@@ -684,12 +1396,26 @@ window.selectCategory = (cat)=>{
   renderProducts();
 };
 
-/* SHOPS — FIX: only show OPEN shops in the scroll */
+/* SHOPS — sort by distance from delivery location, closest first */
 function renderShops(){
   const c = document.getElementById("shops");
-  let f = allShops.filter(s => s.__isOpen);   // hide closed shops
+  let f = allShops.filter(s => s.__isOpen);
   if(selectedCategory){
     f = f.filter(s => s.__topCategory === selectedCategory);
+  }
+
+  /* Compute distance for each shop from delivery location */
+  if(deliveryLat && deliveryLng){
+    f.forEach(s=>{
+      s.__distanceKm = haversineKm(s.lat, s.lng, deliveryLat, deliveryLng);
+    });
+    /* Sort: shops with distance first (sorted asc), then shops without */
+    f.sort((a,b)=>{
+      if(a.__distanceKm == null && b.__distanceKm == null) return 0;
+      if(a.__distanceKm == null) return 1;
+      if(b.__distanceKm == null) return -1;
+      return a.__distanceKm - b.__distanceKm;
+    });
   }
 
   if(!f.length){
@@ -703,11 +1429,15 @@ function renderShops(){
     const icon = s.__icon || "🏪";
     const type = s.__typeName || "";
     const active = selectedShop === name ? "active" : "";
+    const distChip = s.__distanceKm != null
+      ? `<div class="shopDist">📏 ${s.__distanceKm.toFixed(1)} km</div>`
+      : "";
     html += `
       <div class="shopCard ${active}" onclick="selectShop('${escapeAttr(name)}')">
         <div class="shopIcon">${icon}</div>
         <div class="shopName">${escapeHtml(name)}</div>
         ${type ? `<div class="shopType">${escapeHtml(type)}</div>` : ""}
+        ${distChip}
       </div>`;
   });
   c.innerHTML = html;
@@ -719,15 +1449,29 @@ window.selectShop = (name)=>{
   renderProducts();
 };
 
-/* PRODUCTS — FIX: filter out products from closed shops */
+/* PRODUCTS — sort by their shop's distance to delivery location */
 function renderProducts(){
   const c = document.getElementById("products");
   const title = document.getElementById("productsTitle");
 
-  let f = allProducts.filter(p => p.__shopOpen);   // hide closed-shop products
+  let f = allProducts.filter(p => p.__shopOpen);
   if(selectedCategory) f = f.filter(p => p.__topCategory === selectedCategory);
   if(selectedShop)     f = f.filter(p => p.shopName === selectedShop);
   if(searchTerm)       f = f.filter(p => (p.name||"").toLowerCase().includes(searchTerm));
+
+  /* Sort products by their shop's distance */
+  if(deliveryLat && deliveryLng && !selectedShop){
+    const shopDistMap = new Map();
+    allShops.forEach(s=>{
+      const d = haversineKm(s.lat, s.lng, deliveryLat, deliveryLng);
+      shopDistMap.set((s.shopName||"").toLowerCase(), d == null ? Infinity : d);
+    });
+    f.sort((a,b)=>{
+      const da = shopDistMap.get((a.shopName||"").toLowerCase()) ?? Infinity;
+      const db = shopDistMap.get((b.shopName||"").toLowerCase()) ?? Infinity;
+      return da - db;
+    });
+  }
 
   if(searchTerm)             title.textContent = `Results for "${searchTerm}"`;
   else if(selectedShop)      title.textContent = selectedShop;
@@ -791,7 +1535,6 @@ window.searchProducts = ()=>{
   }, 150);
 };
 
-/* ADD TO CART — FIX: defense in depth, block adding from closed shop */
 window.addToCart = (productId)=>{
   const p = allProducts.find(x => x.__id === productId);
   if(!p){ showToast("Product not available", true); return; }
