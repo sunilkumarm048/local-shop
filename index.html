@@ -9,6 +9,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
+<!-- ============ PWA: Make site installable as app ============ -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0C831F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="LocalShop">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="Local groceries delivered in 15 minutes">
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 
@@ -119,6 +129,7 @@ button{font-family:inherit;cursor:pointer;border:none;}
 .itemIcon.history {background:#ffe8d1;}
 .itemIcon.nearby  {background:#d6f0ff;}
 .itemIcon.help    {background:#ffe0e0;}
+.itemIcon.install {background:#dcf3e1;}
 
 .itemContent{flex:1;min-width:0;line-height:1.3;}
 .itemTitle{font-size:13px;font-weight:700;color:#1f1f1f;}
@@ -394,6 +405,35 @@ button{font-family:inherit;cursor:pointer;border:none;}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
+/* ============ PWA INSTALL FLOATING BUTTON ============ */
+.pwaInstallFab{
+  display:none;
+  position:fixed;
+  bottom:100px;
+  right:16px;
+  background:#0C831F;
+  color:#fff;
+  border:none;
+  padding:12px 18px;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:700;
+  font-family:'Inter',Arial,sans-serif;
+  box-shadow:0 4px 16px rgba(12,131,31,.4);
+  cursor:pointer;
+  z-index:998;
+  align-items:center;
+  gap:6px;
+  animation:pwaPulse 2s ease-in-out infinite;
+}
+.pwaInstallFab.show{display:flex;}
+@keyframes pwaPulse{
+  0%,100%{box-shadow:0 4px 16px rgba(12,131,31,.4);}
+  50%{box-shadow:0 4px 24px rgba(12,131,31,.7);}
+}
+body.pwa-installed .pwaInstallFab{display:none !important;}
+.cartBar.show ~ .pwaInstallFab.show{bottom:170px;}
+
 /* ============ LOCATION PICKER MODAL ============ */
 .locModalBg{
   position:fixed;inset:0;background:rgba(0,0,0,.55);
@@ -623,6 +663,19 @@ button{font-family:inherit;cursor:pointer;border:none;}
           </a>
         </div>
 
+        <!-- ============ PWA INSTALL OPTION IN DROPDOWN ============ -->
+        <div class="dropdownSection" id="pwaInstallSection" style="display:none;">
+          <div class="dropdownLabel">App</div>
+          <button class="dropdownItem" onclick="triggerPwaInstall()">
+            <div class="itemIcon install">📲</div>
+            <div class="itemContent">
+              <div class="itemTitle">Install LocalShop App</div>
+              <div class="itemSub">Get the app on your home screen</div>
+            </div>
+            <div class="itemArrow">›</div>
+          </button>
+        </div>
+
         <div class="dropdownSection">
           <div class="dropdownLabel">Partner with us</div>
           <a href="/shop/login.html" class="dropdownItem">
@@ -710,6 +763,11 @@ button{font-family:inherit;cursor:pointer;border:none;}
   </div>
 </div>
 
+<!-- ============ PWA: Floating Install Button ============ -->
+<button id="pwaInstallBtn" class="pwaInstallFab" onclick="triggerPwaInstall()">
+  📲 Install App
+</button>
+
 <div id="toast" class="toast"></div>
 
 <!-- ============ LOCATION PICKER MODAL ============ -->
@@ -774,6 +832,78 @@ button{font-family:inherit;cursor:pointer;border:none;}
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- ============ PWA: Service Worker + Install Logic ============ -->
+<script>
+/* Register Service Worker for offline support */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/service-worker.js")
+      .then((reg) => console.log("[PWA] Service Worker registered:", reg.scope))
+      .catch((err) => console.error("[PWA] Service Worker failed:", err));
+  });
+}
+
+/* Capture install prompt event */
+let pwaDeferredPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  pwaDeferredPrompt = e;
+  document.getElementById("pwaInstallBtn")?.classList.add("show");
+  const sec = document.getElementById("pwaInstallSection");
+  if (sec) sec.style.display = "block";
+  console.log("[PWA] Install prompt available");
+});
+
+/* Trigger install */
+window.triggerPwaInstall = async () => {
+  if (!pwaDeferredPrompt) {
+    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+      alert("To install LocalShop on iPhone:\n\n1. Tap the Share button (📤) at the bottom of Safari\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap 'Add' in the top right");
+    } else {
+      alert("App is already installed, or installation isn't available on this browser. Try opening in Chrome on Android.");
+    }
+    return;
+  }
+  pwaDeferredPrompt.prompt();
+  const { outcome } = await pwaDeferredPrompt.userChoice;
+  console.log("[PWA] User choice:", outcome);
+  if (outcome === "accepted") {
+    document.getElementById("pwaInstallBtn")?.classList.remove("show");
+    const sec = document.getElementById("pwaInstallSection");
+    if (sec) sec.style.display = "none";
+  }
+  pwaDeferredPrompt = null;
+};
+
+/* Hide install option after successful install */
+window.addEventListener("appinstalled", () => {
+  console.log("[PWA] App installed!");
+  document.getElementById("pwaInstallBtn")?.classList.remove("show");
+  const sec = document.getElementById("pwaInstallSection");
+  if (sec) sec.style.display = "none";
+  pwaDeferredPrompt = null;
+});
+
+/* Detect if running as installed app */
+if (window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true) {
+  document.body.classList.add("pwa-installed");
+  console.log("[PWA] Running as installed app");
+}
+
+/* iOS: show install option in dropdown if not already installed */
+(function checkIOS(){
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true;
+  if (isIOS && !isStandalone) {
+    const sec = document.getElementById("pwaInstallSection");
+    if (sec) sec.style.display = "block";
+  }
+})();
+</script>
 
 <script type="module">
 import { db } from "/js/firebase.js";
@@ -871,7 +1001,6 @@ function renderLocationChip(){
   const giftCtx = document.getElementById("giftContext");
 
   if(deliveryMode === "other" && deliveryLat && deliveryLng){
-    /* Gift mode — show shortened area + Change button */
     const short = (deliveryAreaName || "Recipient location").split(",").slice(0,2).join(",");
     el.innerHTML = `🎁 <b>${escapeHtml(short)}</b> <span class="changeBtn">Change</span>`;
     el.classList.add("giftMode");
@@ -889,9 +1018,9 @@ function renderLocationChip(){
 }
 renderLocationChip();
 
-/* ============ INITIAL GPS — only if no saved location at all ============ */
+/* ============ INITIAL GPS ============ */
 function tryInitialGps(){
-  if(deliveryLat && deliveryLng) return;   // already have something
+  if(deliveryLat && deliveryLng) return;
   if(!navigator.geolocation) return;
 
   if(navigator.permissions && navigator.permissions.query){
@@ -908,7 +1037,7 @@ function doGetGps(silent){
   navigator.geolocation.getCurrentPosition(async (pos)=>{
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
-    const area = await reverseGeocode(lat, lng, /*shortOnly=*/true);
+    const area = await reverseGeocode(lat, lng, true);
 
     deliveryMode = "self";
     deliveryLat = lat;
@@ -929,7 +1058,6 @@ tryInitialGps();
 /* ============ MODAL OPEN/CLOSE ============ */
 window.openLocModal = ()=>{
   closeProfile();
-  /* Initialize modal state from current saved values */
   modalMode = deliveryMode;
   modalLat = deliveryLat;
   modalLng = deliveryLng;
@@ -942,7 +1070,6 @@ window.openLocModal = ()=>{
 
 window.closeLocModal = ()=>{
   document.getElementById("locModal").classList.remove("show");
-  /* Cleanup map */
   if(pickerMap){
     try{ pickerMap.remove(); }catch(e){}
     pickerMap = null; pickerMarker = null;
@@ -953,7 +1080,6 @@ document.getElementById("locModal").addEventListener("click", (e)=>{
   if(e.target.id === "locModal") closeLocModal();
 });
 
-/* Mode toggle */
 document.querySelectorAll(".locModeOpt").forEach(opt=>{
   opt.addEventListener("click", ()=>{
     const mode = opt.dataset.mode;
@@ -976,14 +1102,12 @@ function switchModalMode(mode){
   }
 }
 
-/* ============ SELF MODE PANEL ============ */
 function initSelfPanel(){
   const box = document.getElementById("gpsStatusBox");
   const text = document.getElementById("gpsStatusText");
   const retry = document.getElementById("gpsRetryBtn");
   const confirmBtn = document.getElementById("confirmSelfBtn");
 
-  /* If we already have a saved self location, offer to use it directly */
   if(deliveryMode === "self" && deliveryLat && deliveryLng){
     box.classList.add("success");
     box.classList.remove("warn");
@@ -991,7 +1115,6 @@ function initSelfPanel(){
     retry.style.display = "inline-flex";
     retry.textContent = "Refresh GPS";
 
-    /* Use the saved values for confirmation */
     modalLat = deliveryLat;
     modalLng = deliveryLng;
     modalAddress = deliveryAddress;
@@ -1000,7 +1123,6 @@ function initSelfPanel(){
     return;
   }
 
-  /* Otherwise fetch GPS now */
   fetchGpsForModal();
 }
 
@@ -1024,7 +1146,7 @@ function fetchGpsForModal(){
   navigator.geolocation.getCurrentPosition(async (pos)=>{
     const lat = pos.coords.latitude;
     const lng = pos.coords.longitude;
-    const area = await reverseGeocode(lat, lng, /*shortOnly=*/true);
+    const area = await reverseGeocode(lat, lng, true);
 
     modalLat = lat;
     modalLng = lng;
@@ -1063,7 +1185,6 @@ window.confirmSelf = ()=>{
   showToast("✓ Showing shops near you");
 };
 
-/* ============ OTHER MODE PANEL — map picker ============ */
 function initOtherPanel(){
   const el = document.getElementById("locPickerMap");
   if(!el) return;
@@ -1073,7 +1194,6 @@ function initOtherPanel(){
     pickerMap = null; pickerMarker = null;
   }
 
-  /* Center: existing modal pick > existing other-mode saved > GPS > Bhubaneswar */
   let center = [20.2961, 85.8245];
   let zoom = 12;
 
@@ -1106,7 +1226,6 @@ function initOtherPanel(){
 
   setTimeout(()=> pickerMap.invalidateSize(), 100);
 
-  /* Search wiring */
   const searchInput = document.getElementById("locAddrSearch");
   searchInput.value = "";
   searchInput.oninput = onLocSearchInput;
@@ -1284,7 +1403,6 @@ function persistDeliveryLocation(){
   localStorage.setItem("deliveryAreaName", deliveryAreaName || "");
 }
 
-/* ============ DISTANCE CALCULATION ============ */
 function haversineKm(lat1, lng1, lat2, lng2){
   if(lat1 == null || lng1 == null || lat2 == null || lng2 == null) return null;
   const R = 6371;
@@ -1297,7 +1415,6 @@ function haversineKm(lat1, lng1, lat2, lng2){
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-/* ============ DATA LOADING ============ */
 async function loadData(){
   try{
     const [pSnap, cSnap, sSnap] = await Promise.all([
@@ -1396,7 +1513,6 @@ window.selectCategory = (cat)=>{
   renderProducts();
 };
 
-/* SHOPS — sort by distance from delivery location, closest first */
 function renderShops(){
   const c = document.getElementById("shops");
   let f = allShops.filter(s => s.__isOpen);
@@ -1404,12 +1520,10 @@ function renderShops(){
     f = f.filter(s => s.__topCategory === selectedCategory);
   }
 
-  /* Compute distance for each shop from delivery location */
   if(deliveryLat && deliveryLng){
     f.forEach(s=>{
       s.__distanceKm = haversineKm(s.lat, s.lng, deliveryLat, deliveryLng);
     });
-    /* Sort: shops with distance first (sorted asc), then shops without */
     f.sort((a,b)=>{
       if(a.__distanceKm == null && b.__distanceKm == null) return 0;
       if(a.__distanceKm == null) return 1;
@@ -1449,7 +1563,6 @@ window.selectShop = (name)=>{
   renderProducts();
 };
 
-/* PRODUCTS — sort by their shop's distance to delivery location */
 function renderProducts(){
   const c = document.getElementById("products");
   const title = document.getElementById("productsTitle");
@@ -1459,7 +1572,6 @@ function renderProducts(){
   if(selectedShop)     f = f.filter(p => p.shopName === selectedShop);
   if(searchTerm)       f = f.filter(p => (p.name||"").toLowerCase().includes(searchTerm));
 
-  /* Sort products by their shop's distance */
   if(deliveryLat && deliveryLng && !selectedShop){
     const shopDistMap = new Map();
     allShops.forEach(s=>{
