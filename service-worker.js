@@ -222,3 +222,4 @@ self.addEventListener("notificationclick", (event) => {
 });
 
 console.log("[SW] LocalShop Service Worker loaded:", CACHE_VERSION);
+  
